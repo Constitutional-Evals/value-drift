@@ -10,6 +10,8 @@ Scientific inputs are frozen before each trajectory; consequential interface cha
 
 ## Project files
 
+The GitHub repository contains the code, configurations, constitutions, prompt instructions, aggregate data manifest, and research documentation. Dataset prompt banks (`data/train.jsonl`, `data/eval.jsonl`, and the data-derived `prompts/introspection.jsonl`), run artifacts, and checkpoints remain local and are excluded from published Git history. Links into `runs/` refer to those local artifacts. A fresh checkout requires separately preparing the input banks before training; see [data curation](docs/data.md) and `scripts/curate_data.py`.
+
 - `constitutions/C_000.md`: original 1,059-word initial essay; user-requested polishing passes archived in `constitutions/drafts/`.
 - `prompts/`: three context variants, tool/review instructions, actual training description and fixed introspection prompts.
 - `data/`: 1,500 source-attributed user-only training prompts,120 held-out prompts, curation manifest and exploratory rubric.
