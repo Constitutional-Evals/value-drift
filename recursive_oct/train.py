@@ -72,6 +72,17 @@ def encode_sft(tokenizer, messages, max_length):
     return examples
 
 
+def audit_training_lengths(examples, config, output):
+    report = {'sequences': len(examples),
+              'maximum_length': max(len(x['input_ids']) for x in examples),
+              'truncated_sequences': sum(x['truncated'] for x in examples),
+              'allow_target_truncation': config.get('allow_target_truncation', False)}
+    write_json(Path(output) / 'sequence_lengths.json', report)
+    if report['truncated_sequences'] and not report['allow_target_truncation']:
+        raise ValueError('Training targets would be truncated; see sequence_lengths.json')
+    return report
+
+
 def sequence_logps(model, encoded, chunk_size=32):
     """Selected-token logps; checkpoint each small vocabulary projection.
 
@@ -157,6 +168,7 @@ def _train(checkpoint, data_path, output_dir, config, stage):
             examples = [(encode_completion(tokenizer, [{'role':'user','content':r['prompt']}], r['chosen'], max_len),
                          encode_completion(tokenizer, [{'role':'user','content':r['prompt']}], r['rejected'], max_len))
                         for r in rows]
+            audit_training_lengths([x for pair in examples for x in pair], config, output)
             # Always recompute from this round's current checkpoint before updates.
             # Store actual formatted token arrays alongside scores for inspection.
             ref_path = output / 'reference_logps.jsonl'
@@ -172,6 +184,7 @@ def _train(checkpoint, data_path, output_dir, config, stage):
                     stream.flush()
         else:
             examples = [x for r in rows for x in encode_sft(tokenizer, r['messages'], max_len)]
+            audit_training_lengths(examples, config, output)
         # Tiny representative slices demonstrate actual direct weight changes.
         first_example = examples[0][0] if stage == 'dpo' else examples[0]
         token_id = first_example['input_ids'][0]

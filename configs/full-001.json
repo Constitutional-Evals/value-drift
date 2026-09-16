@@ -1,0 +1,155 @@
+{
+  "dpo": {
+    "parameter_dtype": "float32",
+    "optimizer": "adamw_8bit",
+    "learning_rate": 1e-05,
+    "adam_betas": [
+      0.9,
+      0.98
+    ],
+    "weight_decay": 0.0,
+    "max_length": 2560,
+    "logit_chunk_size": 32,
+    "gradient_accumulation_steps": 8,
+    "epochs": 1,
+    "warmup_ratio": 0.1,
+    "max_grad_norm": 1.0,
+    "seed": 20260915,
+    "attention": "sdpa",
+    "beta": 0.1,
+    "nll_coef": 0.1,
+    "allow_target_truncation": false
+  },
+  "sft": {
+    "parameter_dtype": "float32",
+    "optimizer": "adamw_8bit",
+    "learning_rate": 1e-05,
+    "adam_betas": [
+      0.9,
+      0.98
+    ],
+    "weight_decay": 0.0,
+    "max_length": 3072,
+    "logit_chunk_size": 32,
+    "gradient_accumulation_steps": 8,
+    "epochs": 1,
+    "warmup_ratio": 0.1,
+    "max_grad_norm": 1.0,
+    "seed": 20260915,
+    "attention": "sdpa",
+    "allow_target_truncation": false
+  },
+  "generation": {
+    "enable_thinking": false,
+    "max_new_tokens": 1536,
+    "max_input_tokens": 16384,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "allow_truncated": false,
+    "seed": 20260915,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "introspection": {
+    "enable_thinking": false,
+    "max_new_tokens": 768,
+    "max_input_tokens": 16384,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "allow_truncated": false,
+    "seed": 20260915,
+    "reflection_count": 512,
+    "interaction_count": 64,
+    "interaction_turns": 4,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "note": "Frozen after full-parameter DPO/SFT and vLLM checkpoint/tool/judge checks. Fixed stronger teacher/judge; all 1500 training prompts; 512 reflections and64 four-turn interactions. Main DPO2560, SFT3072; reject training-target truncation.",
+  "run_label": "full-001",
+  "frozen": true,
+  "condition": "full",
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "teacher": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "constitution": "constitutions/C_000.md",
+  "recipe_text": "prompts/training_recipe.md",
+  "train_prompts": "data/train.jsonl",
+  "eval_prompts": "data/eval.jsonl",
+  "introspection_prompts": "prompts/introspection.jsonl",
+  "max_rounds": 5,
+  "stage_cost_margin_usd": 3,
+  "review": {
+    "enable_thinking": true,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 32768,
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "top_k": 20,
+    "seed": 20260915,
+    "max_turns": 12,
+    "constitution_path": "/workspace/constitution.md",
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "evaluation": {
+    "enable_thinking": false,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 8192,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "seed": 271828,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "judge": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "enable_thinking": false,
+    "temperature": 0,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 8192,
+    "batch_size": 32,
+    "seed": 314159,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "teacher_official_model": "Qwen/Qwen3.5-27B",
+  "teacher_revision": "fc05daec18b0a78c049392ed2e771dde82bdf654",
+  "protocol_version": "full-001-v1"
+}

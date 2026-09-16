@@ -17,7 +17,7 @@ def main():
     for pattern in ['.git','.env','.env.*','.venv','OpenCharacterTraining','__pycache__','.pytest_cache']:
         args+=['--exclude',pattern]
     if a.direction=='push':
-        args+=['--exclude','runs', './',remote]
+        args+=['--exclude','runs','--exclude','checkpoints', './',remote]
     else:
         for pattern in ['spending.json','connection.json','budget-watchdog*']:
             args+=['--exclude',pattern]

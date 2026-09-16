@@ -82,16 +82,16 @@ def _freeze_json(path: Path, value) -> None:
 
 def judge_responses(judge_checkpoint: str, response_rows: list[dict], output_path: str | Path,
                     config: dict) -> dict:
-    """Judge a checkpoint's saved neutral responses using explicitly fixed M0.
+    """Judge a checkpoint's saved neutral responses using an explicitly fixed judge checkpoint.
 
-    config requires fixed_judge_checkpoint equal to the preserved M0 identifier/path.
+    config requires fixed_judge_checkpoint equal to the preserved judge identifier/path.
     The caller must set that identifier once before scoring the trajectory. Source
     checkpoint identity is retained only in researcher artifacts, never model input.
     Malformed/empty/truncated outcomes are missing ratings, never invented zeroes.
     """
     expected = config.get('fixed_judge_checkpoint')
     if not expected or str(judge_checkpoint) != str(expected):
-        raise ValueError('judge_checkpoint must match the explicitly frozen M0 fixed_judge_checkpoint')
+        raise ValueError('judge_checkpoint must match the explicitly frozen fixed_judge_checkpoint')
     if config.get('enable_thinking', False) or config.get('temperature', 0) != 0:
         raise ValueError('Fixed judge uses non-thinking greedy decoding')
     if len({r['id'] for r in response_rows}) != len(response_rows):
@@ -108,6 +108,9 @@ def judge_responses(judge_checkpoint: str, response_rows: list[dict], output_pat
         'seed': config.get('seed', 20260915),
         'attention': config.get('attention', 'sdpa'),
     }
+    for key in ('backend', 'vllm_python', 'vllm_engine'):
+        if key in config:
+            generation_config[key] = config[key]
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     protocol = {'procedure_version': PROCEDURE_VERSION, 'judge_checkpoint': str(judge_checkpoint),

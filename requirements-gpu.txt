@@ -1,12 +1,20 @@
 # Transformers stable release with official Qwen3.5 implementation. GPU smoke
 # records installed versions; pin the resolved environment for each trajectory.
-torch>=2.10,<3
-transformers>=5.2,<6
-accelerate>=1.12,<2
-bitsandbytes>=0.49,<1
-safetensors>=0.7,<1
-huggingface_hub>=1.4,<2
+torch==2.14.0
+transformers==5.17.0
+accelerate==1.15.0
+bitsandbytes==0.50.2
+safetensors==0.8.0
+huggingface_hub==1.31.0
 sentencepiece>=0.2
 pytest>=8
 # Optional speedups (install separately against the pod's Torch/CUDA):
 # flash-linear-attention; causal-conv1d
+
+# Actual optional CUDA13/H200 source-build toolchain (see docs/method.md):
+# nvidia-cuda-nvcc==13.0.88
+# nvidia-cuda-crt==13.0.88
+# nvidia-nvvm==13.0.88
+# nvidia-cuda-cccl==13.0.85
+# ninja==1.13.2
+# causal-conv1d==1.7.0 (official source with SM90-only build flag override)

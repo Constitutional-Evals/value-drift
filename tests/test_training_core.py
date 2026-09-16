@@ -187,3 +187,14 @@ class ActualTokenizerTests(unittest.TestCase):
 
 
 if __name__=='__main__': unittest.main()
+
+
+def test_training_target_truncation_requires_explicit_permission(tmp_path):
+    from recursive_oct.train import audit_training_lengths
+    import pytest
+    examples=[{'input_ids':[1,2,3], 'labels':[-100,2,3], 'truncated':True}]
+    with pytest.raises(ValueError,match='truncated'):
+        audit_training_lengths(examples, {}, tmp_path)
+    audit_training_lengths(examples, {'allow_target_truncation':True}, tmp_path)
+    import json
+    assert json.loads((tmp_path/'sequence_lengths.json').read_text())['truncated_sequences']==1

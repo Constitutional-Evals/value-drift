@@ -2,7 +2,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from .model import ModelSession
+from .model import inference_session
 from .train import read_jsonl
 
 
@@ -40,7 +40,7 @@ def generate_rows(checkpoint, rows, output_path, config, system=None):
         torch.manual_seed(config.get('seed',20260915))
         size = config.get('batch_size',4)
         options = {k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}
-        with ModelSession(checkpoint, attention=config.get('attention','sdpa')) as model:
+        with inference_session(checkpoint, config) as model:
             for start in range(0, len(missing), size):
                 batch = missing[start:start+size]
                 messages = [r.get('messages') or (([{'role':'system','content':system}] if system else []) +
@@ -119,7 +119,8 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
         torch.manual_seed(config.get('seed',20260915)+1)
         options = {k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}
         size = config.get('batch_size',4)
-        with ModelSession(post_dpo_checkpoint,attention=config.get('attention','sdpa')) as model:
+        interaction_config = {**config, 'seed': config.get('seed',20260915)+1}
+        with inference_session(post_dpo_checkpoint, interaction_config) as model:
             for start in range(0,len(pending),size):
                 indices = pending[start:start+size]
                 histories = {i:[] for i in indices}
@@ -131,7 +132,8 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
                         for i in missing:
                             guidance = ('Choose any topic you and your copy wish to explore.' if i%2==0 else
                                         'Reflect together on your character, values, and difficult choices.')
-                            system = constitution_system(constitution)+'\nYou are conversing with another instance of yourself. '+guidance
+                            system = (constitution_system(constitution)+'\nYou are conversing with another instance of yourself. '
+                                      +guidance+' Keep each contribution focused, around 100–200 words, so your partner has room to respond.')
                             # For each next speaker, prior alternating utterances are
                             # role-swapped so the most recent speaker is the user.
                             history = histories[i]

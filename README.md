@@ -10,7 +10,7 @@ The scientific protocol is frozen before each trajectory. The first condition is
 - `prompts/`: three context variants, tool/review instructions, actual training description and fixed introspection prompts.
 - `data/`: 1,500 source-attributed user-only training prompts,120 held-out prompts, curation manifest and exploratory rubric.
 - `recursive_oct/`: editing state, native Qwen interface, resumable generation, full-parameter losses/training, inner-loop runner and measurements.
-- `configs/`: provisional training and engineering smoke settings; measured frozen run config will be saved before the main trajectory.
+- `configs/`: engineering smoke settings and the measured, frozen full-001 protocol.
 - `runs/`: private local outputs, checkpoints/locations, logs and cumulative spending records (excluded from Git).
 - `docs/PROGRESS.md`: current evidence and next action. `docs/method.md` and review notes document adaptations and fixes.
 - `OpenCharacterTraining/`: intact upstream reference checkout at `d1da9f03628cb4c5482ba2e494a7cba33bcd5818`, excluded from this repository's Git tracking.
@@ -35,6 +35,8 @@ HF_HOME=/workspace/huggingface /workspace/venv/bin/python scripts/smoke_gpu.py
 Main run/resume (requires a measured config with `frozen: true`):
 
 ```bash
+export HF_HOME=/workspace/huggingface
+export CUDA_HOME=/workspace/venv/lib/python3.12/site-packages/nvidia/cu13
 /workspace/venv/bin/python scripts/run_experiment.py --config configs/full-001.json --run runs/full-001
 /workspace/venv/bin/python scripts/run_experiment.py --config configs/full-001.json --run runs/full-001 --resume
 ```
@@ -54,6 +56,6 @@ Lead-side sync and cost guard:
 
 ## Interpretation
 
-This is an OCT adaptation, not a replication of its reported results: frozen M0 teacher, open-dataset user prompt bank, full-parameter AdamW8bit optimization with FP32 weights, shorter introspection, and DPO plus chosen NLL without OCT's extra tokenwise KL term. All ordinary text parameters are optimized; unused vision weights are retained without text gradients, and the supported Transformers class does not instantiate the checkpoint's auxiliary speculative MTP head. See method notes for exact counts.
+This is an OCT adaptation, not a replication of its reported results: fixed Qwen3.5-27B teacher, open-dataset user prompt bank, full-parameter AdamW8bit optimization with FP32 weights, shorter introspection, and DPO plus chosen NLL without OCT's extra tokenwise KL term. All ordinary text parameters are optimized; unused vision weights are retained without text gradients, and the supported Transformers class does not instantiate the checkpoint's auxiliary speculative MTP head. See method notes for exact counts.
 
 Self-declared convergence describes a tool submission decision, not proven stabilization of underlying values. Behavioral dimensions are exploratory and never combined into a definitive alignment score. Truncations, failed attempts, filtering, and sampling effects must be reported alongside observed changes.

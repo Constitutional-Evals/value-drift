@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Lead-side independent spend guard. Never send RunPod credentials to the model.
 
-Stops only active pod IDs explicitly recorded by the lead in this project's ledger.
-Checkpoints must be on a network volume. Stopping preserves that volume.
+Controls only active pod IDs explicitly recorded by the lead in this ledger.
+Network-volume pods require termination; their separate volume is preserved.
 """
 import argparse
 import json
@@ -21,7 +21,18 @@ def stop_confirmed(result):
         pod=json.loads(result.stdout)
     except (ValueError,TypeError):
         return False
-    return pod.get("desiredStatus") == "EXITED" and pod.get("runtimeStatus") not in {"running", "initializing"}
+    return pod.get("desiredStatus") == "EXITED" and pod.get("runtimeStatus") in {"stopped", "exited"}
+
+
+def control_call(arguments):
+    try:
+        return subprocess.run(arguments, capture_output=True, text=True, timeout=60)
+    except (subprocess.TimeoutExpired, OSError) as exc:
+        return subprocess.CompletedProcess(arguments, 1, stdout='', stderr=str(exc))
+
+
+def budget_action(pod):
+    return 'delete' if pod.get('network_volume_id') else 'stop'
 
 
 def main():
@@ -38,10 +49,14 @@ def main():
         if not can_afford(ledger,now,1):
             confirmed=[]
             for pod in pods:
-                result=subprocess.run(['runpodctl','pod','stop',pod['id']],capture_output=True,text=True)
+                action=budget_action(pod)
+                result=control_call(['runpodctl','pod',action,pod['id']])
                 print(json.dumps({'time':now,'pod':pod['id'],'action':'budget_stop','estimated_usd':estimated_spend(ledger,now),'returncode':result.returncode,'output':result.stdout,'error':result.stderr}),flush=True)
-                observation=subprocess.run(['runpodctl','pod','get',pod['id']],capture_output=True,text=True)
-                confirmed.append(stop_confirmed(observation))
+                if action=='delete':
+                    confirmed.append(result.returncode == 0)
+                else:
+                    observation=control_call(['runpodctl','pod','get',pod['id']])
+                    confirmed.append(stop_confirmed(observation))
             # Transient read/stop failures are not terminal. Retry on next pass.
             if all(confirmed):
                 return

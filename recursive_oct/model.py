@@ -8,6 +8,19 @@ import time
 BASE_MODEL = 'Qwen/Qwen3.5-9B'
 
 
+def inference_session(checkpoint, config):
+    backend = config.get('backend', 'transformers')
+    if backend == 'transformers':
+        return ModelSession(checkpoint, attention=config.get('attention', 'sdpa'))
+    if backend == 'vllm':
+        from .vllm_session import VLLMSession
+        return VLLMSession(checkpoint,
+            python_executable=config['vllm_python'],
+            engine_options=config.get('vllm_engine', {}),
+            seed=config.get('seed', 20260915))
+    raise ValueError(f'Unknown inference backend: {backend}')
+
+
 def parse_tool_calls(raw_text: str) -> list[dict]:
     """Parse native qwen3_coder calls, preserving multiline string arguments.
 

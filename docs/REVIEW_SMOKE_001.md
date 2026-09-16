@@ -47,3 +47,24 @@ No successful post-fix GPU training step had been observed by this reviewer at r
 ## Next execution
 
 Run the inexpensive real-tokenizer check first, then retry the labeled engineering smoke from M0 with failure artifacts preserved. Verify clean inference boundaries, real DPO backward/optimizer execution and active-text gradients, saved DPO reload, post-DPO introspection, SFT update, and final reload. Only that completed smoke can establish training compatibility and inform the final workload estimate. Do not interpret the current failure as a constitutional or behavioral result.
+
+## Addendum: attempt 002 component failure and attempt 003 recovery
+
+The reviewer inspected the saved attempt-002 log, DPO completion/gradient/delta artifacts, and raw introspective generations. DPO genuinely completed **two optimizer steps**, with **9,409,813,744** parameters requiring gradients, **8,953,803,264** parameters receiving gradients, and **97.837 GB** peak allocated CUDA memory. All 333 parameter names without gradients belonged to the visual component. The five recorded representative parameter samples each had 64 of 64 sampled elements change, covering embeddings, linear attention, full attention, final normalization, and output projection. These samples support that real updates occurred; they are not a claim that every scalar parameter changed.
+
+Post-DPO reflection outputs ended normally at 63 and 62 tokens. Self-interaction turn 0 ended normally at 90 tokens; turn 1 reached its 256-token generation cap. With no complete interaction example available, the strict requested-component guard correctly raised `Missing usable examples from a requested introspection component`. The failure was in generation completeness, after successful DPO and before SFT. It was not convergence, and silently proceeding with reflection-only SFT would have dropped a requested component.
+
+The reviewer approved the scoped correction in `scripts/resume_smoke.py`: start a separately recorded engineering attempt 003, increase its introspection output allowance to 768, reuse the existing DPO checkpoint, retain completed reflection outputs and interaction turn 0, and regenerate only the truncated interaction turn. The old raw files remain preserved. The main trajectory had not begun and its proposed generation allowance was already 768, so this correction neither modifies an active scientific protocol nor attempts to induce constitutional edits. Attempt 003 is a fresh sample of the failed turn, not a continuation of its 256-token prefix or a claim of bitwise stochastic replay.
+
+A read-only inspection of the running pod independently confirmed:
+
+- `sft_attempt003.jsonl.reflections.jsonl` exactly matches the two original raw reflections.
+- The retained interaction turn 0 exactly matches the original JSON record.
+- The original interaction file still records turn 1 with `finish_reason='length'` and 256 tokens.
+- The attempt-003 interaction file records replacement turn 1 with `finish_reason='stop'` and **555 tokens**.
+- The attempt metadata records the changed engineering limit and unchanged SFT settings.
+- The SFT input contains the two reflection rows and one interaction row; the completed DPO marker still records two optimizer steps.
+
+This is an appropriate preservation and resume strategy for this failure. SFT's completion marker was absent at the reviewer's inspection, so SFT success and final checkpoint reload were still pending and must be established from their actual artifacts.
+
+One scope limitation remains: the engineering configuration uses only two interaction utterances. Serialization drops the final user-role utterance, leaving the initial assistant utterance as the interaction SFT target. This exercises role-swapped **generation**, but not an SFT target conditioned on a generated peer reply. The main four-turn configuration includes that longer history; the realistic sequence-length benchmark must cover it before extrapolating smoke memory or throughput to the final workload. No additional paid work was started by this reviewer.

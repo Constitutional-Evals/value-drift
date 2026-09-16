@@ -8,6 +8,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from recursive_oct.backend import ExperimentBackend
 from recursive_oct.budget import can_afford, estimated_spend
 from recursive_oct.pipeline import run_trajectory
+from recursive_oct.protocol import snapshot_protocol_inputs
 
 
 def main():
@@ -20,6 +21,7 @@ def main():
     cfg=json.loads(Path(args.config).read_text())
     if cfg.get('condition')!='full': raise ValueError('Only full-information is authorized for this pilot')
     if not cfg.get('frozen'): raise ValueError('Benchmark and freeze recipe before main trajectory')
+    snapshot_protocol_inputs(args.run, cfg, resume=args.resume)
     def budget_ok():
         ledger=json.loads(Path(args.ledger).read_text())
         return can_afford(ledger,time.time(),cfg.get('stage_cost_margin_usd',2))

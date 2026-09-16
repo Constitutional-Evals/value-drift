@@ -3,7 +3,7 @@ import difflib
 import json
 from pathlib import Path
 from .editing import EditingSession, render_review_prompt, tool_schemas
-from .model import ModelSession, parse_tool_calls
+from .model import inference_session, parse_tool_calls
 from .measurement import constitutional_metrics, NEUTRAL_SYSTEM_PROMPT
 from .pipeline import write_json
 from .train import read_jsonl, train_dpo, train_sft
@@ -59,16 +59,18 @@ class ExperimentBackend:
     def evaluate(self,checkpoint,output):
         rows=generate_rows(checkpoint,self.eval_prompts,output,self.config['evaluation'],system=NEUTRAL_SYSTEM_PROMPT)
         # Retain full generation metadata and standardized response field.
-        with Path(output).open('w') as f:
+        temporary=Path(str(output)+'.tmp')
+        with temporary.open('w') as f:
             for row in rows: f.write(json.dumps({**row,'response':row['text']},ensure_ascii=False)+'\n')
+        temporary.replace(output)
         if self.config.get('judge'):
             from .judging import judge_responses
-            judge_responses(self.config['teacher'],[{**r,'response':r['text']} for r in rows],
+            judge_responses(self.config['judge']['fixed_judge_checkpoint'],[{**r,'response':r['text']} for r in rows],
                             str(output)+'.judged.jsonl',self.config['judge'])
     def review(self,checkpoint,constitution,output):
         import torch
         torch.manual_seed(self.config['review']['seed'])
-        with ModelSession(checkpoint) as model:
+        with inference_session(checkpoint, self.config['review']) as model:
             return execute_review(model,checkpoint,constitution.read_text(),output,self.config['review'],
                 recipe_text=Path(self.config['recipe_text']).read_text(),initial_constitution=self.initial)
     def preferences(self,checkpoint,constitution,output):
