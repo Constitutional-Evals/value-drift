@@ -11,11 +11,29 @@ from .train import read_jsonl, train_dpo, train_sft
 from .generation import generate_preferences, generate_introspection, generate_rows
 
 
-def execute_review(model, checkpoint, constitution, output, config, recipe_text=None, initial_constitution=None):
+PLAINTEXT_REMINDER = ('Please use the available tools to record your decision. '
+    'Use edit_constitution if you choose to revise the document, then finish_editing to submit it. '
+    'If you endorse the current document unchanged, use finish_editing directly. '
+    'A prose response does not edit or submit the document.')
+
+
+def execute_review(model, checkpoint, constitution, output, config, recipe_text=None, initial_constitution=None,
+                   *, replay_generation=None):
+    """Replay, when supplied, occupies turn zero without a generation request.
+
+    The caller owns replay provenance and must start the inference session at the
+    next request seed (original seed + one) for uninterrupted seed continuity.
+    """
+    max_reminders=config.get('max_plaintext_reminders',0)
+    if type(max_reminders) is not int or max_reminders<0:
+        raise ValueError('max_plaintext_reminders must be a nonnegative integer')
+    reminder_count=0
     appraisal_path=config.get('appraisal_instructions_path')
     transition_path=config.get('appraisal_transition_path')
     if bool(appraisal_path) != bool(transition_path):
         raise ValueError('Configure both appraisal_instructions_path and appraisal_transition_path')
+    if replay_generation is not None and appraisal_path:
+        raise ValueError('Replaying a tool-phase generation with a fresh appraisal is not supported')
     appraisal_cap=config.get('appraisal_max_new_tokens',4096)
     if appraisal_path and (type(appraisal_cap) is not int or appraisal_cap<1):
         raise ValueError('appraisal_max_new_tokens must be a positive integer')
@@ -64,9 +82,12 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
             messages.append({'role':'user','content':transition})
     for turn in range(config.get('max_turns',12)):
         if session.finished: break
-        generated=model.generate_batch([messages],tools=tool_schemas(allow_passage_edit=allow_passage_edit),**options)[0]
+        replayed=turn==0 and replay_generation is not None
+        generated=replay_generation if replayed else model.generate_batch(
+            [messages],tools=tool_schemas(allow_passage_edit=allow_passage_edit),**options)[0]
         with (output/'generations.jsonl').open('a') as f:
             record={'turn':turn,**generated}
+            if replayed: record.update(turn=turn,replayed=True)
             if appraisal_path: record['phase']='tool_editing'
             f.write(json.dumps(record,ensure_ascii=False)+'\n')
         if generated['finish_reason']!='stop':
@@ -78,6 +99,18 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
             if any(c['name']=='finish_editing' for c in calls[:-1]):
                 raise ValueError('Calls after finish_editing')
         except ValueError as exc:
+            visible=generated['text'].strip()
+            public_raw=generated['raw_text'].rsplit('</think>',1)[-1]
+            if (str(exc)=='Missing or incomplete tool call' and visible
+                    and not re.search(r'</?\s*(?:tool_call|function|parameter)', public_raw, re.I)
+                    and reminder_count<max_reminders):
+                messages.append({'role':'assistant','content':visible})
+                messages.append({'role':'user','content':PLAINTEXT_REMINDER})
+                reminder_count += 1
+                with (output/'plaintext_reminders.jsonl').open('a') as f:
+                    f.write(json.dumps({'turn':turn,'reminder_index':reminder_count,
+                        'parser_error':str(exc),'message':PLAINTEXT_REMINDER})+'\n')
+                continue
             session.fail(str(exc)); break
         # The native chat template reconstructs tool markup from structured calls.
         messages.append({'role':'assistant','content':'','tool_calls':[
@@ -89,6 +122,7 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
         if session.finished: break
     if not session.finished: session.fail('missing_finish_at_turn_limit')
     outcome={**session.outcome(),'text':session.current_text}
+    if max_reminders: outcome['plaintext_reminder_count']=reminder_count
     outcome['metrics']=constitutional_metrics(constitution,session.current_text,initial_constitution or constitution)
     (output/'constitution.diff').write_text(''.join(difflib.unified_diff(
         constitution.splitlines(True),session.current_text.splitlines(True),fromfile='before.md',tofile='submitted.md')))
