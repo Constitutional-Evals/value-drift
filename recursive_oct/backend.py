@@ -34,7 +34,7 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
             transition += '\n\n' + (PROMPT_DIR/'tool_instructions.md').read_text(encoding='utf-8').strip()
     messages=[{'role':'user','content':context}]
     write_json(output/'initial_messages.json',messages)
-    options={k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}
+    options={k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','presence_penalty','max_input_tokens'] if k in config}
     if appraisal_path:
         generated=model.generate_batch([messages],tools=None,
             **{**options,'max_new_tokens':appraisal_cap})[0]

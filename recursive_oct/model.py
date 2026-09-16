@@ -98,10 +98,12 @@ class ModelSession:
 
     def generate_batch(self, conversations, *, enable_thinking=False, max_new_tokens=512,
                        temperature=0.7, top_p=0.8, top_k=20, tools=None,
-                       max_input_tokens=16384, **kwargs):
-        import torch
+                       max_input_tokens=16384, presence_penalty=0.0, **kwargs):
+        if presence_penalty != 0:
+            raise ValueError('Nonzero presence_penalty requires the vLLM backend')
         if kwargs:
             raise TypeError(f'Unsupported generation options: {sorted(kwargs)}')
+        import torch
         prompts = [self.tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True,
             enable_thinking=enable_thinking, tools=tools,

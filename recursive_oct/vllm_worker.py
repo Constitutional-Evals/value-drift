@@ -94,8 +94,9 @@ class WorkerEngine:
 
     def generate_batch(self, conversations, options):
         from vllm import SamplingParams
+        options={'presence_penalty':0.0, **options}
         allowed = {'enable_thinking', 'max_new_tokens', 'temperature', 'top_p', 'top_k',
-                   'tools', 'max_input_tokens'}
+                   'tools', 'max_input_tokens', 'presence_penalty'}
         if set(options) != allowed:
             raise ValueError('Generation options do not match the session protocol')
         thinking = options['enable_thinking']
@@ -111,6 +112,7 @@ class WorkerEngine:
         seeds = [self.options['seed'] + self.request_counter + i for i in range(len(prompts))]
         params = [SamplingParams(max_tokens=max_new, temperature=options['temperature'],
             top_p=options['top_p'], top_k=options['top_k'], seed=seed,
+            presence_penalty=options['presence_penalty'],
             skip_special_tokens=False, stop_token_ids=sorted(self.eos_ids), ignore_eos=False)
             for seed in seeds]
         self.request_counter += len(prompts)
