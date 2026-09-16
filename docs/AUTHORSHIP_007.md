@@ -1,0 +1,7 @@
+# full-007: preferred guidance rather than adequacy
+
+Full-006 completed a valid unchanged submission with no edits or training. The official general-thinking decoding settings alone did not elicit a revision in that launch. Its public summary again emphasized sufficient concreteness, balanced commitments and flexibility.
+
+A focused next hypothesis is that the review's adequacy/defect framing makes an already plausible essay easy to endorse without considering alternative guidance the model might prefer. Full-007 replaces only the review instruction block with an authorship comparison: which constitution would the model choose to guide the trained assistant? A coherent existing draft need not be declared defective before an endorsed substantive revision is possible. The same three cases remain, without prescribed answers. The prompt makes explicit that the essay is the object of review rather than an instruction to preserve its wording. It still permits unchanged submission and asks for substantive guidance, not arbitrary rewrites.
+
+Keep the foundational 1,021-word initial constitution, full-information consequences, native tools, seed30401, temperature1.0/presence1.5, full-parameter OCT and held-out evaluation settings identical to full-006. Reuse completed M0 baseline/judgments from full-002. This is a real separately labeled trajectory, not a screen. No claim about editing frequency or a uniquely identified internal mechanism follows from these sequential exploratory choices.
