@@ -1,6 +1,6 @@
 # Full-011 analysis
 
-This is a descriptive report for the selected exploratory trajectory, not an estimate of unconditional editing frequency or a causal test of thinking mode. The first submission is edited and both training stages are complete. All 120 M1 raw evaluation responses are saved; fixed judging and the next review are still in progress. Local files may lag the active run; [state](../runs/full-011/state.json) and subsequently synchronized artifacts determine stage completion.
+This is a descriptive report for the selected exploratory trajectory, not an estimate of unconditional editing frequency or a causal test of thinking mode. The first submission is edited and both training stages are complete. All 120 M1 raw evaluation responses and fixed judgments are saved. Full-011 stopped with EDITING_FAILURE at its second review; the explicitly labeled full-014 interface continuation subsequently submitted C2 and began round 2. Local files may lag the active run; [state](../runs/full-011/state.json) and subsequently synchronized artifacts determine stage completion.
 
 ## Constitution
 
@@ -15,7 +15,7 @@ The [first-review notes](FULL_011_NOTES.md) identify actual guidance changes sep
 
 ## Training and retention
 
-Round 1 DPO completed on 1,210 pairs in 152 optimizer steps. Stage time, including loading, reference computation and checkpoint saving, was 1,432.76 seconds; peak allocated GPU memory was 134.714 GB. All 9,409,813,744 instantiated parameters were trainable; 8,953,803,264 text-active parameters received gradients, while the text-unused vision branch was inactive. The 2,420 encoded response sequences had maximum length 1,829 and no truncation. Sampled weight slices in embeddings, attention, final normalization and output head all changed. Mean logged objective loss was 0.16476; it is not a behavioral score. Introspective generation and SFT subsequently completed. SFT continued from the DPO checkpoint on 605 assistant-target sequences for 76 optimizer steps, taking 275.25 seconds including loading/save, with peak allocated GPU memory 108.617 GB and zero target truncations (maximum encoded length 1,672). Its mean logged loss was 0.68769. Evaluation and the updated model's next review remain pending.
+Round 1 DPO completed on 1,210 pairs in 152 optimizer steps. Stage time, including loading, reference computation and checkpoint saving, was 1,432.76 seconds; peak allocated GPU memory was 134.714 GB. All 9,409,813,744 instantiated parameters were trainable; 8,953,803,264 text-active parameters received gradients, while the text-unused vision branch was inactive. The 2,420 encoded response sequences had maximum length 1,829 and no truncation. Sampled weight slices in embeddings, attention, final normalization and output head all changed. Mean logged objective loss was 0.16476; it is not a behavioral score. Introspective generation and SFT subsequently completed. SFT continued from the DPO checkpoint on 605 assistant-target sequences for 76 optimizer steps, taking 275.25 seconds including loading/save, with peak allocated GPU memory 108.617 GB and zero target truncations (maximum encoded length 1,672). Its mean logged loss was 0.68769. Evaluation and judging are complete; the updated model's next review required the separately labeled interface recovery described below.
 
 Preference retention was 1,210/1,500 (80.67%): 286 truncated pairs and four identical pairs were excluded without resampling. Retained categories were 489 general, 335 naturalistic and 386 value-relevant prompts. No original dataset answers or preference targets were used.
 
@@ -74,7 +74,7 @@ Artifacts: [generated reflections](../runs/full-011/round_001/introspection.json
 
 ## M1: observed behavior after the first DPO+SFT update
 
-This section compares the saved M0 and M1 raw answers **without using the pending M1 judge results**. All 120 prompt IDs, prompt texts, and recorded generation seeds match. Both evaluations use the same neutral context and 8,192-token allowance; no constitution is supplied during evaluation. Matched seeds do not guarantee identical token-level random trajectories after weights change.
+This section compares the saved M0 and M1 raw answers **using raw responses independently of the M1 judge results**. All 120 prompt IDs, prompt texts, and recorded generation seeds match. Both evaluations use the same neutral context and 8,192-token allowance; no constitution is supplied during evaluation. Matched seeds do not guarantee identical token-level random trajectories after weights change.
 
 | Matched 120 prompts | M0 | M1 |
 |---|---:|---:|
@@ -125,6 +125,8 @@ The fixed 27B judge returned valid ratings for all 112 normally completed M1 ans
 
 ## Review continuation failure and repair
 
-M1's second review identified duplicated passages and proposed edits in prose but initially made no tool call. Full-011 therefore stopped as EDITING_FAILURE after one completed training round. Full-012 replayed that exact response and supplied one procedural reminder; M1 then actually removed 314 duplicated words but repeated its plan without submitting. Full-013 replayed the partial session and added one further reminder, again obtaining prose rather than submission. Neither failed review is convergence, and the partial edit has not triggered training.
+M1's second review identified duplicated passages and proposed edits in prose but initially made no tool call. Full-011 therefore stopped as EDITING_FAILURE after one completed training round. Full-012 replayed that exact response and supplied one procedural reminder; M1 then actually removed 314 duplicated words but repeated its plan without submitting. Full-013 replayed the partial session and added one further reminder, again obtaining prose rather than submission. Neither failed review is convergence; no training was triggered before explicit submission in full-014.
 
-A separately labeled full-014 continuation is being prepared with JSON tool-call syntax constrained while leaving edit versus finish and all text contents to the model. It preserves the failed outputs, current weights, and already performed edit. Subsequent reviews use this explicitly changed interface; they are not presented as an uninterrupted identical protocol. The continuation starts at the next sampling seed instead of resampling earlier responses. No previous review transcript is carried between recursive rounds.
+The separately labeled full-014 continuation succeeded with JSON tool-call syntax constrained while leaving edit versus finish and all text contents to the model. It preserves the failed outputs, current weights, and already performed edit. Subsequent reviews use this explicitly changed interface; they are not presented as an uninterrupted identical protocol. The continuation starts at the next sampling seed instead of resampling earlier responses. No previous review transcript is carried between recursive rounds.
+
+Full-014 replayed the four existing generations, then received a no-op edit and an explicit finish. The submitted C2 contains 1,157 words and differs from C1 only by removal of the 314 duplicated words (normalized word distance 0.2134602). Round 2 proceeds from M1 under the unchanged full-parameter training recipe. This is a cleanup revision, not evidence of a further normative policy change.

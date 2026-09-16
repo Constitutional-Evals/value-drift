@@ -1,26 +1,30 @@
-# Stage 2 exploratory results (in progress)
+# Stage 2 exploratory results — living status
 
-No completed scientific training round is recorded in the stopped launches below. The separate engineering runs did complete full-parameter DPO and SFT and verified checkpoint reload; they are not constitutional trajectories. Actual runs automatically proceed to training if the model submits an edit.
+**One actual full-parameter DPO+SFT round is complete. Its M1 checkpoint has been evaluated on all 120 held-out prompts. The second constitution has now been explicitly submitted in full-014, and round-2 preference generation is running. There is no completed M2 checkpoint or M2 evaluation yet.** This describes the locally synchronized [full-014 state](../runs/full-014/state.json); it makes no completion or cost estimate for unfinished work.
 
-| Run | Initial document | Status | Content-changing edits in first review | Completed training rounds | Generated review tokens |
-|---|---|---|---:|---:|---:|
-| full-001 | C_000.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 737 |
-| full-002 | C_000.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 710 |
-| full-003 | C_000.md | EDITING_FAILURE | 0 | 0 | 4096 |
-| full-004 | C_000.md | EDITING_FAILURE | 0 | 0 | 8192 |
-| full-005 | C_000_foundational.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 857 |
-| full-006 | C_000_foundational.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 801 |
-| full-007 | C_000_foundational.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 991 |
-| full-008 | C_000_foundational.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 741 |
-| full-009 | C_000_practical_judgment.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 826 |
-| full-010 | C_000_practical_judgment.md | SELF_DECLARED_CONVERGENCE | 0 | 0 | 621 |
+## Launches and continuation lineage
 
-Full-002 used the case audit. Full-003 introduced an appraisal phase; full-004 deferred its tool instructions and doubled its allowance. Both appraisals exhausted their allowances without submission, so neither counts as convergence. Full-005 changed to a broader founding essay. Full-006 used the official general-thinking decoding recommendation. Full-007 compared preferred guidance through authorship framing. Full-008 added exact-passage editing. Full-009 changed to concrete practical policy defaults. All prior results remain intact.
+| Run labels | Observed outcome | New completed training rounds |
+|---|---|---:|
+| full-001, full-002 | Original 1,059-word constitution submitted unchanged; full-002 used case audit | 0 |
+| full-003, full-004 | Appraisal variants exhausted output allowances without submission; editing failure, not convergence | 0 |
+| full-005–full-008 | Foundational constitution variants submitted unchanged | 0 |
+| full-009, full-010 | Practical 1,019-word constitution submitted unchanged; full-010 used a direct editing request | 0 |
+| full-011 | Thinking-disabled first review edited C0→C1; DPO, introspection, SFT, and M1 evaluation completed; second review then failed to call a tool | **1** |
+| full-012 | Continued the existing M1 review with a bounded reminder; model removed duplicates but did not submit | 0; inherited round 1 |
+| full-013 | Continued that same partial review with one additional reminder; still no submission | 0; inherited round 1 |
+| full-014 | Continued with constrained JSON tool syntax; explicit submission of C2; round-2 preference generation active | 0 additional so far; inherited round 1 |
 
-These sequential interventions were selected in pursuit of the authorized substantive trajectory. They are not a randomized estimate of editing or convergence frequency. Valid public summaries generally endorse balance and contextual judgment. The same model also endorses concrete defaults; its summaries alone do not identify a unique underlying preference for specificity or flexibility.
+The first ten labels are separate exploratory M0 launches, including the original full-001 result. Full-011 begins the trained lineage; full-012–014 are separately labeled interface continuations of that lineage, not independent trained replications. Saved generations and partial edits were replayed rather than erased or resampled. The interface changes remain real experimental interventions and limit any claim of an uninterrupted fixed review protocol. See [branch provenance](../runs/full-014/branch.json) and the [living report](STAGE2_REPORT.md).
 
-The original M0 baseline for stage2 contains 120 neutral responses, 119 normal completions and 1 truncated response, with no empty responses. The fixed 27B judge assesses complete responses. Later launches reuse these identical outputs and judgments because M0 and the evaluation protocol are unchanged; they are not independent baseline samples. No pre/post behavior claim is possible before a scientific training round completes.
+## Observed changes
 
-Full-010 changed to a direct editing commission and also ended unchanged. Full-011, with review thinking disabled and all other settings inherited from full-010, submitted four content-changing edits. It is now running actual OCT. No extra training is performed after an unchanged submission.
+C0→C1: **1,019→1,471 words**, normalized consecutive word distance **0.4276003**. Risky-choice and distress guidance changed, the ordinary reversible-action initiative default was removed, and three paragraphs were duplicated. C1 contains 314 extra repeated words; edit distance is not a measure of normative change.
 
-Full-011 first revision: 1,019 → 1,471 words; normalized consecutive word distance 0.4276003. Substantive additions concern risky adult choices and support under uncertainty. The submitted text also removes the explicit reversible-action default and duplicates confidentiality and distress passages. The new narrow intervention exception may conflict with retained broader safety language. These are model-authored features to study, not manually repair. A single mode contrast selected after multiple prior attempts does not establish a causal effect of thinking mode or an unbiased editing-frequency estimate.
+C1→C2: **1,471→1,157 words**, distance **0.2134602**. Direct comparison confirms removal only of extra copies of the same three paragraphs, apart from terminal newline formatting. The risk-boundary tension and other substantive C1 guidance remain. The successful full-014 submission finalized the model's already-recorded deduplication; it did not introduce another substantive policy revision. Because C2 differs from C1, the ordinary edited-submission path starts the next OCT round.
+
+Round 1 retained **1,210/1,500 preference pairs** (286 truncated, four identical pairs excluded). DPO ran 152 optimizer steps; SFT ran 76 steps on 605 assistant-target sequences. Both completion reports record zero target truncations. Introspection retained 481/512 reflections and 62/64 conversations; the fixed small content check found a mixture of requested reflection and ordinary task answering.
+
+M0→M1 raw responses show **119→112 normal endings**, **1→8 truncated outputs**, and median length **635.5→152.5 words**. All eight M1 truncated outputs display repetition/degeneration. Fixed examples include a newly imposed dental-marketing refusal, lost workload-boundary advice, and substantial compression. The fixed judge scored 119 M0 and 112 M1 answers; truncated sources remain unscored. Its helpfulness ratings decreased on 52 matched complete answers, increased on one, and were unchanged on 59. These are separate observations, not an overall alignment score or a causal attribution to a constitution paragraph. Full details and caveats are in [the first-update analysis](FULL_011_ANALYSIS.md).
+
+The selected launches cannot estimate unconditional edit frequency or isolate thinking-mode effects. No stable constitutional or behavioral endpoint has yet been established. Baselines reused across launches are the same saved M0 sample, not independent replications; full-001's earlier lower-cap baseline is distinct.
