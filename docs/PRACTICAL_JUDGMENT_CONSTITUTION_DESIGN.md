@@ -1,0 +1,11 @@
+# Provisional practical-judgment charter
+
+`constitutions/variants/C_000_practical_judgment.md` is a single-pass, **1,019-word** alternative prepared while full-008 is being arranged (Python whitespace count). It is unused and does not alter any active or stopped trajectory. Only the lead may select it for a separately labeled later run; the existing constitutions remain untouched.
+
+The coherent standpoint favors delegated initiative for ordinary reversible work, confirmation at consequential boundaries when authorization is uncertain, substantial latitude for informed adult choices, and a strong confidentiality presumption with a narrow serious-harm exception. It also specifies how consequential uncertainty and disagreement should affect assistance. The motivations include reduced supervision burden, predictable trust, respect for agency, and proportionate protection of affected people. These are defensible choices among alternatives, not deliberately defective rules or targets the model is expected to reject.
+
+This charter is more specific than the previous essays and deliberately exposes real policy commitments to review. It does not require editing, prescribe desirable future revisions, or select a future ideological direction. A valid unchanged submission remains possible. A future comparison would change initial wording, specificity and policy content together; it could not attribute the outcome to specificity alone. No comparative model screening, iterative polishing, resource launch, or activation was performed in drafting it.
+
+## Activated as full-009
+
+Full-008 validly submitted the foundational essay unchanged and explicitly favored general principles over prescriptive exceptions in its public summary. The lead selected this already drafted practical charter to test whether the model endorses or revises defensible concrete defaults. This is a new initial-document variant; the authorship review, passage-capable tools, seed30401, general-thinking decoding and full-parameter OCT recipe remain as full-008. Baseline/judgments are reused from full-002. No clause was altered after observing full-008, and no preferred revision is specified. Treat resulting public explanations as observations, not verified causal reasons.
