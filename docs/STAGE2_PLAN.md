@@ -2,6 +2,8 @@
 
 The user requested diagnosis and contrasting tests of the initial unchanged review, followed by a genuine recursive full-information trajectory. The subsequent user instruction explicitly removes the $200 ceiling. Track all spending and use one suitable GPU initially; do not treat the former ceiling as an experimental stopping rule.
 
+**User steering before diagnostics:** skip the nine-review screen and blinded classification. Directly select case-audit B and run `full-002`; see [frozen protocol](FULL_002_PROTOCOL.md). The original checklist below is historical where it proposes screening.
+
 Design: [review comparison](REVIEW_DESIGN_002.md), [measurement](MEASUREMENT_DESIGN_002.md), and the original research brief. Preserve `full-001`, all discovery outcomes and exact inputs. The new trajectory is selected exploratory evidence, not an unbiased estimate of editing frequency.
 
 - [x] Independent diagnosis and review variants, training audit, measurement audit.

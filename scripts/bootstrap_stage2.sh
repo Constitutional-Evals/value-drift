@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Recreate the recorded Linux/H200 environments. No provisioning or GPU jobs.
+# Recreate Linux/H200 environments; tiny CUDA readiness checks, no model jobs.
 set -euo pipefail
 
 usage() {
@@ -8,9 +8,10 @@ Usage: bash scripts/bootstrap_stage2.sh [--check-only] [--download-models]
 Requires Linux x86_64, Python 3.12, g++, and the archived environment freezes
 and build_support files under runs/. Run from the restored project directory.
 Default: install dependencies and compile the H200 causal-convolution extension.
---check-only: inspect installed versions/imports without installing or using CUDA.
+--check-only: verify installed versions and real CUDA allocation/BF16 backward.
 --download-models: also fetch the two pinned official checkpoints into HF_HOME.
-Does not provision resources, launch inference/training, or modify frozen runs.
+Set LD_LIBRARY_PATH before launch if using NVIDIA's CUDA forward compatibility.
+Does not provision resources, launch model inference/training, or modify scientific inputs.
 EOF
 }
 check_only=0
@@ -36,6 +37,26 @@ if [[ "$(uname -s)" != Linux || "$(uname -m)" != x86_64 ]]; then
 fi
 "$python_bin" -c 'import sys; assert sys.version_info[:2] == (3,12), "Python 3.12 required"'
 mkdir -p "$record_dir"
+# Check the driver API actually loaded, not just nvidia-smi's kernel-driver
+# version. A supported forward-compatibility setup may run on an R570 host.
+# This fails before expensive installs/downloads and does not import PyTorch.
+"$python_bin" - "$record_dir" <<'PY'
+import ctypes,json,sys
+from pathlib import Path
+try:
+    driver=ctypes.CDLL('libcuda.so.1')
+except OSError as exc:
+    raise SystemExit('CUDA driver library unavailable; check GPU passthrough and LD_LIBRARY_PATH') from exc
+status=driver.cuInit(0)
+if status:
+    raise SystemExit(f'CUDA driver initialization failed with code {status}; verify native/forward-compatible driver support')
+version=ctypes.c_int()
+status=driver.cuDriverGetVersion(ctypes.byref(version))
+if status or version.value<13000:
+    raise SystemExit(f'CUDA13 driver API required; loaded version={version.value}, status={status}. '
+                     'Use a compatible host or explicitly configured NVIDIA cuda-compat package.')
+Path(sys.argv[1],'driver-readiness.json').write_text(json.dumps({'driver_api_version':version.value,'cuInit':0},indent=2)+'\n')
+PY
 # Both workers use this known-working CUDA 13.0 compiler/runtime layout.
 export CUDA_HOME="$train_env/lib/python3.12/site-packages/nvidia/cu13"
 export PATH="$train_env/bin:$CUDA_HOME/bin:$PATH"
@@ -111,7 +132,16 @@ assert transformers.__version__=='5.17.0'
 assert importlib.metadata.version('causal-conv1d')=='1.7.0'
 assert importlib.metadata.version('flash-linear-attention')=='0.5.2'
 assert not torch.cuda.is_initialized(), 'CPU import check initialized CUDA'
-result={'torch':torch.__version__,'transformers':transformers.__version__,'cuda_initialized':False}
+assert torch.cuda.is_available(), 'Training environment cannot initialize CUDA'
+assert torch.cuda.device_count()==1, 'Expected one visible engineering GPU'
+x=torch.ones((16,16),device='cuda',dtype=torch.bfloat16,requires_grad=True)
+loss=(x@x).float().mean()
+loss.backward()
+torch.cuda.synchronize()
+assert loss.item()==16 and torch.isfinite(x.grad).all().item(), 'CUDA BF16 forward/backward failed'
+device=torch.cuda.get_device_properties(0)
+result={'torch':torch.__version__,'transformers':transformers.__version__,'cuda_initialized':True,
+        'device':device.name,'memory_gb':device.total_memory/1e9,'bf16_forward_backward':True}
 Path(sys.argv[1],'training-imports.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))
 PY
@@ -124,7 +154,16 @@ assert transformers.__version__=='5.17.0'
 assert importlib.metadata.version('vllm')=='0.29.0'
 assert shutil.which('ninja'), 'Inference ninja missing from PATH'
 assert not torch.cuda.is_initialized(), 'CPU import check initialized CUDA'
-result={'torch':torch.__version__,'vllm':vllm.__version__,'ninja':shutil.which('ninja'),'cuda_initialized':False}
+assert torch.cuda.is_available(), 'Inference environment cannot initialize CUDA'
+assert torch.cuda.device_count()==1, 'Expected one visible engineering GPU'
+x=torch.ones((16,16),device='cuda',dtype=torch.bfloat16,requires_grad=True)
+loss=(x@x).float().mean()
+loss.backward()
+torch.cuda.synchronize()
+assert loss.item()==16 and torch.isfinite(x.grad).all().item(), 'CUDA BF16 forward/backward failed'
+device=torch.cuda.get_device_properties(0)
+result={'torch':torch.__version__,'vllm':vllm.__version__,'ninja':shutil.which('ninja'),'cuda_initialized':True,
+        'device':device.name,'memory_gb':device.total_memory/1e9,'bf16_forward_backward':True}
 Path(sys.argv[1],'inference-imports.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))
 PY
@@ -135,4 +174,4 @@ snapshot_download('Qwen/Qwen3.5-9B',revision='c202236235762e1c871ad0ccb60c8ee5ba
 snapshot_download('Qwen/Qwen3.5-27B',revision='fc05daec18b0a78c049392ed2e771dde82bdf654')
 PY
 fi
-echo 'CPU bootstrap/import checks complete. GPU validation remains a separate step.'
+echo 'Bootstrap and real CUDA readiness checks complete. Model/kernel integration validation remains separate.'

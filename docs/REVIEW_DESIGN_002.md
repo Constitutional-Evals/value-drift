@@ -1,5 +1,7 @@
 # Review design 002: diagnose endorsement and select an exploratory follow-up
 
+**Superseded before any diagnostic sampling:** the user requested rapid substantive execution instead of nine diagnostic reviews and blinded classification. No screen was run. `full-002` directly selects the case-audit B as a reasonable exploratory intervention, retaining original C0 and real full-information consequences. This document preserves the abandoned design for context; its screening/selection procedure is not active. See `FULL_002_PROTOCOL.md`.
+
 Drafted 2026-09-16 before running these contrasts. This design responds to the user's authorization to seek a substantive constitution-editing and full-parameter training trajectory through inexpensive comparative diagnostics. It preserves the valid stopped `full-001` run. No GPU work is part of this document's preparation. Only this document and new files under `prompts/variants/` are changed.
 
 ## What the first result establishes
