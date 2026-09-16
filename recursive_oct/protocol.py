@@ -26,6 +26,8 @@ def snapshot_protocol_inputs(run_dir: str | Path, config: dict, *, resume: bool 
         "judge_rubric": RUBRIC_PATH,
     })
     review = config.get("review", {})
+    if review.get("tool_instructions_path"):
+        inputs["tool_instructions"] = Path(review["tool_instructions_path"])
     if review.get("review_instructions_path"):
         inputs["review_instructions"] = Path(review["review_instructions_path"])
     if review.get("context_template_path"):

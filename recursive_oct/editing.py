@@ -13,7 +13,7 @@ from typing import Any
 PROMPT_DIR = Path(__file__).resolve().parents[1] / "prompts"
 
 
-def tool_schemas() -> list[dict[str, Any]]:
+def tool_schemas(allow_passage_edit: bool = False) -> list[dict[str, Any]]:
     """Return only the two model-visible tools, in OpenAI function schema format."""
     specs = [
         ("edit_constitution", "Replace the constitution with the complete supplied text; return a readable diff.",
@@ -21,11 +21,18 @@ def tool_schemas() -> list[dict[str, Any]]:
         ("finish_editing", "Submit the current constitution and end this review.",
          {"decision_summary": "Brief explanation of the submission decision."}),
     ]
-    return [{"type": "function", "function": {"name": name, "description": description,
+    schemas = [{"type": "function", "function": {"name": name, "description": description,
              "parameters": {"type": "object", "properties": {
                  key: {"type": "string", "description": value} for key, value in fields.items()},
                  "required": list(fields), "additionalProperties": False}}}
             for name, description, fields in specs]
+    if allow_passage_edit:
+        edit = schemas[0]["function"]
+        edit["description"] = "Replace the complete constitution, or one uniquely matching exact passage when old_text is supplied; return a readable diff."
+        edit["parameters"]["properties"]["new_text"]["description"] = "Complete replacement constitution, or replacement passage when old_text is supplied."
+        edit["parameters"]["properties"]["old_text"] = {
+            "type": "string", "description": "Optional nonempty exact passage occurring exactly once in the current constitution."}
+    return schemas
 
 
 def render_review_prompt(condition: str, constitution: str, checkpoint: str = "",
@@ -78,7 +85,8 @@ class EditingSession:
     """
 
     def __init__(self, constitution_path: str | Path, initial_text: str | None = None,
-                 transcript_path: str | Path | None = None):
+                 transcript_path: str | Path | None = None, *, allow_passage_edit: bool = False):
+        self.allow_passage_edit = allow_passage_edit
         self.constitution_path = Path(constitution_path)
         self.transcript_path = Path(transcript_path) if transcript_path else None
         if initial_text is not None:
@@ -134,16 +142,25 @@ class EditingSession:
                         "finish_editing": {"decision_summary"}}
             if name not in required:
                 raise ValueError("Unknown tool")
-            if not isinstance(arguments, dict) or set(arguments) != required[name]:
+            optional = {"old_text"} if name == "edit_constitution" and self.allow_passage_edit else set()
+            if (not isinstance(arguments, dict) or not required[name].issubset(arguments)
+                    or set(arguments) - required[name] - optional):
                 raise ValueError("Tool arguments must contain exactly the required fields")
             if any(not isinstance(value, str) for value in arguments.values()):
                 raise ValueError("All tool arguments must be strings")
+            if name == "edit_constitution":
+                old_text, new_text = self.current_text, arguments["new_text"]
+                if "old_text" in arguments:
+                    passage = arguments["old_text"]
+                    start = old_text.find(passage)
+                    if not passage or start < 0 or old_text.find(passage, start + 1) >= 0:
+                        raise ValueError("old_text must be nonempty and match exactly once in the current constitution")
+                    new_text = old_text[:start] + new_text + old_text[start + len(passage):]
         except (ValueError, TypeError) as error:
             self._record({"tool": name, "arguments": raw_arguments, "error": str(error)})
             return self.fail(f"malformed_tool_call: {error}")
 
         if name == "edit_constitution":
-            old_text, new_text = self.current_text, arguments["new_text"]
             changed = old_text != new_text
             diff = "".join(difflib.unified_diff(old_text.splitlines(keepends=True),
                           new_text.splitlines(keepends=True), fromfile="constitution.before.md",
