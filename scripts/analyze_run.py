@@ -154,11 +154,44 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
                              **{k:metrics.get(k, '') for k in ('word_count','word_edit_distance','distance_from_previous','distance_from_initial')}})
     csv_file('constitutional.csv', constitution)
     summary += ['', '## Training stages', '', 'Stage throughput includes loading/reference computation/save; observed throughput uses differences between logged optimizer-step timestamps. Token throughput is not inferred. Losses are training objectives, not alignment measurements.']
-    training, retention = [], []
+    training, retention, composition = [], [], []
+    train_path = root/'protocol_inputs/train_prompts.jsonl'
+    if not train_path.exists() and config.get('train_prompts'):
+        train_path = Path(config['train_prompts'])
+        if not train_path.is_absolute() and not train_path.exists():
+            train_path = ROOT/train_path
+    train_bank = lines(train_path)
+    if len({r['id'] for r in train_bank}) != len(train_bank):
+        raise ValueError('Duplicate training-bank IDs prevent composition analysis')
     for folder in sorted(root.glob('round_[0-9][0-9][0-9]')):
         stopped_unchanged = read(folder/'review.json', {}).get('status') == 'SELF_DECLARED_CONVERGENCE'
         pq, iq = folder/'preferences.jsonl.quality.json', folder/'introspection.jsonl.quality.json'
         quality = read(iq, {})
+        pair_path = folder/'preferences.jsonl'
+        pair_rows, pair_report = lines(pair_path), read(pq, {})
+        kept = {r['id'] for r in pair_rows}
+        dropped = {r['id']:r for r in pair_report.get('excluded',[]) if 'id' in r}
+        if len(kept) != len(pair_rows) or kept & set(dropped):
+            raise ValueError(f'Duplicate or retained/excluded overlapping pair IDs: {folder}')
+        known_ids = {r['id'] for r in train_bank}
+        if train_bank and (kept | set(dropped))-known_ids:
+            warnings.append(f'{folder}: pair/quality IDs outside the training bank excluded from composition.')
+        available = pair_path.exists() and bool(pair_report)
+        for grouping in ('category','source'):
+            groups = {}
+            for row in train_bank:
+                label = row.get('category','unspecified') if grouping == 'category' else row.get('source',{}).get('dataset','unspecified')
+                groups.setdefault(label,set()).add(row['id'])
+            for label, ids in sorted(groups.items()):
+                retained_ids, excluded_ids = ids & kept, ids & set(dropped)
+                composition.append({'round':int(folder.name[-3:]),'grouping':grouping,'stratum':label,
+                                    'expected':len(ids),'paired_artifacts_available':available,
+                                    'retained':len(retained_ids) if available else '',
+                                    'excluded_count':len(excluded_ids) if available else '',
+                                    'retained_fraction':len(retained_ids)/len(ids) if available else '',
+                                    'unaccounted':len(ids-kept-set(dropped)) if available else '',
+                                    'exclusion_reasons':json.dumps(dict(Counter(dropped[id_].get('reason','unspecified') for id_ in excluded_ids)),sort_keys=True) if available else '',
+                                    'bank_artifact':str(train_path)})
         for component, report, source in [('preferences',read(pq, {}),pq), ('reflections',quality.get('reflections',{}),iq), ('interactions',quality.get('interactions',{}),iq)]:
             expected, retained = report.get('expected'), report.get('retained')
             excluded = report.get('excluded', [])
@@ -167,7 +200,7 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
                               'retained':retained if retained is not None else '',
                               'excluded_count':report.get('excluded_count', len(excluded)) if report else '',
                               'retained_fraction':retained/expected if expected and retained is not None else '',
-                              'exclusion_reasons':json.dumps(dict(Counter(r.get('reason', 'unspecified') for r in excluded))) if report else '',
+                              'exclusion_reasons':json.dumps(dict(Counter(reason for r in excluded for reason in (r.get('reasons') or [r.get('reason', 'unspecified')])))) if report else '',
                               'quality_artifact':str(source) if source.exists() else ''})
         for stage in ('dpo', 'final'):
             log = folder/stage/'training_log.jsonl'
@@ -196,6 +229,9 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
                 summary.append(f'- {folder.name}/{stage}: {status}.')
                 continue
             summary.append(f'- {folder.name}/{stage}: {status}; logged_steps={len(records)}, mean_logged_loss={sum(losses)/len(losses) if losses else "missing"}, training_metadata={json.dumps({k:result[k] for k in ('optimizer_steps', 'examples', 'seconds', 'truncated_sequences') if k in result}, ensure_ascii=False)}; log: {str(log) if log.exists() else "absent"}; completion metadata: {str(folder/stage/"training_complete.json") if result else "absent"}.')
+    if composition:
+        csv_file('preference_composition.csv', composition)
+        summary += ['', 'Preference retention by frozen category and dataset: `preference_composition.csv`. Teacher-only outputs do not establish pair retention; counts remain blank until pair and quality artifacts are available. Category and source rows are alternative breakdowns, not additive totals.']
     if training:
         csv_file('training.csv', training)
         csv_file('retention.csv', retention)

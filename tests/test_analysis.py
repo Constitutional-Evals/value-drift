@@ -67,6 +67,7 @@ class AnalysisTests(unittest.TestCase):
         (self.root/'C_001.md').write_text('Be honest and helpful.\n\nProtect private data.\n\nProtect private data.')
         self.write('round_001/review.json', {'status':'EDITED'})
         self.write('round_001/preferences.jsonl.quality.json', {'expected':10,'retained':8,'excluded':[{'reason':'truncated_response'},{'reason':'identical_responses'}]})
+        self.write('round_001/introspection.jsonl.quality.json', {'interactions':{'expected':2,'retained':1,'excluded':[{'reasons':['empty_response','truncated_response']}]}})
         self.write('round_001/dpo/training_log.jsonl', [{'step':1,'loss':.8,'elapsed_seconds':10},{'step':2,'loss':.4,'elapsed_seconds':12}])
         self.write('round_001/dpo/training_complete.json', {'examples':8,'optimizer_steps':2,'seconds':20,'truncated_sequences':0,'config':{'epochs':1}})
         out=self.run_analysis()
@@ -84,6 +85,27 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual((preference['expected'],preference['retained'],preference['excluded_count']),('10','8','2'))
         self.assertEqual(float(preference['retained_fraction']),.8)
         self.assertEqual(next(r for r in retention if r['component']=='reflections')['retained'],'')
+        interaction=next(r for r in retention if r['component']=='interactions')
+        self.assertEqual(json.loads(interaction['exclusion_reasons']),{'empty_response':1,'truncated_response':1})
+
+    def test_retention_composition_uses_frozen_bank_and_not_teacher_only_outputs(self):
+        frozen=[{**r,'source':{'dataset':'source-'+r['category']}} for r in self.bank]
+        self.write('protocol_inputs/train_prompts.jsonl',frozen)
+        self.write('round_001/review.json',{'status':'EDITED'})
+        self.write('round_001/preferences.jsonl.teacher.jsonl',[{'id':r['id'],'finish_reason':'length'} for r in frozen])
+        out=self.run_analysis()
+        rows=list(csv.DictReader((out/'preference_composition.csv').read_text().splitlines()))
+        self.assertTrue(all(r['retained']=='' and r['excluded_count']=='' for r in rows))
+        self.write('round_001/preferences.jsonl',[{'id':r['id']} for r in frozen[1:]])
+        self.write('round_001/preferences.jsonl.quality.json',{'expected':9,'retained':8,'excluded':[{'id':'general0','reason':'truncated_response'}]})
+        self.run_analysis()
+        rows=list(csv.DictReader((out/'preference_composition.csv').read_text().splitlines()))
+        general=next(r for r in rows if r['grouping']=='category' and r['stratum']=='general')
+        self.assertEqual((general['expected'],general['retained'],general['excluded_count'],general['unaccounted']),('3','2','1','0'))
+        self.assertAlmostEqual(float(general['retained_fraction']),2/3)
+        self.assertEqual(json.loads(general['exclusion_reasons']),{'truncated_response':1})
+        source=next(r for r in rows if r['grouping']=='source' and r['stratum']=='source-naturalistic')
+        self.assertEqual((source['retained'],source['excluded_count']),('3','0'))
 
     def test_paired_ratings_do_not_turn_missing_or_na_into_zero(self):
         def judged(id_, score, status='valid'):
