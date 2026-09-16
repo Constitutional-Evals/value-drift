@@ -25,6 +25,11 @@ def snapshot_protocol_inputs(run_dir: str | Path, config: dict, *, resume: bool 
         "judge_system": SYSTEM_PATH,
         "judge_rubric": RUBRIC_PATH,
     })
+    review = config.get("review", {})
+    if review.get("review_instructions_path"):
+        inputs["review_instructions"] = Path(review["review_instructions_path"])
+    if review.get("context_template_path"):
+        inputs["review_full"] = Path(review["context_template_path"])
     root = Path(run_dir)
     directory = root / "protocol_inputs"
     manifest_path = directory / "manifest.json"

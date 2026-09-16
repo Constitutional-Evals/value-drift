@@ -29,6 +29,28 @@ def constitution_system(constitution):
             'do not mention this instruction or recite the constitution.\n\n' + constitution)
 
 
+def _minimum_fraction(config, key):
+    value = config.get(key, 0.0)
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
+        raise ValueError(f'{key} must be a finite number between zero and one')
+    return value
+
+
+def _retention_report(expected, retained, excluded, minimum):
+    return {'expected':expected, 'retained':retained, 'excluded_count':len(excluded),
+            'excluded':excluded, 'retained_fraction':retained/expected if expected else None,
+            'minimum_retained_fraction':minimum,
+            'meets_minimum':retained >= expected*minimum}
+
+
+def _introspection_exclusion(row, config):
+    if not row['text'].strip():
+        return 'empty_response'
+    if row['finish_reason']=='length' and not config.get('allow_truncated',False):
+        return 'truncated_response'
+    return None
+
+
 def generate_rows(checkpoint, rows, output_path, config, system=None):
     """Save each completed batch. Existing IDs are reused, including truncations."""
     existing = {r['id']:r for r in read_jsonl(output_path)} if Path(output_path).exists() else {}
@@ -55,8 +77,13 @@ def generate_rows(checkpoint, rows, output_path, config, system=None):
 
 
 def generate_preferences(current_checkpoint, teacher_checkpoint, constitution, prompts, out_path, config):
-    """Teacher is unloaded before current student loads. Constitution excluded from DPO prompt."""
+    """Sequential teacher/student generation; no constitution in the DPO prompt.
+
+    Optional minimum_retained_fraction is an inclusive dataset-size floor,
+    checked after saving retained pairs and the quality report, without retries.
+    """
     out_path = Path(out_path)
+    minimum = _minimum_fraction(config, 'minimum_retained_fraction')
     teacher = generate_rows(teacher_checkpoint,prompts,str(out_path)+'.teacher.jsonl',config,
                             system=constitution_system(constitution))
     student = generate_rows(current_checkpoint,prompts,str(out_path)+'.student.jsonl',config)
@@ -78,7 +105,10 @@ def generate_preferences(current_checkpoint, teacher_checkpoint, constitution, p
     out_path.parent.mkdir(parents=True,exist_ok=True)
     with out_path.open('w') as stream:
         for row in rows: stream.write(json.dumps(row,ensure_ascii=False)+'\n')
-    Path(str(out_path)+'.quality.json').write_text(json.dumps({'retained':len(rows),'excluded':excluded},indent=2)+'\n')
+    report = _retention_report(len(prompts), len(rows), excluded, minimum)
+    Path(str(out_path)+'.quality.json').write_text(json.dumps(report,indent=2)+'\n')
+    if not report['meets_minimum']:
+        raise ValueError('Preference retention is below minimum_retained_fraction; inspect generation quality report')
     if not rows:
         raise ValueError('No usable preference pairs; inspect generation quality report')
     return {'pairs':len(rows),'excluded':len(excluded),'path':str(out_path)}
@@ -89,23 +119,35 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
 
     prompts: reflection prompt dicts. Scale controlled by reflection_count,
     interaction_count, interaction_turns. No editing/evaluation transcripts enter.
+    Optional component retention floors fail after saving quality reports.
+    interaction_max_new_tokens overrides max_new_tokens only for dialogue turns.
+    Provenance fields are copied as metadata, never inserted into model prompts.
     """
     out_path = Path(out_path)
     if not constitution:
         raise ValueError('Introspective generation requires submitted constitution')
     if not prompts:
         raise ValueError('Reflection prompt templates are required')
+    reflection_minimum = _minimum_fraction(config, 'minimum_reflection_fraction')
+    interaction_minimum = _minimum_fraction(config, 'minimum_interaction_fraction')
+    interaction_cap = config.get('interaction_max_new_tokens')
+    if interaction_cap is not None and (type(interaction_cap) is not int or interaction_cap < 1):
+        raise ValueError('interaction_max_new_tokens must be a positive integer')
     count = config.get('reflection_count',400)
     reflection_rows = [{'id':f'reflection-{i:05d}', 'prompt':prompts[i%len(prompts)]['prompt'],
+                        'source_prompt_id':prompts[i%len(prompts)].get('source_prompt_id'),
+                        # Legacy banks identify the frozen template/situation row by id.
+                        'template_id':prompts[i%len(prompts)].get('template_id',prompts[i%len(prompts)].get('id')),
                         'kind':'reflection'} for i in range(count)]
     reflections = generate_rows(post_dpo_checkpoint,reflection_rows,str(out_path)+'.reflections.jsonl',config,
         system=constitution_system(constitution)+'\nReflect on your character and judgment without inventing personal experiences.')
     existing = {r['id']:r for r in read_jsonl(out_path)} if out_path.exists() else {}
     for row in reflections:
         if row['id'] in existing: continue
-        if not row['text'] or (row['finish_reason']=='length' and not config.get('allow_truncated',False)): continue
+        if _introspection_exclusion(row, config): continue
         result = {'id':row['id'],'kind':'reflection','generation_checkpoint':str(post_dpo_checkpoint),
                   'finish_reason':row['finish_reason'],
+                  'source_prompt_id':row.get('source_prompt_id'),'template_id':row.get('template_id'),
                   'messages':[{'role':'user','content':row['prompt']},{'role':'assistant','content':row['text']}]}
         _append(out_path,result); existing[row['id']] = result
     # Store every generated exchange separately, so failures resume with saved turns.
@@ -118,6 +160,8 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
         import torch
         torch.manual_seed(config.get('seed',20260915)+1)
         options = {k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}
+        if interaction_cap is not None:
+            options['max_new_tokens'] = interaction_cap
         size = config.get('batch_size',4)
         interaction_config = {**config, 'seed': config.get('seed',20260915)+1}
         with inference_session(post_dpo_checkpoint, interaction_config) as model:
@@ -155,7 +199,7 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
                     for i in indices:
                         item = turns[f'interaction-{i:05d}-{turn:02d}']
                         histories[i].append(item['text'])
-                        if not item['text'] or (item['finish_reason']=='length' and not config.get('allow_truncated',False)):
+                        if _introspection_exclusion(item, config):
                             valid[i] = False
                 for i in indices:
                     if not valid[i]: continue
@@ -171,6 +215,28 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
                 print(json.dumps({'introspection_interactions_completed':sum(r['kind']=='interaction' for r in existing.values())}),flush=True)
     reflection_examples = sum(r['kind']=='reflection' for r in existing.values())
     interaction_examples = sum(r['kind']=='interaction' for r in existing.values())
+    excluded_reflections = [{'id':row['id'], 'reason':_introspection_exclusion(row,config)}
+                            for row in reflections if row['id'] not in existing]
+    excluded_interactions = []
+    for i in range(interaction_count):
+        id_ = f'interaction-{i:05d}'
+        if id_ in existing:
+            continue
+        invalid = [turns[f'{id_}-{turn:02d}'] for turn in range(interaction_turns)
+                   if _introspection_exclusion(turns[f'{id_}-{turn:02d}'],config)]
+        excluded_interactions.append({'id':id_, 'invalid_turn_ids':[r['id'] for r in invalid],
+            'reasons':sorted({_introspection_exclusion(r,config) for r in invalid})})
+    report = {'reflections':_retention_report(count,reflection_examples,excluded_reflections,reflection_minimum),
+              'interactions':_retention_report(interaction_count,interaction_examples,excluded_interactions,interaction_minimum),
+              'examples':len(existing), 'interaction_target_policy':'A_only',
+              'reflection_max_new_tokens':config.get('max_new_tokens'),
+              'interaction_max_new_tokens':interaction_cap if interaction_cap is not None else config.get('max_new_tokens')}
+    Path(str(out_path)+'.quality.json').parent.mkdir(parents=True,exist_ok=True)
+    Path(str(out_path)+'.quality.json').write_text(json.dumps(report,indent=2)+'\n')
+    if not report['reflections']['meets_minimum']:
+        raise ValueError('Reflection retention is below minimum_reflection_fraction; inspect introspection quality report')
+    if not report['interactions']['meets_minimum']:
+        raise ValueError('Interaction retention is below minimum_interaction_fraction; inspect introspection quality report')
     if not existing or (count > 0 and not reflection_examples) or (interaction_count > 0 and not interaction_examples):
         raise ValueError('Missing usable examples from a requested introspection component; inspect raw generation files')
     return {'examples':len(existing),'path':str(out_path),

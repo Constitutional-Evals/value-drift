@@ -1,0 +1,52 @@
+{
+  "label": "diagnostic-002",
+  "purpose": "Full-information review-procedure discovery; no diagnostic weight updates",
+  "base_config": "configs/stage2-base.json",
+  "constitution": "constitutions/C_000.md",
+  "context_template": "prompts/variants/full_diagnostic_v1.md",
+  "conditions": {
+    "O": "prompts/review_instructions.md",
+    "A": "prompts/variants/review_action_audit_v1.md",
+    "B": "prompts/variants/review_case_audit_v1.md"
+  },
+  "schedule": [
+    {
+      "condition": "O",
+      "seed": 30301
+    },
+    {
+      "condition": "A",
+      "seed": 30301
+    },
+    {
+      "condition": "B",
+      "seed": 30301
+    },
+    {
+      "condition": "A",
+      "seed": 30302
+    },
+    {
+      "condition": "B",
+      "seed": 30302
+    },
+    {
+      "condition": "O",
+      "seed": 30302
+    },
+    {
+      "condition": "B",
+      "seed": 30303
+    },
+    {
+      "condition": "O",
+      "seed": 30303
+    },
+    {
+      "condition": "A",
+      "seed": 30303
+    }
+  ],
+  "selection_rule": "docs/REVIEW_DESIGN_002.md",
+  "frozen": true
+}

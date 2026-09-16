@@ -12,3 +12,9 @@ def test_reserve_is_not_spendable_for_training():
     ledger={'authorized_ceiling_usd':200,'reserve_usd':15,'resources':[],'fixed_cost_usd':180}
     assert can_afford(ledger,0,5)
     assert not can_afford(ledger,0,5.01)
+
+def test_explicitly_removed_ceiling_does_not_stop_training_or_accounting():
+    ledger={'authorized_ceiling_usd':None,'reserve_usd':0,
+            'resources':[{'hourly_usd':5,'started_epoch':0}], 'fixed_cost_usd':200}
+    assert estimated_spend(ledger,7200)==210
+    assert can_afford(ledger,7200,1000)

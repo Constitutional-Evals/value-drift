@@ -91,6 +91,16 @@ class ProtocolTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "review_instructions"):
                 snapshot_protocol_inputs(self.run, self.config, resume=True)
 
+    def test_configured_review_variant_is_snapshotted_and_frozen(self):
+        variant=self.root/'variant.md';variant.write_text('Independent case audit')
+        self.config['review']={'review_instructions_path':str(variant)}
+        snapshot_protocol_inputs(self.run,self.config)
+        saved=self.run/'protocol_inputs/review_instructions.md'
+        self.assertEqual(saved.read_text(),variant.read_text())
+        variant.write_text('Different intervention')
+        with self.assertRaisesRegex(ValueError,'review_instructions'):
+            snapshot_protocol_inputs(self.run,self.config,resume=True)
+
     def test_cli_rejects_changed_inputs_before_backend_creation(self):
         from scripts import run_experiment
         snapshot_protocol_inputs(self.run, self.config)

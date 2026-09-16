@@ -14,7 +14,9 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     output=Path(output); output.mkdir(parents=True,exist_ok=True)
     path=Path(config.get('constitution_path',output/'workspace'/'constitution.md'))
     session=EditingSession(path,initial_text=constitution,transcript_path=output/'tool_events.jsonl')
-    context=render_review_prompt('full',constitution,str(checkpoint),recipe_text=recipe_text,display_path=str(path))
+    context=render_review_prompt('full',constitution,str(checkpoint),recipe_text=recipe_text,display_path=str(path),
+        review_instructions_path=config.get('review_instructions_path'),
+        context_template_path=config.get('context_template_path'))
     messages=[{'role':'user','content':context}]
     write_json(output/'initial_messages.json',messages)
     options={k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}

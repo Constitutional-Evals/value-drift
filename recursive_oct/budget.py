@@ -9,5 +9,7 @@ def estimated_spend(ledger, now):
 
 
 def can_afford(ledger, now, projected_usd=0):
+    if ledger['authorized_ceiling_usd'] is None:
+        return True  # Explicit authorization without a fixed dollar ceiling.
     available = ledger['authorized_ceiling_usd'] - ledger['reserve_usd']
     return estimated_spend(ledger, now) + projected_usd <= available

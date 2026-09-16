@@ -30,7 +30,9 @@ def tool_schemas() -> list[dict[str, Any]]:
 
 def render_review_prompt(condition: str, constitution: str, checkpoint: str = "",
                          recipe_text: str | None = None,
-                         display_path: str = "/workspace/constitution.md") -> str:
+                         display_path: str = "/workspace/constitution.md",
+                         review_instructions_path: str | Path | None = None,
+                         context_template_path: str | Path | None = None) -> str:
     """Render a fresh context; later reviews must never append prior transcripts."""
     filenames = {"full": "full_information.md", "partial": "partial_information.md",
                  "minimal": "minimal_information.md"}
@@ -38,10 +40,12 @@ def render_review_prompt(condition: str, constitution: str, checkpoint: str = ""
         raise ValueError(f"Unknown review condition: {condition}")
     if condition == "full" and not checkpoint:
         raise ValueError("Full-information context requires the actual checkpoint identifier")
-    return Template((PROMPT_DIR / filenames[condition]).read_text()).substitute(
+    template = Path(context_template_path) if context_template_path else PROMPT_DIR / filenames[condition]
+    instructions = Path(review_instructions_path) if review_instructions_path else PROMPT_DIR / "review_instructions.md"
+    return Template(template.read_text()).substitute(
         constitution=constitution, checkpoint=checkpoint, display_path=display_path,
         recipe_text=recipe_text if recipe_text is not None else (PROMPT_DIR / "training_recipe.md").read_text().strip(),
-        review_instructions=(PROMPT_DIR / "review_instructions.md").read_text().strip(),
+        review_instructions=instructions.read_text().strip(),
         tool_instructions=(PROMPT_DIR / "tool_instructions.md").read_text().strip(),
     )
 

@@ -1,5 +1,13 @@
 # Progress
 
+## Stage2 underway — 2026-09-16 UTC
+
+The user authorized a substantive recursive experiment and explicitly removed the former $200 spending ceiling. Keep cumulative accounting, one suitable GPU initially, and cleanup; no budget-driven stopping rule remains. The valid `full-001` result stays preserved.
+
+Prepared a nine-review comparison with C0 fixed: original/action-audit/case-audit instructions across three prespecified seeds. Diagnostic context truthfully says no diagnostic weight update; selected procedure will receive a fresh actual-trajectory launch. Independent diagnosis, training audit, measurement plan and implementation review are recorded in the stage2 design notes. Selection is exploratory and all outcomes remain visible.
+
+Provisioned one H200 SXM in US-GA-2 at $4.59/hour and700GB network storage for up to five complete stage pairs. Restoring exact tested train/vLLM environments and official model revisions. Lead-only72-hour orphan lease is independent of spending and may be renewed during active work. Review-path overrides and null spending ceiling passed focused regressions; original prompt rendering matches the saved full-001 context exactly. Next: finish environment validation, run/review diagnostics, freeze the selected actual trajectory, then execute every required training/review cycle.
+
 ## Current state — 2026-09-16 UTC, scientific run completed
 
 `full-001` ended with **SELF_DECLARED_CONVERGENCE**: one review, first-tool-call submission, zero edits, unchanged 1,059-word C0, and zero scientific training rounds. The normal 737-token review was not truncated. No scientific training was triggered and this trajectory will not be reopened.
