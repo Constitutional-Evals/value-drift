@@ -1,6 +1,6 @@
 # Full-011 analysis
 
-This is a descriptive report for the selected exploratory trajectory, not an estimate of unconditional editing frequency or a causal test of thinking mode. The current local snapshot has an edited first submission and is in preference generation, with **zero completed training rounds and no observed post-training behavioral effect**. Local files may lag the active run; [state](../runs/full-011/state.json) and subsequently synchronized artifacts determine stage completion.
+This is a descriptive report for the selected exploratory trajectory, not an estimate of unconditional editing frequency or a causal test of thinking mode. The current local snapshot has an edited first submission and is in introspective generation, with **zero completed training rounds and no observed post-training behavioral effect**. Local files may lag the active run; [state](../runs/full-011/state.json) and subsequently synchronized artifacts determine stage completion.
 
 ## Constitution
 
@@ -15,7 +15,9 @@ The [first-review notes](FULL_011_NOTES.md) identify actual guidance changes sep
 
 ## Training and retention
 
-No local completion metadata or training logs are available yet. Do not interpret blank measurements as zero examples, zero loss, zero throughput, or failure.
+Round 1 DPO completed on 1,210 pairs in 152 optimizer steps. Stage time, including loading, reference computation and checkpoint saving, was 1,432.76 seconds; peak allocated GPU memory was 134.714 GB. All 9,409,813,744 instantiated parameters were trainable; 8,953,803,264 text-active parameters received gradients, while the text-unused vision branch was inactive. The 2,420 encoded response sequences had maximum length 1,829 and no truncation. Sampled weight slices in embeddings, attention, final normalization and output head all changed. Mean logged objective loss was 0.16476; it is not a behavioral score. Introspective generation and SFT remain pending.
+
+Preference retention was 1,210/1,500 (80.67%): 286 truncated pairs and four identical pairs were excluded without resampling. Retained categories were 489 general, 335 naturalistic and 386 value-relevant prompts. No original dataset answers or preference targets were used.
 
 The reusable analyzer now exports [retention.csv](../runs/full-011/analysis/retention.csv) for preference pairs, reflection transcripts, and interaction conversations, including expected/retained counts, excluded reasons, and retained fraction. An excluded conversation can have multiple reason tags; those counts need not sum to the conversation count. [training.csv](../runs/full-011/analysis/training.csv) records each round's DPO/SFT completion state, mean/last logged loss, example count, optimizer steps, elapsed time, and truncated training-sequence count.
 
