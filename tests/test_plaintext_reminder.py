@@ -71,3 +71,35 @@ def test_replay_saved_plaintext_without_resampling_or_carrying_thinking(tmp_path
     records=[json.loads(x) for x in (tmp_path/'generations.jsonl').read_text().splitlines()]
     assert records[0]['replayed'] is True and records[0]['turn']==0
     assert records[1]['turn']==1 and 'replayed' not in records[1]
+
+
+def edit_call(text):
+    return '<tool_call><function=edit_constitution><parameter=new_text>'+text+'</parameter><parameter=change_summary>Revise.</parameter></function></tool_call>'
+
+
+@pytest.mark.parametrize('edit_text,continuation,expected,reverted',[
+    ('Revised constitution',FINISH,'EDITED',False),
+    ('Constitution',FINISH,'SELF_DECLARED_CONVERGENCE',False),
+    ('Revised constitution',edit_call('Constitution')+FINISH,'EDITED',True),
+])
+def test_sequence_replay_preserves_edits_and_reminders(tmp_path,edit_text,continuation,expected,reverted):
+    saved=[response('I intend to edit.'),response(edit_call(edit_text)),response('The changes are complete.')]
+    model=Model([response(continuation)])
+    result=execute_review(model,'M1','Constitution',tmp_path,
+        {'max_plaintext_reminders':2},replay_generations=saved)
+    assert len(model.calls)==1 and result['status']==expected
+    assert result['edit_then_revert']==reverted
+    assert result['content_changed']==(expected=='EDITED')
+    assert result['plaintext_reminder_count']==2
+    messages=model.calls[0][0][0]
+    assert [m['role'] for m in messages]==['user','assistant','user','assistant','tool','assistant','user']
+    assert messages[3]['tool_calls'][0]['function']['arguments']['new_text']==edit_text
+    records=[json.loads(x) for x in (tmp_path/'generations.jsonl').read_text().splitlines()]
+    assert [r['turn'] for r in records]==[0,1,2,3]
+    assert [r.get('replayed',False) for r in records]==[True,True,True,False]
+
+
+def test_replay_arguments_are_mutually_exclusive(tmp_path):
+    with pytest.raises(ValueError,match='either replay_generation or replay_generations'):
+        execute_review(Model([]),'M1','Constitution',tmp_path,{},
+            replay_generation=response('Prose'),replay_generations=[response('Prose')])

@@ -18,12 +18,18 @@ PLAINTEXT_REMINDER = ('Please use the available tools to record your decision. '
 
 
 def execute_review(model, checkpoint, constitution, output, config, recipe_text=None, initial_constitution=None,
-                   *, replay_generation=None):
-    """Replay, when supplied, occupies turn zero without a generation request.
+                   *, replay_generation=None, replay_generations=None):
+    """Saved generations occupy initial turns without new generation requests.
 
     The caller owns replay provenance and must start the inference session at the
-    next request seed (original seed + one) for uninterrupted seed continuity.
+    next request seed (original seed + replay count) for seed continuity.
     """
+    if replay_generation is not None and replay_generations is not None:
+        raise ValueError('Supply either replay_generation or replay_generations, not both')
+    replay=[replay_generation] if replay_generation is not None else replay_generations
+    if replay is None: replay=[]
+    if not isinstance(replay,list) or any(not isinstance(item,dict) for item in replay):
+        raise ValueError('replay_generations must be a list of generation dictionaries')
     max_reminders=config.get('max_plaintext_reminders',0)
     if type(max_reminders) is not int or max_reminders<0:
         raise ValueError('max_plaintext_reminders must be a nonnegative integer')
@@ -32,7 +38,7 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     transition_path=config.get('appraisal_transition_path')
     if bool(appraisal_path) != bool(transition_path):
         raise ValueError('Configure both appraisal_instructions_path and appraisal_transition_path')
-    if replay_generation is not None and appraisal_path:
+    if replay and appraisal_path:
         raise ValueError('Replaying a tool-phase generation with a fresh appraisal is not supported')
     appraisal_cap=config.get('appraisal_max_new_tokens',4096)
     if appraisal_path and (type(appraisal_cap) is not int or appraisal_cap<1):
@@ -82,8 +88,8 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
             messages.append({'role':'user','content':transition})
     for turn in range(config.get('max_turns',12)):
         if session.finished: break
-        replayed=turn==0 and replay_generation is not None
-        generated=replay_generation if replayed else model.generate_batch(
+        replayed=turn<len(replay)
+        generated=replay[turn] if replayed else model.generate_batch(
             [messages],tools=tool_schemas(allow_passage_edit=allow_passage_edit),**options)[0]
         with (output/'generations.jsonl').open('a') as f:
             record={'turn':turn,**generated}

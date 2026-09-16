@@ -17,3 +17,7 @@ python scripts/continue_plaintext_review.py --parent runs/full-011 --run runs/fu
 ```
 
 After a resumable training interruption, use the ordinary runner with `--resume`; do not repeat the bootstrap. The bootstrap refuses an existing branch. Focused reminder/pipeline tests passed, and local prepare-only validation verified inherited state and seed bookkeeping before remote launch.
+
+## Full-013 continuation
+
+The first reminder produced a real whole-document edit removing the three exact duplicated paragraphs (1,471→1,157 words). The following response repeated the initial plan rather than calling finish_editing. Thus full-012 preserved an unsubmitted partial edit and stopped with EDITING_FAILURE. Full-013 increases the bounded reminder allowance from one to two, replays all three saved generations and the recorded edit, and starts its next actual generation at30404. Later reviews remain fresh at30401. The repeated prose was not interpreted as completion, and no training was triggered by the unsubmitted edit. Sequential replay passed focused tests for real edits, no-op changes, and edit-then-revert handling.

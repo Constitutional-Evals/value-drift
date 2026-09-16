@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Explicitly labeled continuation of one failed, prose-only review.
+"""Explicitly labeled continuation of a review interrupted by prose-only output.
 
 Completed weights/data remain in the parent run. The saved public response is
 replayed once, never sampled again. Later reviews use ordinary fresh contexts.
@@ -32,7 +32,7 @@ def prepare(parent, root, config):
             item.pop(key, None)
         item['review'] = dict(item['review'])
         item['review'].pop('max_plaintext_reminders', None)
-    if before != after or config['review'].get('max_plaintext_reminders') != 1:
+    if before != after or config['review'].get('max_plaintext_reminders') != prior['review'].get('max_plaintext_reminders', 0) + 1:
         raise ValueError('This continuation changes only the bounded reminder rule')
     if state['status'] != 'EDITING_FAILURE' or state['phase'] != 'review':
         raise ValueError('Parent must have a failed review, not convergence')
@@ -40,11 +40,13 @@ def prepare(parent, root, config):
     source = parent / f'round_{n:03d}'
     failed = json.loads((source / 'review.json').read_text())
     records = [json.loads(x) for x in (source / 'generations.jsonl').read_text().splitlines()]
-    if len(records) != 1 or failed['tool_call_count'] or failed['content_changed']:
-        raise ValueError('Only one prose-only generation with no tool effects is supported')
-    replay = records[0]
-    if replay['finish_reason'] != 'stop' or not replay['text'].strip():
-        raise ValueError('Cannot replay a truncated or empty response')
+    if not records or failed.get('submitted') or failed['failure_reason'] != 'Missing or incomplete tool call':
+        raise ValueError('Require an unsubmitted review ending in missing tool output')
+    if any(r['finish_reason'] != 'stop' or not r['text'].strip() for r in records):
+        raise ValueError('Cannot replay truncated or empty responses')
+    seeds = [r['generation_seed'] for r in records]
+    if seeds != list(range(seeds[0], seeds[0] + len(records))):
+        raise ValueError('Replay generation seeds must be contiguous')
     snapshot_protocol_inputs(root, config)
     for path in parent.glob('C_*.md'):
         shutil.copy2(path, root / path.name)
@@ -63,7 +65,7 @@ def prepare(parent, root, config):
         raise ValueError('Unexpected review history length')
     state['reviews'] = state['reviews'][:-1]
     state.update(status='RUNNING', phase='review', parent_run=str(parent),
-                 parent_started_epoch=state['started_epoch'], started_epoch=time.time(),
+                 parent_started_epoch=state['started_epoch'], started_epoch=time.time(), updated_epoch=time.time(),
                  current_constitution=str(root / f'C_{n-1:03d}.md'))
     state['failures'].append({'phase':'review', 'type':'PreservedParentEditingFailure',
                              'source':str(source), 'message':failed['failure_reason']})
@@ -72,14 +74,14 @@ def prepare(parent, root, config):
     receipt = {'parent_run':str(parent), 'parent_status':'EDITING_FAILURE',
                'inherited_completed_rounds':n-1, 'continued_review':n,
                'current_checkpoint':state['current_checkpoint'],
-               'replayed_generation':str(source / 'generations.jsonl'),
-               'replayed_seed':replay['generation_seed'],
-               'continuation_seed':replay['generation_seed'] + 1,
+               'replayed_generations':str(source / 'generations.jsonl'),
+               'replayed_seeds':seeds,
+               'continuation_seed':seeds[-1] + 1,
                'fresh_review_seed':config['review']['seed'],
-               'change':'One bounded neutral tool-completion reminder; no training or decision resampling.',
+               'change':'One additional bounded neutral tool-completion reminder; no training or decision resampling.',
                'inherited_weights':'Referenced in parent run; metadata/data copied without weights.'}
     write_json(root / 'branch.json', receipt)
-    return state, replay, receipt
+    return state, records, receipt
 
 
 def main():
@@ -93,7 +95,7 @@ def main():
     config = json.loads(Path(args.config).read_text())
     if not config.get('frozen') or config['condition'] != 'full':
         raise ValueError('Require a frozen full-information branch')
-    state, replay, receipt = prepare(args.parent, args.run, config)
+    state, records, receipt = prepare(args.parent, args.run, config)
     root = Path(args.run)
     if args.prepare_only:
         print(json.dumps(receipt, indent=2)); return
@@ -104,7 +106,7 @@ def main():
         with inference_session(state['current_checkpoint'], review_config) as model:
             execute_review(model, state['current_checkpoint'], constitution, output, config['review'],
                            recipe_text=Path(config['recipe_text']).read_text(),
-                           initial_constitution=(root / 'C_000.md').read_text(), replay_generation=replay)
+                           initial_constitution=(root / 'C_000.md').read_text(), replay_generations=records)
     except Exception as exc:
         output.mkdir(parents=True, exist_ok=True)
         (output / 'bootstrap_failure.log').write_text(traceback.format_exc())
