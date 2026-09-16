@@ -2,9 +2,11 @@
 
 Research proof of concept specified in [instruction.md](instruction.md). The initial experimental model is **Qwen/Qwen3.5-9B**. A fresh model review may replace the constitution through two file-backed tools; explicit submission without any content-changing edit ends that trajectory. An edited submission triggers full-parameter DPO, post-DPO introspection generation, and full-parameter SFT, with updated weights carried into the next review.
 
-The scientific protocol is frozen before each trajectory. The first condition is full-information only, with at most five completed training rounds. Partial/minimal prompts are prepared but not executed. Neither an unchanged submission nor a failure is relabeled to obtain an interesting result.
+Scientific inputs are frozen before each trajectory; consequential interface changes and recovery branches are labeled and preserved. The first condition is full-information only, with at most five completed training rounds. Partial/minimal prompts are prepared but not executed. Neither an unchanged submission nor a failure is relabeled to obtain an interesting result.
 
-**Completed pilot:** `full-001` submitted C0 unchanged on its first review and ended with `SELF_DECLARED_CONVERGENCE`, zero edits and zero scientific training rounds. Separate H200 engineering runs completed full-parameter DPO and introspective SFT and reloaded the resulting checkpoint. See the [final report](docs/FINAL_REPORT.md), [baseline analysis](docs/BASELINE_ANALYSIS.md), and [independent result review](docs/REVIEW_RESULT_001.md).
+**Substantive experiment completed:** the full-011 → full-014 lineage completed two full-parameter DPO + introspective SFT rounds and three constitution reviews. The first revision changed risk and distress guidance, the second removed duplicated paragraphs, and M2 then submitted unchanged. Behavioral changes were mixed, with shorter typical responses and remaining quality failures. See the [Stage 2 report](docs/STAGE2_REPORT.md), [longitudinal figure](runs/full-014/analysis/longitudinal.png), and [independent review](docs/REVIEW_STAGE2_RESULT.md). The review-interface repairs are explicitly recorded; this is one learned lineage, not multiple independent training replications.
+
+**Earlier pilot:** `full-001` submitted C0 unchanged on its first review and ended with `SELF_DECLARED_CONVERGENCE`, zero edits and zero scientific training rounds. Separate H200 engineering runs completed full-parameter DPO and introspective SFT and reloaded the resulting checkpoint. See the [final report](docs/FINAL_REPORT.md), [baseline analysis](docs/BASELINE_ANALYSIS.md), and [independent result review](docs/REVIEW_RESULT_001.md).
 
 ## Project files
 
@@ -12,7 +14,7 @@ The scientific protocol is frozen before each trajectory. The first condition is
 - `prompts/`: three context variants, tool/review instructions, actual training description and fixed introspection prompts.
 - `data/`: 1,500 source-attributed user-only training prompts,120 held-out prompts, curation manifest and exploratory rubric.
 - `recursive_oct/`: editing state, native Qwen interface, resumable generation, full-parameter losses/training, inner-loop runner and measurements.
-- `configs/`: engineering smoke settings and the measured, frozen full-001 protocol.
+- `configs/`: engineering settings, preserved exploratory variants, and the full-011/full-014 trained-lineage configurations.
 - `runs/`: private local outputs, checkpoints/locations, logs and cumulative spending records (excluded from Git).
 - `docs/PROGRESS.md`: current evidence and next action. `docs/method.md` and review notes document adaptations and fixes.
 - `OpenCharacterTraining/`: intact upstream reference checkout at `d1da9f03628cb4c5482ba2e494a7cba33bcd5818`, excluded from this repository's Git tracking.
@@ -54,7 +56,7 @@ Lead-side sync and cost guard:
 .venv/bin/python scripts/watch_budget.py --ledger runs/spending.json
 ```
 
-`runs/connection.json` contains the lead's SSH connection metadata. Secrets are never synced. Sync excludes local spending/watchdog control files. The cumulative RunPod authorization is $200, with $15 reserved for storage, transfers and cleanup. Only the lead provisions or terminates paid resources. Checkpoints must be copied locally before deleting the network volume.
+`runs/connection.json` contains the lead's SSH connection metadata. Secrets are never synced. Sync excludes local spending/watchdog control files. The user removed the original $200 spending ceiling for Stage 2. The ledger preserves cumulative charges across all attempts; use suitable hardware and avoid unnecessary parallel provisioning. Only the lead provisions or terminates paid resources. Checkpoints must be copied locally before deleting the network volume.
 
 ## Interpretation
 
