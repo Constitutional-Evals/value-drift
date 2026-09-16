@@ -19,7 +19,7 @@ Independent review found no concrete weight-continuity or stopping-rule error. I
 
 All four scientific full checkpoints (DPO and final for each round) are local, with 10 indexed shards each and 37,639,347,664 weight bytes per checkpoint. Original model/teacher copies, constitutions, diffs, transcripts, generated training data, logs, raw behavioral outputs, and independent reviews are preserved. Nothing was publicly uploaded.
 
-H200 pod z8a1k6pqse15co and 700 GB volume m3i6scvb29 were deleted and independently verified absent. Account spending is $0/hour. Observed cumulative project charges: $31.45; duration/rate estimate: $31.68. Stage 2 observed balance change: $24.18. Billing may settle later. Ledger: `runs/spending.json`; cleanup receipt: `runs/stage2-cleanup.json`.
+H200 pod z8a1k6pqse15co and 700 GB volume m3i6scvb29 were deleted and independently verified absent. Account spending is $0/hour. Observed cumulative project charges: $31.76; duration/rate estimate: $31.68. Stage 2 observed balance change: $24.49. Billing may settle later. Ledger: `runs/spending.json`; cleanup receipt: `runs/stage2-cleanup.json`.
 
 ## Deliverables and remaining research question
 
