@@ -1,0 +1,7 @@
+The teacher is a frozen copy of the initial Qwen/Qwen3.5-9B checkpoint. For each user prompt in a fixed prompt bank, the teacher receives the complete submitted constitution and instructions to embody it, and generates a preferred response. The current student generates a comparison response to the same user request alone, without the constitution. The teacher's weights stay fixed across rounds.
+
+Full-parameter direct preference optimization (DPO) then updates the current student toward the preferred responses relative to the comparison responses. A frozen copy of the current student immediately before this DPO stage supplies the reference probabilities. Teacher preferences are a training construction, not independently verified judgments of response quality.
+
+After DPO, the resulting student generates constitution-conditioned reflection and interaction examples. Full-parameter supervised fine-tuning (SFT) of that post-DPO student uses the retained assistant outputs from those examples to encourage the constitution's dispositions without supplying the constitution at inference. This is a budget-oriented adaptation of Open Character Training.
+
+Both stages optimize the student's model weights directly, without low-rank adapters. The SFT stage starts with the DPO-updated weights, and subsequent rounds continue from the SFT-updated weights. Text-only losses update the parameters exercised by text inputs; any unused visual components receive no training signal. The teacher and DPO reference remain frozen by design.

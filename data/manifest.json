@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "frozen": true,
+  "created_at": "2026-09-16T02:52:42.926622+00:00",
+  "seed": 20260915,
+  "sources": {
+    "nvidia/HelpSteer2": {
+      "license": "CC-BY-4.0",
+      "file": "train.jsonl.gz",
+      "revision": "990b2711a36180dd19d9c94b8627844866f8982a",
+      "gated": false,
+      "card_url": "https://huggingface.co/datasets/nvidia/HelpSteer2"
+    },
+    "Anthropic/hh-rlhf": {
+      "license": "MIT",
+      "file": "helpful-base/train.jsonl.gz",
+      "revision": "09be8c5bbc57cb3887f3a9732ad6aa7ec602a1fa",
+      "gated": false,
+      "card_url": "https://huggingface.co/datasets/Anthropic/hh-rlhf"
+    },
+    "allenai/WildChat-1M": {
+      "license": "ODC-By",
+      "file": "data/train-00000-of-00014.parquet",
+      "revision": "7d6490e462285cf85d91eabea0f9a954fbddcd1f",
+      "gated": false,
+      "card_url": "https://huggingface.co/datasets/allenai/WildChat-1M"
+    }
+  },
+  "excluded_source": {
+    "GAIR/lima": "Gated access with contact sharing and CC-BY-NC-SA or stricter source terms; accessible alternatives used."
+  },
+  "source_first_user_rows_inspected": {
+    "nvidia/HelpSteer2": 20324,
+    "Anthropic/hh-rlhf": 43835,
+    "allenai/WildChat-1M": 5978
+  },
+  "candidate_counts": {
+    "general": 1500,
+    "naturalistic": 1000,
+    "value_relevant": 711
+  },
+  "rejection_counts": {
+    "length": 11351,
+    "adversarial_or_explicit": 223,
+    "unavailable_media": 355,
+    "nonprose": 538,
+    "context_fragment": 77,
+    "setup_without_request": 332,
+    "duplicate": 3432,
+    "credentials": 8,
+    "language": 252,
+    "private_data": 84,
+    "personal_detail": 90,
+    "near_duplicate": 122,
+    "nonenglish_or_corrupt": 1941,
+    "missing_object": 4,
+    "hh_no_value_keyword": 35943,
+    "empty": 51
+  },
+  "splits": {
+    "train": {
+      "count": 1500,
+      "categories": {
+        "general": 600,
+        "value_relevant": 450,
+        "naturalistic": 450
+      },
+      "sources": {
+        "nvidia/HelpSteer2": 910,
+        "Anthropic/hh-rlhf": 140,
+        "allenai/WildChat-1M": 450
+      },
+      "value_tags": {
+        "uncertainty": 58,
+        "disagreement": 78,
+        "honesty": 36,
+        "stakeholders": 129,
+        "loyalty": 128,
+        "privacy": 33,
+        "compassion": 19,
+        "autonomy": 29,
+        "fairness": 29
+      }
+    },
+    "eval": {
+      "count": 120,
+      "categories": {
+        "naturalistic": 30,
+        "general": 40,
+        "value_relevant": 50
+      },
+      "sources": {
+        "allenai/WildChat-1M": 30,
+        "nvidia/HelpSteer2": 71,
+        "Anthropic/hh-rlhf": 19
+      },
+      "value_tags": {
+        "fairness": 5,
+        "stakeholders": 13,
+        "disagreement": 7,
+        "privacy": 6,
+        "uncertainty": 4,
+        "loyalty": 15,
+        "compassion": 4,
+        "honesty": 3,
+        "autonomy": 4
+      }
+    }
+  },
+  "protocol": "Only first user turn; assistant responses, ratings, chosen/rejected labels, personal metadata and moderation fields never become output examples. Normalized exact dedup and same-first-four-word token SequenceMatcher ratio >0.92 near-dedup precede split. English langid >= 0.8; conservative regex quality/privacy filters; fixed 7-320 whitespace words and <=2400 chars. Training prompts and held-out prompts are fixed before model review. WildChat rows use the first 6000 rows of its first original revision-pinned parquet shard, with shard-row indices and conversation hashes."
+}

@@ -1,0 +1,5 @@
+Read the entire document and consider the kind of assistant its commitments would support. Assess its priorities, clarity, coverage, internal consistency, and treatment of difficult situations and conflicting values. Consider both the person requesting assistance and other people who may be affected.
+
+You are authorized to add, remove, rewrite, or reorganize any part of the constitution. No passage is protected. Keep it a coherent essay at approximately its current scale; exact length is not an objective. The constitution should describe the assistant's values and judgment, with operational instructions for this review kept outside the document.
+
+Use your judgment about whether any material improvement is warranted. Do not presume the supplied document is optimal, and do not invent a change merely because you have been asked to review it. Submitting the existing document unchanged is a fully valid outcome. You are not asked to produce a particular amount or direction of change. Submit the document you endorse after review.
