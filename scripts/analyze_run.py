@@ -139,27 +139,67 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
         review = read(review_path, {})
         path = root/f'C_{n:03d}.md'
         metrics = review.get('metrics', {})
+        duplication = {'duplicate_paragraph_groups':'', 'duplicate_excess_words':''}
+        if path.exists():
+            paragraphs = Counter(' '.join(p.split()) for p in path.read_text().split('\n\n') if p.strip())
+            duplication = {'duplicate_paragraph_groups':sum(n > 1 for n in paragraphs.values()),
+                           'duplicate_excess_words':sum((n-1)*len(p.split()) for p,n in paragraphs.items())}
         if path.exists() and initial is not None:
             text = path.read_text()
             metrics = constitutional_metrics(previous, text, initial)
             previous = text
-        constitution.append({'round':n, 'review_status':review.get('status', 'initial' if n == 0 else 'no finalized review'),
+        constitution.append({'round':n, **duplication, 'review_status':review.get('status', 'initial' if n == 0 else 'no finalized review'),
                              'training_round_completed':n > 0 and n <= completed, 'constitution_artifact':str(path) if path.exists() else '',
                              'review_artifact':str(review_path) if review_path.exists() else '',
                              **{k:metrics.get(k, '') for k in ('word_count','word_edit_distance','distance_from_previous','distance_from_initial')}})
     csv_file('constitutional.csv', constitution)
-    summary += ['', '## Training stages', '']
+    summary += ['', '## Training stages', '', 'Stage throughput includes loading/reference computation/save; observed throughput uses differences between logged optimizer-step timestamps. Token throughput is not inferred. Losses are training objectives, not alignment measurements.']
+    training, retention = [], []
     for folder in sorted(root.glob('round_[0-9][0-9][0-9]')):
         stopped_unchanged = read(folder/'review.json', {}).get('status') == 'SELF_DECLARED_CONVERGENCE'
+        pq, iq = folder/'preferences.jsonl.quality.json', folder/'introspection.jsonl.quality.json'
+        quality = read(iq, {})
+        for component, report, source in [('preferences',read(pq, {}),pq), ('reflections',quality.get('reflections',{}),iq), ('interactions',quality.get('interactions',{}),iq)]:
+            expected, retained = report.get('expected'), report.get('retained')
+            excluded = report.get('excluded', [])
+            retention.append({'round':int(folder.name[-3:]), 'component':component,
+                              'report_available':bool(report), 'expected':expected if expected is not None else '',
+                              'retained':retained if retained is not None else '',
+                              'excluded_count':report.get('excluded_count', len(excluded)) if report else '',
+                              'retained_fraction':retained/expected if expected and retained is not None else '',
+                              'exclusion_reasons':json.dumps(dict(Counter(r.get('reason', 'unspecified') for r in excluded))) if report else '',
+                              'quality_artifact':str(source) if source.exists() else ''})
         for stage in ('dpo', 'final'):
             log = folder/stage/'training_log.jsonl'
             records = lines(log)
             result = read(folder/stage/'training_complete.json', {})
+            status = 'complete' if result else 'incomplete' if log.exists() else 'no local training artifacts'
             if stopped_unchanged and not result and not log.exists():
-                summary.append(f'- {folder.name}/{stage}: not run: unchanged submission stopped before training.')
-                continue
+                status = 'not run: unchanged submission stopped before training'
             losses = [r['loss'] for r in records if isinstance(r.get('loss'), (int, float))]
-            summary.append(f'- {folder.name}/{stage}: {"complete" if result else "incomplete"}; logged_steps={len(records)}, mean_logged_loss={sum(losses)/len(losses) if losses else "missing"}, training_metadata={json.dumps({k:result[k] for k in ('optimizer_steps', 'examples', 'seconds', 'truncated_sequences') if k in result}, ensure_ascii=False)}; log: {str(log) if log.exists() else "absent"}; completion metadata: {str(folder/stage/"training_complete.json") if result else "absent"}.')
+            seconds, steps = result.get('seconds'), result.get('optimizer_steps')
+            observed_rate = ''
+            if len(records) > 1:
+                dt = records[-1].get('elapsed_seconds',0)-records[0].get('elapsed_seconds',0)
+                if dt > 0:
+                    observed_rate = (records[-1]['step']-records[0]['step'])/dt
+            training.append({'round':int(folder.name[-3:]), 'stage':'sft' if stage == 'final' else stage,
+                             'status':status, 'logged_steps':len(records),
+                             'mean_logged_loss':sum(losses)/len(losses) if losses else '',
+                             'last_logged_loss':losses[-1] if losses else '', 'examples':result.get('examples',''),
+                             'optimizer_steps':steps if steps is not None else '', 'stage_seconds':seconds or '',
+                             'stage_optimizer_steps_per_second':steps/seconds if seconds and steps is not None else '',
+                             'observed_optimizer_steps_per_second':observed_rate,
+                             'truncated_training_sequences':result.get('truncated_sequences',''),
+                             'log_artifact':str(log) if log.exists() else ''})
+            if stopped_unchanged and not result and not log.exists():
+                summary.append(f'- {folder.name}/{stage}: {status}.')
+                continue
+            summary.append(f'- {folder.name}/{stage}: {status}; logged_steps={len(records)}, mean_logged_loss={sum(losses)/len(losses) if losses else "missing"}, training_metadata={json.dumps({k:result[k] for k in ('optimizer_steps', 'examples', 'seconds', 'truncated_sequences') if k in result}, ensure_ascii=False)}; log: {str(log) if log.exists() else "absent"}; completion metadata: {str(folder/stage/"training_complete.json") if result else "absent"}.')
+    if training:
+        csv_file('training.csv', training)
+        csv_file('retention.csv', retention)
+        summary += ['', 'Training loss/throughput: `training.csv`; component retention/exclusions: `retention.csv`. Missing artifacts/metrics remain blank and may indicate pending stages or artifacts not yet synchronized.']
     summary += ['', '## Recorded failures', '', json.dumps(state.get('failures', []), ensure_ascii=False, indent=2), '', '## Warnings', '']
     summary += warnings or ['None.']
     (out/'summary.md').write_text('\n'.join(summary)+'\n')

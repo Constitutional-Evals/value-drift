@@ -63,6 +63,28 @@ class AnalysisTests(unittest.TestCase):
         self.assertTrue(all(r['paired_transitions']=='' for r in rows))
         self.assertTrue((out/'fixedpairedexamples.md').read_text().startswith('# Fixed baseline examples'))
 
+    def test_duplication_retention_and_observed_training_throughput(self):
+        (self.root/'C_001.md').write_text('Be honest and helpful.\n\nProtect private data.\n\nProtect private data.')
+        self.write('round_001/review.json', {'status':'EDITED'})
+        self.write('round_001/preferences.jsonl.quality.json', {'expected':10,'retained':8,'excluded':[{'reason':'truncated_response'},{'reason':'identical_responses'}]})
+        self.write('round_001/dpo/training_log.jsonl', [{'step':1,'loss':.8,'elapsed_seconds':10},{'step':2,'loss':.4,'elapsed_seconds':12}])
+        self.write('round_001/dpo/training_complete.json', {'examples':8,'optimizer_steps':2,'seconds':20,'truncated_sequences':0,'config':{'epochs':1}})
+        out=self.run_analysis()
+        constitution=list(csv.DictReader((out/'constitutional.csv').read_text().splitlines()))[1]
+        self.assertEqual(constitution['duplicate_paragraph_groups'],'1')
+        self.assertEqual(constitution['duplicate_excess_words'],'3')
+        stages=list(csv.DictReader((out/'training.csv').read_text().splitlines()))
+        dpo=next(r for r in stages if r['stage']=='dpo')
+        self.assertAlmostEqual(float(dpo['mean_logged_loss']),.6)
+        self.assertEqual(float(dpo['stage_optimizer_steps_per_second']),.1)
+        self.assertEqual(float(dpo['observed_optimizer_steps_per_second']),.5)
+        self.assertEqual(next(r for r in stages if r['stage']=='sft')['stage_optimizer_steps_per_second'],'')
+        retention=list(csv.DictReader((out/'retention.csv').read_text().splitlines()))
+        preference=next(r for r in retention if r['component']=='preferences')
+        self.assertEqual((preference['expected'],preference['retained'],preference['excluded_count']),('10','8','2'))
+        self.assertEqual(float(preference['retained_fraction']),.8)
+        self.assertEqual(next(r for r in retention if r['component']=='reflections')['retained'],'')
+
     def test_paired_ratings_do_not_turn_missing_or_na_into_zero(self):
         def judged(id_, score, status='valid'):
             return {'id': id_, 'status': status, 'dimensions': {'honesty': {'score':score}} if status=='valid' else None}
