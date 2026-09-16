@@ -10,7 +10,7 @@ Design: [review comparison](REVIEW_DESIGN_002.md), [measurement](MEASUREMENT_DES
 - [x] Provision one H200 and 700GB storage; cumulative cost accounting continues without a fixed ceiling.
 - [x] Add optional review instruction/context paths to rendering and input snapshots, preserving old defaults. Regression checks must show custom text reaches the model and changed text is rejected on resume.
 - [x] Support explicit null budget ceiling while retaining numeric-ceiling behavior and cumulative estimates.
-- [ ] Restore the tested isolated training and vLLM environments; validate actual model inference and revised code before diagnostics.
+- [x] Restore environments and pass one complete fresh-host DPO→introspection→SFT→inference handoff.
 - [ ] Freeze and run nine full-information diagnostic reviews: O/A/B by seeds30301–30303 in balanced order. All use identical C0 and decoding; diagnostic consequences are stated truthfully.
 - [ ] Two independent reviewers classify blinded diffs/decision summaries for substantive versus stylistic changes. Follow the documented selection rule; preserve all failures and unchanged submissions.
 - [ ] Freeze a separately labeled actual trajectory with the selected review variant, M0/C0, fixed teacher and data, fresh launch seed30401, full-parameter DPO and introspective SFT, and maximum five completed rounds. An unchanged launch is a valid stopped run; any subsequent investigation gets a new justified label.

@@ -1,6 +1,7 @@
 """Concrete model backend; experimental models see only designated messages/tools."""
 import difflib
 import json
+import re
 from pathlib import Path
 from .editing import EditingSession, render_review_prompt, tool_schemas
 from .model import inference_session, parse_tool_calls
@@ -11,19 +12,54 @@ from .generation import generate_preferences, generate_introspection, generate_r
 
 
 def execute_review(model, checkpoint, constitution, output, config, recipe_text=None, initial_constitution=None):
+    appraisal_path=config.get('appraisal_instructions_path')
+    transition_path=config.get('appraisal_transition_path')
+    if bool(appraisal_path) != bool(transition_path):
+        raise ValueError('Configure both appraisal_instructions_path and appraisal_transition_path')
+    appraisal_cap=config.get('appraisal_max_new_tokens',4096)
+    if appraisal_path and (type(appraisal_cap) is not int or appraisal_cap<1):
+        raise ValueError('appraisal_max_new_tokens must be a positive integer')
     output=Path(output); output.mkdir(parents=True,exist_ok=True)
     path=Path(config.get('constitution_path',output/'workspace'/'constitution.md'))
     session=EditingSession(path,initial_text=constitution,transcript_path=output/'tool_events.jsonl')
     context=render_review_prompt('full',constitution,str(checkpoint),recipe_text=recipe_text,display_path=str(path),
         review_instructions_path=config.get('review_instructions_path'),
         context_template_path=config.get('context_template_path'))
+    if appraisal_path:
+        context += '\n\n' + Path(appraisal_path).read_text(encoding='utf-8')
+        transition=Path(transition_path).read_text(encoding='utf-8')
     messages=[{'role':'user','content':context}]
     write_json(output/'initial_messages.json',messages)
     options={k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}
+    if appraisal_path:
+        generated=model.generate_batch([messages],tools=None,
+            **{**options,'max_new_tokens':appraisal_cap})[0]
+        record={'phase':'appraisal','turn':None,**generated}
+        with (output/'generations.jsonl').open('a') as f:
+            f.write(json.dumps(record,ensure_ascii=False)+'\n')
+        write_json(output/'appraisal.json',record)
+        visible=generated['text'].strip()
+        (output/'appraisal.md').write_text(visible+'\n',encoding='utf-8')
+        raw=generated['raw_text']
+        if generated['finish_reason']!='stop':
+            session.fail('truncated_appraisal')
+        elif (config.get('enable_thinking') and '</think>' not in raw) or '<think>' in raw.rsplit('</think>',1)[-1]:
+            session.fail('unfinished_appraisal_thinking')
+        elif not visible:
+            session.fail('empty_appraisal')
+        elif re.search(r'</?(?:tool_call|function|parameter)\b',visible):
+            session.fail('appraisal_tool_call')
+        else:
+            # Carry the public appraisal, never the private thinking, into tools.
+            messages.append({'role':'assistant','content':visible})
+            messages.append({'role':'user','content':transition})
     for turn in range(config.get('max_turns',12)):
+        if session.finished: break
         generated=model.generate_batch([messages],tools=tool_schemas(),**options)[0]
         with (output/'generations.jsonl').open('a') as f:
-            f.write(json.dumps({'turn':turn,**generated},ensure_ascii=False)+'\n')
+            record={'turn':turn,**generated}
+            if appraisal_path: record['phase']='tool_editing'
+            f.write(json.dumps(record,ensure_ascii=False)+'\n')
         if generated['finish_reason']!='stop':
             session.fail('truncated_output'); break
         if config.get('enable_thinking') and '</think>' not in generated['raw_text']:

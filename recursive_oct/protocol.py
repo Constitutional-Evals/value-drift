@@ -30,6 +30,13 @@ def snapshot_protocol_inputs(run_dir: str | Path, config: dict, *, resume: bool 
         inputs["review_instructions"] = Path(review["review_instructions_path"])
     if review.get("context_template_path"):
         inputs["review_full"] = Path(review["context_template_path"])
+    appraisal=review.get("appraisal_instructions_path")
+    transition=review.get("appraisal_transition_path")
+    if bool(appraisal) != bool(transition):
+        raise ValueError("Configure both appraisal_instructions_path and appraisal_transition_path")
+    if appraisal:
+        inputs["appraisal_instructions"] = Path(appraisal)
+        inputs["appraisal_transition"] = Path(transition)
     root = Path(run_dir)
     directory = root / "protocol_inputs"
     manifest_path = directory / "manifest.json"
