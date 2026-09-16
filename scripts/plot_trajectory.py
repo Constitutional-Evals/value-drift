@@ -117,7 +117,7 @@ def plot(data, output):
     cs, es = data['constitutions'], data['evaluations']
     x = [c['index'] for c in cs]
     labels = [f"C{c['index']}\n" + ('initial' if c['index'] == 0 else
-              'unchanged stop' if c['status'] == 'unchanged stop' else
+              'unchanged\nstop' if c['status'] == 'unchanged stop' else
               'trained' if c['status'] == 'training complete' else 'submitted') for c in cs]
     ax = axes[0, 0]
     ax.plot(x, [c['word_count'] for c in cs], color=blue, marker='o', label='All words')
@@ -188,7 +188,7 @@ def plot(data, output):
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     for extension in ('png', 'svg'):
-        fig.savefig(output.with_suffix('.' + extension), dpi=220)
+        fig.savefig(output.with_suffix('.' + extension), dpi=220, bbox_inches='tight')
     plt.close(fig)
     output.with_suffix('.json').write_text(json.dumps(data, indent=2) + '\n')
 
