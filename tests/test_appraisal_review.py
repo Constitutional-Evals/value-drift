@@ -51,6 +51,33 @@ def test_appraisal_then_tools_share_visible_context_without_counting_appraisal(t
     assert [r['phase'] for r in generations]==['appraisal','tool_editing']
 
 
+def test_deferred_tool_instructions_enter_only_at_tool_phase(tmp_path):
+    from recursive_oct.editing import PROMPT_DIR
+    cfg=config(tmp_path);cfg['appraisal_defer_tool_instructions']=True
+    model=Model([output('The text is coherent.','reasoning</think>The text is coherent.'),
+                 output(FINISH,'reasoning</think>'+FINISH)])
+    result=execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    first=model.calls[0][0][0][0]['content']
+    assert 'Available tools' not in first
+    assert 'call this tool directly' not in first
+    assert 'Constitution' in first and 'M0' in first
+    assert 'First provide a brief appraisal' in first
+    assert model.calls[0][1]['tools'] is None
+    transition=model.calls[1][0][0][2]['content']
+    guide=(PROMPT_DIR/'tool_instructions.md').read_text().strip()
+    assert transition.endswith(guide)
+    assert 'Now decide and submit' in transition
+    assert result['status']=='SELF_DECLARED_CONVERGENCE'
+
+
+def test_default_appraisal_keeps_original_tool_guide_placement(tmp_path):
+    model=Model([output('Coherent.','reasoning</think>Coherent.'),
+                 output(FINISH,'reasoning</think>'+FINISH)])
+    execute_review(model,'M0','Constitution',tmp_path/'run',config(tmp_path))
+    assert 'Available tools' in model.calls[0][0][0][0]['content']
+    assert 'Available tools' not in model.calls[1][0][0][2]['content']
+
+
 @pytest.mark.parametrize('appraisal,reason',[
     (output('Incomplete','reasoning</think>Incomplete','length'),'truncated_appraisal'),
     (output('','still thinking'),'unfinished_appraisal_thinking'),

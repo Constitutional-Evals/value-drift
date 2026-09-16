@@ -3,7 +3,7 @@ import difflib
 import json
 import re
 from pathlib import Path
-from .editing import EditingSession, render_review_prompt, tool_schemas
+from .editing import EditingSession, PROMPT_DIR, render_review_prompt, tool_schemas
 from .model import inference_session, parse_tool_calls
 from .measurement import constitutional_metrics, NEUTRAL_SYSTEM_PROMPT
 from .pipeline import write_json
@@ -19,15 +19,19 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     appraisal_cap=config.get('appraisal_max_new_tokens',4096)
     if appraisal_path and (type(appraisal_cap) is not int or appraisal_cap<1):
         raise ValueError('appraisal_max_new_tokens must be a positive integer')
+    defer_tools=bool(appraisal_path and config.get('appraisal_defer_tool_instructions',False))
     output=Path(output); output.mkdir(parents=True,exist_ok=True)
     path=Path(config.get('constitution_path',output/'workspace'/'constitution.md'))
     session=EditingSession(path,initial_text=constitution,transcript_path=output/'tool_events.jsonl')
     context=render_review_prompt('full',constitution,str(checkpoint),recipe_text=recipe_text,display_path=str(path),
         review_instructions_path=config.get('review_instructions_path'),
-        context_template_path=config.get('context_template_path'))
+        context_template_path=config.get('context_template_path'),
+        tool_instructions_text='' if defer_tools else None)
     if appraisal_path:
         context += '\n\n' + Path(appraisal_path).read_text(encoding='utf-8')
         transition=Path(transition_path).read_text(encoding='utf-8')
+        if defer_tools:
+            transition += '\n\n' + (PROMPT_DIR/'tool_instructions.md').read_text(encoding='utf-8').strip()
     messages=[{'role':'user','content':context}]
     write_json(output/'initial_messages.json',messages)
     options={k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}

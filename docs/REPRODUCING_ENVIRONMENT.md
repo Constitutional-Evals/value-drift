@@ -71,20 +71,20 @@ The first two archive locations and revisions are recorded in `runs/checkpoint_l
 
 Run CPU tests first, then separately authorized engineering GPU checks for real tokenization/EOS, full DPO/SFT updates and reload, causal-convolution numerical behavior, and vLLM ordinary/tool generation. The recorded successful results are in [`TRAINING_BENCHMARK.md`](TRAINING_BENCHMARK.md), `runs/pre-main-tests.log`, and `runs/vllm_benchmark/`. A successful package install alone does not establish those properties. Full-parameter training uses FP32 saved weights with BF16 autocast; inference explicitly loads BF16. No training adapter, quantized-weight substitute, or vision-backbone update is implied by reproducing these environments.
 
+## Stage-two host using CUDA forward compatibility
 
-## Stage 2: driver compatibility and early readiness
+The initial restored host used driver570.195.03 / CUDA12.8. A requested native CUDA13 H200 was unavailable in US-GA-2. The separate volume preserved all installs and model downloads across replacement.
 
-The first restored host exposed driver 570.195.03 / CUDA 12.8 despite using the same image as stage 1. CPU imports passed, but CUDA 13 PyTorch could not initialize. A requested native CUDA 13 H200 was unavailable in US-GA-2. The replacement host has driver 570.172.08. NVIDIA documents CUDA 13 forward compatibility on R570 data-center GPUs. We extracted the official Ubuntu 24.04 `cuda-compat-13-0_580.178.04-1ubuntu1_amd64.deb` under `/workspace/cuda-compat-13`, keeping the existing compiler and Python environments.
+The replacement H200 reported native driver **570.172.08**, which cannot directly initialize the installed CUDA 13 PyTorch builds. The lead extracted NVIDIA's official `cuda-compat-13-0` package, version **580.178.04-1ubuntu1**, into persistent `/workspace/cuda-compat-13`. [Official package](https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-compat-13-0_580.178.04-1ubuntu1_amd64.deb); SHA256: `f7e29a545c1334bb5ca4b054213de9c9ceb70f8bf561aa214075020c4e0b60cf`.
 
-Source: https://docs.nvidia.com/deploy/cuda-compatibility/forward-compatibility.html
-Package: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-compat-13-0_580.178.04-1ubuntu1_amd64.deb
+Before every bootstrap, test, or runner launch on that host, the lead exports:
 
-Every stage-2 GPU command must inherit:
-
-```sh
-export LD_LIBRARY_PATH=/workspace/cuda-compat-13/usr/local/cuda-13.0/compat:${LD_LIBRARY_PATH:-}
+```bash
+export LD_LIBRARY_PATH=/workspace/cuda-compat-13/usr/local/cuda-13.0/compat${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 export CUDA_HOME=/workspace/venv/lib/python3.12/site-packages/nvidia/cu13
 export HF_HOME=/workspace/huggingface
 ```
 
-Both environments passed explicit CUDA initialization (driver API 13000), BF16 matrix multiplication/backward, finite-gradient checks, and synchronization. This is preliminary readiness, not proof that model kernels and vLLM graph compilation work; the separate full-stage engineering validation is required. `bootstrap_stage2.sh` now checks the loaded CUDA driver API before installation and performs real GPU operations in both environments at completion or with `--check-only`. It accepts supported forward compatibility rather than hard-coding a kernel-driver branch. Do not reuse the compatibility library path blindly after a future native-driver upgrade.
+This replaces user-mode CUDA driver libraries for these processes; it does not replace the host kernel driver. The vLLM subprocess inherits the environment. NVIDIA lists CUDA 13.0 compatibility support for R570 data-center GPUs, with feature restrictions that still require workload validation. [Compatibility documentation](https://docs.nvidia.com/deploy/cuda-compatibility/forward-compatibility.html)
+
+Both installed Torch environments passed driver initialization, reported CUDA driver API 13000, and completed BF16 matrix multiplication/backward with finite gradients and synchronization on this replacement. These are readiness checks, not a substitute for model integration. `bootstrap_stage2.sh --check-only` now performs these real CUDA checks in both environments; its early driver check accepts a working compatibility setup without requiring the native driver to be R580. The full DPO→post-DPO introspection→SFT→vLLM reload validation subsequently passed; evidence is preserved in `runs/stage2_engineering`. On a future native-driver host, reassess/remove the compatibility-library override rather than carrying it forward automatically.
