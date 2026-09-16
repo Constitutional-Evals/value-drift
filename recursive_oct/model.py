@@ -98,7 +98,9 @@ class ModelSession:
 
     def generate_batch(self, conversations, *, enable_thinking=False, max_new_tokens=512,
                        temperature=0.7, top_p=0.8, top_k=20, tools=None,
-                       max_input_tokens=16384, presence_penalty=0.0, **kwargs):
+                       max_input_tokens=16384, presence_penalty=0.0, json_schema=None, **kwargs):
+        if json_schema is not None:
+            raise ValueError('json_schema requires the vLLM backend')
         if presence_penalty != 0:
             raise ValueError('Nonzero presence_penalty requires the vLLM backend')
         if kwargs:

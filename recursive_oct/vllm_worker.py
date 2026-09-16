@@ -94,9 +94,9 @@ class WorkerEngine:
 
     def generate_batch(self, conversations, options):
         from vllm import SamplingParams
-        options={'presence_penalty':0.0, **options}
+        options={'presence_penalty':0.0, 'json_schema':None, **options}
         allowed = {'enable_thinking', 'max_new_tokens', 'temperature', 'top_p', 'top_k',
-                   'tools', 'max_input_tokens', 'presence_penalty'}
+                   'tools', 'max_input_tokens', 'presence_penalty', 'json_schema'}
         if set(options) != allowed:
             raise ValueError('Generation options do not match the session protocol')
         thinking = options['enable_thinking']
@@ -110,10 +110,14 @@ class WorkerEngine:
         # Identical self-interaction prompts still need independent samples.
         # The counter persists within this model session, not across process resume.
         seeds = [self.options['seed'] + self.request_counter + i for i in range(len(prompts))]
+        structured={}
+        if options['json_schema'] is not None:
+            from vllm.sampling_params import StructuredOutputsParams
+            structured={'structured_outputs':StructuredOutputsParams(json=options['json_schema'])}
         params = [SamplingParams(max_tokens=max_new, temperature=options['temperature'],
             top_p=options['top_p'], top_k=options['top_k'], seed=seed,
             presence_penalty=options['presence_penalty'],
-            skip_special_tokens=False, stop_token_ids=sorted(self.eos_ids), ignore_eos=False)
+            skip_special_tokens=False, stop_token_ids=sorted(self.eos_ids), ignore_eos=False, **structured)
             for seed in seeds]
         self.request_counter += len(prompts)
         started = time.monotonic()

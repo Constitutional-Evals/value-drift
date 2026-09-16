@@ -26,14 +26,20 @@ def prepare(parent, root, config):
         raise ValueError('Branch already exists; never repeat its bootstrap review')
     state = json.loads((parent / 'state.json').read_text())
     prior = json.loads((parent / 'config.json').read_text())
+    prior_structured = prior['review'].get('structured_tool_calls', False)
+    new_structured = config['review'].get('structured_tool_calls', False)
+    structured_added = new_structured is True and prior_structured is False
     before, after = dict(prior), dict(config)
     for item in (before, after):
         for key in ('run_label', 'protocol_version', 'note'):
             item.pop(key, None)
         item['review'] = dict(item['review'])
         item['review'].pop('max_plaintext_reminders', None)
-    if before != after or config['review'].get('max_plaintext_reminders') != prior['review'].get('max_plaintext_reminders', 0) + 1:
-        raise ValueError('This continuation changes only the bounded reminder rule')
+        item['review'].pop('structured_tool_calls', None)
+    reminder_increment = 0 if structured_added else 1
+    if (before != after or (new_structured != prior_structured and not structured_added)
+            or config['review'].get('max_plaintext_reminders') != prior['review'].get('max_plaintext_reminders', 0) + reminder_increment):
+        raise ValueError('Only one extra reminder or syntax-constrained tool mode may change')
     if state['status'] != 'EDITING_FAILURE' or state['phase'] != 'review':
         raise ValueError('Parent must have a failed review, not convergence')
     n = state['completed_rounds'] + 1
@@ -78,7 +84,8 @@ def prepare(parent, root, config):
                'replayed_seeds':seeds,
                'continuation_seed':seeds[-1] + 1,
                'fresh_review_seed':config['review']['seed'],
-               'change':'One additional bounded neutral tool-completion reminder; no training or decision resampling.',
+               'change':('Syntax-constrained JSON tool mode; model retains free choice of edit or finish.' if structured_added else
+                         'One additional bounded neutral tool-completion reminder; no training or decision resampling.'),
                'inherited_weights':'Referenced in parent run; metadata/data copied without weights.'}
     write_json(root / 'branch.json', receipt)
     return state, records, receipt

@@ -17,6 +17,29 @@ PLAINTEXT_REMINDER = ('Please use the available tools to record your decision. '
     'A prose response does not edit or submit the document.')
 
 
+def json_tool_schema(allow_passage_edit=False):
+    return {'anyOf':[{'type':'object','properties':{
+        'name':{'type':'string','enum':[tool['function']['name']]},
+        'arguments':tool['function']['parameters']},
+        'required':['name','arguments'],'additionalProperties':False}
+        for tool in tool_schemas(allow_passage_edit=allow_passage_edit)]}
+
+
+def parse_json_tool_call(raw):
+    def unique_fields(pairs):
+        result={}
+        for key,value in pairs:
+            if key in result: raise ValueError('Duplicate JSON field')
+            result[key]=value
+        return result
+    obj=json.loads(raw,object_pairs_hook=unique_fields)
+    if (not isinstance(obj,dict) or set(obj)!={'name','arguments'}
+            or obj['name'] not in ('edit_constitution','finish_editing')
+            or not isinstance(obj['arguments'],dict)):
+        raise ValueError('Expected one JSON tool object with name and arguments')
+    return [obj]
+
+
 def execute_review(model, checkpoint, constitution, output, config, recipe_text=None, initial_constitution=None,
                    *, replay_generation=None, replay_generations=None):
     """Saved generations occupy initial turns without new generation requests.
@@ -30,6 +53,10 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     if replay is None: replay=[]
     if not isinstance(replay,list) or any(not isinstance(item,dict) for item in replay):
         raise ValueError('replay_generations must be a list of generation dictionaries')
+    structured=config.get('structured_tool_calls',False)
+    if structured and config.get('enable_thinking',False):
+        raise ValueError('structured_tool_calls requires enable_thinking=false')
+    format_started=False
     max_reminders=config.get('max_plaintext_reminders',0)
     if type(max_reminders) is not int or max_reminders<0:
         raise ValueError('max_plaintext_reminders must be a nonnegative integer')
@@ -89,11 +116,24 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     for turn in range(config.get('max_turns',12)):
         if session.finished: break
         replayed=turn<len(replay)
+        call_options=options
+        if structured and not replayed:
+            schema=json_tool_schema(allow_passage_edit)
+            if not format_started:
+                guide=('For subsequent responses, encode exactly one tool call as a raw JSON object '
+                    'with fields "name" and "arguments", instead of XML tool markup or prose. '
+                    'Choose edit_constitution to revise or finish_editing to submit, including unchanged submission. '
+                    'Tool effects and argument meanings are unchanged. Use this JSON schema:\n'+json.dumps(schema))
+                messages.append({'role':'user','content':guide})
+                write_json(output/'format_transition.json',{'turn':turn,'wire_format':'json','message':guide})
+                format_started=True
+            call_options={**options,'json_schema':schema}
         generated=replay[turn] if replayed else model.generate_batch(
-            [messages],tools=tool_schemas(allow_passage_edit=allow_passage_edit),**options)[0]
+            [messages],tools=tool_schemas(allow_passage_edit=allow_passage_edit),**call_options)[0]
         with (output/'generations.jsonl').open('a') as f:
             record={'turn':turn,**generated}
             if replayed: record.update(turn=turn,replayed=True)
+            if structured and not replayed: record['wire_format']='json'
             if appraisal_path: record['phase']='tool_editing'
             f.write(json.dumps(record,ensure_ascii=False)+'\n')
         if generated['finish_reason']!='stop':
@@ -101,15 +141,20 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
         if config.get('enable_thinking') and '</think>' not in generated['raw_text']:
             session.fail('unfinished_thinking'); break
         try:
-            calls=parse_tool_calls(generated['raw_text'])
+            calls=parse_json_tool_call(generated['raw_text']) if structured and not replayed else parse_tool_calls(generated['raw_text'])
             if any(c['name']=='finish_editing' for c in calls[:-1]):
                 raise ValueError('Calls after finish_editing')
         except ValueError as exc:
             visible=generated['text'].strip()
             public_raw=generated['raw_text'].rsplit('</think>',1)[-1]
-            if (str(exc)=='Missing or incomplete tool call' and visible
-                    and not re.search(r'</?\s*(?:tool_call|function|parameter)', public_raw, re.I)
-                    and reminder_count<max_reminders):
+            plain=(str(exc)=='Missing or incomplete tool call' and visible
+                   and not re.search(r'</?\s*(?:tool_call|function|parameter)', public_raw, re.I))
+            if structured and replayed and turn==len(replay)-1 and plain and reminder_count>=max_reminders:
+                # The failed final prose is preserved; the next request changes
+                # only its wire format, without another generic reminder.
+                messages.append({'role':'assistant','content':visible})
+                continue
+            if plain and reminder_count<max_reminders:
                 messages.append({'role':'assistant','content':visible})
                 messages.append({'role':'user','content':PLAINTEXT_REMINDER})
                 reminder_count += 1

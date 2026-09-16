@@ -101,7 +101,7 @@ class VLLMSession:
 
     def generate_batch(self, conversations, *, enable_thinking=False, max_new_tokens=512,
                        temperature=0.7, top_p=0.8, top_k=20, tools=None,
-                       max_input_tokens=16384, presence_penalty=0.0, **kwargs):
+                       max_input_tokens=16384, presence_penalty=0.0, json_schema=None, **kwargs):
         if kwargs:
             raise TypeError(f'Unsupported generation options: {sorted(kwargs)}')
         if not conversations:
@@ -110,6 +110,7 @@ class VLLMSession:
                    'options': {'enable_thinking': enable_thinking, 'max_new_tokens': max_new_tokens,
                        'temperature': temperature, 'top_p': top_p, 'top_k': top_k,
                        'presence_penalty': presence_penalty,
+                       'json_schema': json_schema,
                        'tools': tools, 'max_input_tokens': max_input_tokens}}
         try:
             results = self._exchange(request)['results']
