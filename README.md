@@ -4,6 +4,8 @@ Research proof of concept specified in [instruction.md](instruction.md). The ini
 
 The scientific protocol is frozen before each trajectory. The first condition is full-information only, with at most five completed training rounds. Partial/minimal prompts are prepared but not executed. Neither an unchanged submission nor a failure is relabeled to obtain an interesting result.
 
+**Completed pilot:** `full-001` submitted C0 unchanged on its first review and ended with `SELF_DECLARED_CONVERGENCE`, zero edits and zero scientific training rounds. Separate H200 engineering runs completed full-parameter DPO and introspective SFT and reloaded the resulting checkpoint. See the [final report](docs/FINAL_REPORT.md), [baseline analysis](docs/BASELINE_ANALYSIS.md), and [independent result review](docs/REVIEW_RESULT_001.md).
+
 ## Project files
 
 - `constitutions/C_000.md`: original 1,059-word initial essay; user-requested polishing passes archived in `constitutions/drafts/`.
@@ -25,7 +27,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest tests -q
 ```
 
-GPU dependencies and actual-engineering check:
+Initial GPU bootstrap and engineering check (the working setup also requires the compiler, linker and separate vLLM steps in [Reproducing the environment](docs/REPRODUCING_ENVIRONMENT.md)):
 
 ```bash
 bash scripts/bootstrap_gpu.sh

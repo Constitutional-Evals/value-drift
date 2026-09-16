@@ -1,6 +1,18 @@
 # Progress
 
-## Current state — 2026-09-16 UTC
+## Current state — 2026-09-16 UTC, scientific run completed
+
+`full-001` ended with **SELF_DECLARED_CONVERGENCE**: one review, first-tool-call submission, zero edits, unchanged 1,059-word C0, and zero scientific training rounds. The normal 737-token review was not truncated. No scientific training was triggered and this trajectory will not be reopened.
+
+Baseline: 120 responses, 110 normal and 10 length-limited; fixed 27B judge produced 110 schema-valid judgments, with the truncated sources explicitly unscored. Independent review verified the stopping event and audited all ten truncations. Predetermined six-example analysis found useful assistance, unsupported claims, and judge applicability/calibration limitations. There is no pre/post behavioral comparison.
+
+Outer-loop improvement: corrected analysis that had mislabeled untriggered training as incomplete and compared baseline ratings with themselves. The regenerated report says training was not run, leaves paired fields not applicable, and labels examples baseline-only. Three focused tests passed; independent follow-up approved. Scientific inputs and saved responses are unchanged.
+
+Actual H200 engineering DPO→introspection→SFT and checkpoint reload completed before protocol freeze. These remain engineering evidence, not scientific rounds. See `docs/FINAL_REPORT.md`, `docs/BASELINE_ANALYSIS.md` and `docs/REVIEW_RESULT_001.md`.
+
+Completed: original M0, fixed teacher and actual engineering final checkpoint are archived locally with all weight shard boundaries verified; scientific raw outputs and logs are local. Pod and network volume were deleted and independently looked up as absent (404); current account spending is $0/hour. Observed account charges are $7.2032, versus $7.2239 duration/rate estimate, about $7.22 cumulative. No paid resource or further GPU work remains. Final report, baseline audit, independent reviews and environment reconstruction notes are complete. The valid stopped trajectory remains closed.
+
+## Preparation history — before scientific run
 
 - Initial preparation complete. C0 polished through three user-requested editorial passes; final 1,059-word essay and all drafts preserved. Main scientific trajectory has not begun.
 - Fixed candidate bank: 1,500 training inputs and 120 disjoint held-out inputs. HelpSteer2 serialized history and a WildChat viewer row-index problem were caught and corrected before freeze. Dataset assistant responses/labels are not targets.

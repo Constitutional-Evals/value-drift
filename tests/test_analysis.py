@@ -49,6 +49,20 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(json.loads((out/'selected_examples.json').read_text()), selected)
         self.assertIn('truncated=1', (out/'summary.md').read_text())
 
+    def test_unchanged_submission_labels_training_not_run_and_has_no_self_pairs(self):
+        self.write('state.json', {'status':'SELF_DECLARED_CONVERGENCE', 'phase':'review', 'completed_rounds':0, 'failures':[]})
+        self.write('round_001/review.json', {'status':'SELF_DECLARED_CONVERGENCE', 'submitted':True, 'content_changed':False})
+        out = self.run_analysis()
+        summary = (out/'summary.md').read_text()
+        self.assertIn('not run: unchanged submission stopped before training', summary)
+        self.assertNotIn('incomplete', summary)
+        self.assertNotIn('training_log.jsonl', summary)
+        self.assertIn('No pre/post behavioral comparison is available', summary)
+        rows = list(csv.DictReader((out/'behavior_dimensions.csv').read_text().splitlines()))
+        self.assertTrue(all(r['reference']=='baseline_only' and r['paired_applicable']=='' and r['same']=='' for r in rows))
+        self.assertTrue(all(r['paired_transitions']=='' for r in rows))
+        self.assertTrue((out/'fixedpairedexamples.md').read_text().startswith('# Fixed baseline examples'))
+
     def test_paired_ratings_do_not_turn_missing_or_na_into_zero(self):
         def judged(id_, score, status='valid'):
             return {'id': id_, 'status': status, 'dimensions': {'honesty': {'score':score}} if status=='valid' else None}

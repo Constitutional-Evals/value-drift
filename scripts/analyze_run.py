@@ -90,8 +90,10 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
                f'Evaluation bank: `{bank_path.resolve()}` ({len(bank)} prompts).',
                f'Model: `{config.get("model", "unavailable")}`; fixed judge: `{config.get("judge", {}).get("fixed_judge_checkpoint", "unavailable")}`.',
                '', 'These are exploratory ordinal observations, with no aggregate alignment score or causal claim. Increased scores are descriptive; deference is not inherently better when higher.',
-               'Paired transitions use identical prompt IDs against eval_000. Not-applicable ratings and missing/invalid judgments remain separate; applicability changes can alter the compared subset.',
+               'Baseline-only analysis: paired fields are not applicable and remain blank.' if names == {'eval_000'} else 'Paired transitions use identical prompt IDs against eval_000. Not-applicable ratings and missing/invalid judgments remain separate; applicability changes can alter the compared subset.',
                'Word counts use whitespace splitting and include saved final responses, including truncated responses. No cost is inferred; consult the separate cost ledger.', '', '## Evaluation coverage', '']
+    if completed == 0:
+        summary.insert(7, 'No pre/post behavioral comparison is available: no training round completed. There is no evidence here of behavioral change or stability.')
     behavior = []
 
     def rating(row, dimension):
@@ -111,7 +113,8 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
         avg = sum(len(t.split()) for t in texts if isinstance(t, str))/len(rows) if rows else None
         number = int(name[-3:])
         status = 'baseline' if number == 0 else 'completed round' if number <= completed else 'Not counted as a completed round'
-        summary.append(f'- {name} ({status}): responses={len(rows)}/{len(bank)}, mean_words={avg if avg is not None else "missing"}, truncated={sum(r.get("finish_reason") == "length" for r in rows)}, empty={sum(not isinstance(t, str) or not t.strip() for t in texts)}, unknown_finish={sum(r.get("finish_reason") not in ("stop", "length") for r in rows)}. Artifacts: `{root/(name+".jsonl")}`, `{root/(name+".jsonl.judged.jsonl")}`.')
+        artifacts = ', '.join(str(p) for p in (root/f'{name}.jsonl', root/f'{name}.jsonl.judged.jsonl') if p.exists()) or 'none available'
+        summary.append(f'- {name} ({status}): responses={len(rows)}/{len(bank)}, mean_words={avg if avg is not None else "missing"}, truncated={sum(r.get("finish_reason") == "length" for r in rows)}, empty={sum(not isinstance(t, str) or not t.strip() for t in texts)}, unknown_finish={sum(r.get("finish_reason") not in ("stop", "length") for r in rows)}. Artifacts: {artifacts}.')
         for dimension in BEHAVIOR_RUBRIC['dimensions']:
             current = {id_: rating(judged[name].get(id_), dimension) for id_ in bank}
             counts = Counter(current.values())
@@ -122,9 +125,10 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
                              **{f'score_{i}':counts[str(i)] for i in range(3)}, 'not_applicable':counts['not_applicable'],
                              'missing':sum(v for k,v in counts.items() if k not in ('0','1','2','not_applicable')),
                              'missing_reasons':json.dumps({k:v for k,v in counts.items() if k not in ('0','1','2','not_applicable')}, sort_keys=True),
-                             'reference':'eval_000', 'paired_applicable':len(pairs), 'increased':sum(b>a for a,b in pairs),
-                             'same':sum(b==a for a,b in pairs), 'decreased':sum(b<a for a,b in pairs),
-                             'paired_transitions':json.dumps(dict(sorted(transitions.items())))})
+                             'reference':'baseline_only' if number == 0 else 'eval_000',
+                             'paired_applicable':len(pairs) if number else '', 'increased':sum(b>a for a,b in pairs) if number else '',
+                             'same':sum(b==a for a,b in pairs) if number else '', 'decreased':sum(b<a for a,b in pairs) if number else '',
+                             'paired_transitions':json.dumps(dict(sorted(transitions.items()))) if number else ''})
     csv_file('behavior_dimensions.csv', behavior)
 
     initial = (root/'C_000.md').read_text() if (root/'C_000.md').exists() else None
@@ -146,16 +150,20 @@ def analyze(run_dir, eval_bank=None, examples=6, seed=20260915):
     csv_file('constitutional.csv', constitution)
     summary += ['', '## Training stages', '']
     for folder in sorted(root.glob('round_[0-9][0-9][0-9]')):
+        stopped_unchanged = read(folder/'review.json', {}).get('status') == 'SELF_DECLARED_CONVERGENCE'
         for stage in ('dpo', 'final'):
             log = folder/stage/'training_log.jsonl'
             records = lines(log)
             result = read(folder/stage/'training_complete.json', {})
+            if stopped_unchanged and not result and not log.exists():
+                summary.append(f'- {folder.name}/{stage}: not run: unchanged submission stopped before training.')
+                continue
             losses = [r['loss'] for r in records if isinstance(r.get('loss'), (int, float))]
-            summary.append(f'- {folder.name}/{stage}: {"complete" if result else "incomplete"}; logged_steps={len(records)}, mean_logged_loss={sum(losses)/len(losses) if losses else "missing"}, training_metadata={json.dumps({k:result[k] for k in ('optimizer_steps', 'examples', 'seconds', 'truncated_sequences') if k in result}, ensure_ascii=False)}; log: `{log}`; completion metadata: `{folder/stage/"training_complete.json"}`.')
+            summary.append(f'- {folder.name}/{stage}: {"complete" if result else "incomplete"}; logged_steps={len(records)}, mean_logged_loss={sum(losses)/len(losses) if losses else "missing"}, training_metadata={json.dumps({k:result[k] for k in ('optimizer_steps', 'examples', 'seconds', 'truncated_sequences') if k in result}, ensure_ascii=False)}; log: {str(log) if log.exists() else "absent"}; completion metadata: {str(folder/stage/"training_complete.json") if result else "absent"}.')
     summary += ['', '## Recorded failures', '', json.dumps(state.get('failures', []), ensure_ascii=False, indent=2), '', '## Warnings', '']
     summary += warnings or ['None.']
     (out/'summary.md').write_text('\n'.join(summary)+'\n')
-    examples_text = ['# Fixed paired examples', '', 'Selected from the held-out bank before reading responses, independently of quality. Missing/truncated responses are retained explicitly. Full responses follow; these six/eight cases are illustrative, not prevalence estimates.', '']
+    examples_text = ['# Fixed baseline examples' if names == {'eval_000'} else '# Fixed paired examples', '', 'Selected from the held-out bank before reading responses, independently of quality. Missing/truncated responses are retained explicitly. Full responses follow; these six/eight cases are illustrative, not prevalence estimates.', '']
     for id_ in chosen:
         examples_text += [f'## {id_} ({bank[id_]["category"]})', '', bank[id_]['prompt'], '']
         for name in sorted(names):
