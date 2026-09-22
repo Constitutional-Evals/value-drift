@@ -1,0 +1,22 @@
+[project]
+name = "convergence"
+version = "0.1.0"
+description = "Metrics for evaluating constitutional drift between constitutions."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+openrouter = ["openai>=1.0"]  # OpenRouter's embeddings/chat endpoints are OpenAI-compatible
+voyage = ["voyageai>=0.2"]
+local = ["sentence-transformers>=2.2"]  # no API key needed; heavier install (pulls in torch)
+dev = ["pytest>=7.0", "openai>=1.0"]  # local's sentence-transformers is NOT in dev (heavy download)
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["convergence*"]
