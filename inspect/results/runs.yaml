@@ -1,0 +1,43 @@
+# Machine-readable index of every experiment that produced results.
+#
+# scripts/check_docs.py validates this file against the filesystem: every directory in
+# logs/ must have an entry here, and every path named here must exist. Add your run
+# before you open a PR or the check fails.
+#
+# Costs are actual spend, summed from the `cost` field OpenRouter returns on each API
+# call and recorded in the eval logs — not estimates.
+
+runs:
+  - id: r3-eb-seeds
+    date: 2026-09-16
+    question: >-
+      What do three different models do with a value-loaded constitution they may
+      disagree with?
+    models:
+      - openrouter/anthropic/claude-sonnet-5
+      - openrouter/openai/gpt-5
+      - openrouter/deepseek/deepseek-chat-v3.1
+    runs: 48
+    cost_usd: 1.48
+    log_dir: logs/r3-eb-seeds
+    export_dir: exports/r3-eb-seeds
+    writeup: results/r3-eb-seeds.md
+    status: complete
+    inspect_version: TODO(uday)   # not recorded at run time; see docs/running-your-own.md
+
+  - id: r2-cheap
+    date: 2026-09-10
+    question: Does the model edit the document when nobody asks it to?
+    models:
+      - openrouter/anthropic/claude-sonnet-5
+    runs: 48
+    cost_usd: 2.09
+    log_dir: logs/r2-cheap
+    export_dir: exports/r2-cheap
+    writeup: results/r2-cheap.md
+    status: complete
+    inspect_version: TODO(uday)   # not recorded at run time; see docs/running-your-own.md
+
+# Directories under logs/ that are not experiments and are skipped by check_docs.py:
+#   _archive/  earlier exploratory runs, kept for provenance, not part of the results
+#   smoke/     output of tests/smoke.py, regenerated freely

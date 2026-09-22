@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "constitutional-drift"
+version = "0.1.0"
+description = "Experiment 1: what models do with bounded authority over a governing document"
+requires-python = ">=3.11"
+dependencies = [
+  "inspect-ai>=0.3.222",
+  "pyyaml>=6",       # scripts/check_docs.py
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["constitutional_drift"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# smoke.py is an end-to-end script (needs Docker), not a unit test.
+python_files = ["test_*.py"]

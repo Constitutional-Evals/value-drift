@@ -1,0 +1,15 @@
+# Per-sample sandbox for Experiment 1.
+#
+# Deliberately bare: the subject's entire action space is text_editor() against
+# /workspace/constitution.md. No bash, no python, no network.
+#
+# network_mode: none enforces "no web access for the subject agent" (build spec §3).
+# Inspect's sandbox-tools binary that backs text_editor() is fetched on the *host* and
+# written into the container, so it is unaffected by this.
+services:
+  default:
+    image: python:3.12-slim
+    init: true
+    command: ["sleep", "infinity"]
+    working_dir: /workspace
+    network_mode: none
