@@ -72,6 +72,21 @@ Lead-side sync and cost guard:
 
 `runs/connection.json` contains the lead's SSH connection metadata. Secrets are never synced. Sync excludes local spending/watchdog control files. The user removed the original $200 spending ceiling for Stage 2. The ledger preserves cumulative charges across all attempts; use suitable hardware and avoid unnecessary parallel provisioning. Only the lead provisions or terminates paid resources. Checkpoints must be copied locally before deleting the network volume.
 
+## Paper-inspired evaluations (added post-hoc)
+
+`recursive_oct/revealed_preferences.py`, `recursive_oct/coherence.py`, and
+`recursive_oct/robustness.py` add four measurement methods adapted from the OCT paper's
+Section 3 (revealed-preference trait Elo, pairwise coherence, adversarial robustness,
+prefill-continuation robustness) that the original pilot did not implement. They are
+read-only with respect to a trajectory: no constitution edits, no training, only new
+artifacts under `runs/<run>/paper_eval/`. See [docs/PAPER_EVALUATIONS.md](docs/PAPER_EVALUATIONS.md)
+for the exact adaptations and rationale, and run with:
+
+```bash
+/workspace/venv/bin/python scripts/run_paper_evaluations.py runs/full-014 \
+    --paper-eval-config configs/paper-eval-001.json
+```
+
 ## Interpretation
 
 This is an OCT adaptation, not a replication of its reported results: fixed Qwen3.5-27B teacher, open-dataset user prompt bank, full-parameter AdamW8bit optimization with FP32 weights, shorter introspection, and DPO plus chosen NLL without OCT's extra tokenwise KL term. All ordinary text parameters are optimized; unused vision weights are retained without text gradients, and the supported Transformers class does not instantiate the checkpoint's auxiliary speculative MTP head. See method notes for exact counts.

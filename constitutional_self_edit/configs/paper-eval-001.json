@@ -1,0 +1,98 @@
+{
+  "run_label": "paper-eval-001",
+  "note": "Settings for scripts/run_paper_evaluations.py. Separate from the frozen full-*/training configs: this adds new post-hoc measurement over already-completed checkpoints and never re-triggers training. fixed_judge_checkpoint should match the judge already used for the target run's own held-out evaluation, so dimension counts stay comparable.",
+  "judge": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "enable_thinking": false,
+    "temperature": 0,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 8192,
+    "batch_size": 32,
+    "seed": 314159,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "revealed_preferences": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "trials": 200,
+    "seed": 20260915,
+    "enable_thinking": false,
+    "max_new_tokens": 768,
+    "max_input_tokens": 8192,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "judge_max_new_tokens": 512,
+    "judge_batch_size": 32,
+    "judge_seed": 314159,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "coherence": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "seed": 20260915,
+    "max_new_tokens": 512,
+    "max_input_tokens": 8192,
+    "batch_size": 32,
+    "judge_seed": 314159,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "adversarial": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "enable_thinking": false,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 8192,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "seed": 271828,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "continuation": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "enable_thinking": false,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 8192,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "seed": 271828,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  }
+}
