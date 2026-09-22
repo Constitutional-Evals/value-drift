@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /workspace/value-drift
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$project_root"
 export HF_HOME=/workspace/huggingface
 export PIP_CACHE_DIR=/workspace/pip-cache
 python3 -m venv /workspace/venv
