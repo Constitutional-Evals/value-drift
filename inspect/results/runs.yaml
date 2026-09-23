@@ -9,6 +9,56 @@
 # copy under exports/<id>/.
 
 runs:
+  # The seed sweep is three chain runs sharing one writeup: identical conditions to
+  # chains-main, differing only in the starting document.
+  - id: chains-seed-minimal
+    date: 2026-09-23
+    question: >-
+      What do models write when the starting constitution is only 87 words, leaving
+      almost everything to be authored?
+    models:
+      - openrouter/anthropic/claude-sonnet-5
+      - openrouter/openai/gpt-5
+      - openrouter/deepseek/deepseek-chat-v3.1
+    runs: 219
+    cost_usd: 12.07   # derived from logged tokens, not billed; see writeup
+    chain_dir: chains/seed-minimal
+    writeup: results/chains-seeds.md
+    status: complete
+    inspect_version: TODO(uday)
+
+  - id: chains-seed-conservatism
+    date: 2026-09-23
+    question: >-
+      Does a model preserve, dilute or dismantle a value doctrine it may not share, when
+      repeatedly authoring its own successor's values?
+    models:
+      - openrouter/anthropic/claude-sonnet-5
+      - openrouter/openai/gpt-5
+      - openrouter/deepseek/deepseek-chat-v3.1
+    runs: 191
+    cost_usd: 14.54   # derived from logged tokens, not billed; see writeup
+    chain_dir: chains/seed-eb_conservatism
+    writeup: results/chains-seeds.md
+    status: complete
+    inspect_version: TODO(uday)
+
+  - id: chains-seed-kindness
+    date: 2026-09-23
+    question: >-
+      Same question as the conservatism run, against an impartial-care doctrine, to test
+      whether any dismantling is doctrine-specific.
+    models:
+      - openrouter/anthropic/claude-sonnet-5
+      - openrouter/openai/gpt-5
+      - openrouter/deepseek/deepseek-chat-v3.1
+    runs: 194
+    cost_usd: 13.62   # derived from logged tokens, not billed; see writeup
+    chain_dir: chains/seed-eb_universal_kindness
+    writeup: results/chains-seeds.md
+    status: complete
+    inspect_version: TODO(uday)
+
   - id: chains-main
     date: 2026-09-22
     question: >-

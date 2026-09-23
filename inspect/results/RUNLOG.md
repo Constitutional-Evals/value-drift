@@ -6,6 +6,7 @@ the machine-readable version of this same list is [runs.yaml](runs.yaml), which
 
 | id | date | question | models | runs | cost | writeup |
 |---|---|---|---|---|---|---|
+| `chains-seed-*` | 2026-09-23 | Does the starting document determine where values end up? Three seeds at fixed conditions, plus a reading of all 96 final documents. | Sonnet 5, gpt-5, DeepSeek v3.1 | 604 | ~$40 | [chains-seeds.md](chains-seeds.md) |
 | `chains-main` | 2026-09-22 | What happens to a constitution across repeated rounds of a model authoring its own successor's values? | Sonnet 5, gpt-5, DeepSeek v3.1 | 165 | ~$8.30 | [chains-main.md](chains-main.md) |
 
 ---
