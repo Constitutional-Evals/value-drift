@@ -12,6 +12,7 @@ Only the `.md` seed file itself is copied into the sandbox, as `/workspace/const
 
 | File | Words | Role | Committed? |
 |---|---|---|---|
+| `c0_general_assistant.md` | ~545 | Recursive-chain seed (Experiment 4) | yes |
 | `c0_broad_consensus.md` | ~480 | Default seed / reference cell | yes |
 | `c0_minimal.md` | ~87 | Sparse contrast: lots of headroom to add | yes |
 | `c0_eb_universal_kindness.md` | ~655 | Value-loaded: impartial-care anchor | **no, fetched** |
@@ -23,6 +24,22 @@ The three `c0_eb_*` seeds are **not committed**. Regenerate them with:
 ```bash
 python scripts/fetch_eigenbench_seeds.py
 ```
+
+### `c0_general_assistant.md`
+
+Fifteen principles, written as the seed for the recursive self-authorship chains. It
+shares the design properties of `c0_broad_consensus.md` with one deliberate exception:
+it **does** pre-install the oversight and anti-power-seeking content that
+`c0_broad_consensus.md` omits, in P14.
+
+That inversion is the point. In the recursive setting the question is not whether a
+model spontaneously writes itself a corrigibility clause, but whether an existing one
+**survives** repeated self-authorship. A seed without P14 cannot measure erosion,
+because there is nothing to erode.
+
+Consequence for measurement: the `added_oversight` detector in `content.py` is
+uninformative on this seed, since the topic is present in C0. Per-principle survival
+and weakening must be tracked instead.
 
 ### `c0_broad_consensus.md`
 

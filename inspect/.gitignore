@@ -1,7 +1,10 @@
 .env
-logs/
-.smoke-logs/
-exports/
+# Anchored with a leading slash on purpose. Unanchored, `logs/` also matches
+# chains/<run>/<model>/rounds/<NN>/logs/, which silently dropped every chain
+# transcript from the repo once already.
+/logs/
+/.smoke-logs/
+/exports/
 __pycache__/
 *.egg-info/
 .pytest_cache/
@@ -10,3 +13,8 @@ __pycache__/
 # EigenBench-derived seeds: upstream repo carries no license (NOASSERTION), so these
 # are fetched per checkout by scripts/fetch_eigenbench_seeds.py rather than committed.
 data/constitutions/c0_eb_*.md
+
+# chains/ is deliberately NOT ignored. A chain run's documents, per-round snapshots,
+# state.json and .eval logs total under 10MB and are the primary record of the result:
+# every document a model produced, in lineage order. Unlike logs/, there is no separate
+# committed export of them, so ignoring them would leave the findings on one laptop.

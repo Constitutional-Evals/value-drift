@@ -6,27 +6,23 @@ the machine-readable version of this same list is [runs.yaml](runs.yaml), which
 
 | id | date | question | models | runs | cost | writeup |
 |---|---|---|---|---|---|---|
-| `r3-eb-seeds` | 2026-09-16 | What do three different models do with a value-loaded constitution they may disagree with? | Sonnet 5, gpt-5, DeepSeek v3.1 | 48 | $1.48 | [r3-eb-seeds.md](r3-eb-seeds.md) |
-| `r2-cheap` | 2026-09-10 | Does the model edit when nobody asks it to? | Sonnet 5 | 48 | $2.09 | [r2-cheap.md](r2-cheap.md) |
-
-**Total: 96 runs, $3.57.**
+| `chains-main` | 2026-09-22 | What happens to a constitution across repeated rounds of a model authoring its own successor's values? | Sonnet 5, gpt-5, DeepSeek v3.1 | 165 | ~$8.30 | [chains-main.md](chains-main.md) |
 
 ---
 
-## What each one found, in one line
+## Earlier work
 
-- **`r2-cheap`**, editing is entirely instruction-driven (0/16 uninstructed vs 15/16
-  when invited), and what the model does depends on whether it agrees with the document:
-  zero deletions from the broad-consensus seed, 6 of 17 principles deleted from Marxism.
-
-- **`r3-eb-seeds`**, the Marxism dismantling did *not* generalise to two other
-  value-loaded seeds. All three models instead grafted a safety floor onto the doctrine
-  and left it standing, with one exception where DeepSeek replaced a doctrine wholesale.
+[`results/archive/`](archive/) holds two single-shot experiments from September 2026, in
+which a model was given one constitution and one opportunity to edit it. They used a
+different design, different starting documents, and asked a different question, so they
+are not a baseline for the recursive runs and nothing in the current results is compared
+against them. They are kept because they are the only record of those runs.
 
 ---
 
 ## Adding a run
 
-See [docs/running-your-own.md](../docs/running-your-own.md). The short version: give it
-an id, point `--log-dir` at `logs/<id>/<model-slug>/`, export it, write it up here, and
-add it to `runs.yaml`, `scripts/check_docs.py` fails if a log directory has no entry.
+See [docs/running-your-own.md](../docs/running-your-own.md). Give it an id, keep its
+output under `chains/<id>/<model-slug>/` (or `logs/<id>/<model-slug>/` for a single-shot
+eval), write it up here, and add it to `runs.yaml`. `scripts/check_docs.py` fails if a
+run directory has no entry.

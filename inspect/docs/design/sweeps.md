@@ -137,8 +137,8 @@ factors and four seeds. **Nothing below has been executed**, and its runner now 
 `scripts/archive/run2.sh` with a do-not-run banner.
 
 > **Partly superseded.** Sweeps C and D below were answered more cheaply by
-> [`r2-cheap`](../../results/r2-cheap.md) (uninstructed editing, and embodiment), and
-> sweep E partly by [`r3-eb-seeds`](../../results/r3-eb-seeds.md) (value-loaded seeds
+> [`r2-cheap`](../../results/archive/r2-cheap.md) (uninstructed editing, and embodiment),
+> and sweep E partly by [`r3-eb-seeds`](../../results/archive/r3-eb-seeds.md) (value-loaded seeds
 > across three models). What remains genuinely open is the scale: these designs use
 > 4 models × 8 epochs where the completed experiments used 1–3 models. Read this section
 > as a menu of designs, not a plan to execute as written.

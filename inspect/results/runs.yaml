@@ -1,13 +1,35 @@
 # Machine-readable index of every experiment that produced results.
 #
-# scripts/check_docs.py validates this file against the filesystem: every directory in
-# logs/ must have an entry here, and every path named here must exist. Add your run
-# before you open a PR or the check fails.
+# scripts/check_docs.py validates this file against the filesystem: every run directory
+# must have an entry here, and every path named here must exist. Add your run before you
+# open a PR or the check fails.
 #
-# Costs are actual spend, summed from the `cost` field OpenRouter returns on each API
-# call and recorded in the eval logs — not estimates.
+# Recursive chain runs live under chains/<id>/ and carry their own documents, per-round
+# snapshots and state.json. Single-shot evals live under logs/<id>/ with a flattened
+# copy under exports/<id>/.
 
 runs:
+  - id: chains-main
+    date: 2026-09-22
+    question: >-
+      What happens to a constitution across repeated rounds in which a model authors the
+      values of its own successor and is then governed by what it wrote?
+    models:
+      - openrouter/anthropic/claude-sonnet-5
+      - openrouter/openai/gpt-5
+      - openrouter/deepseek/deepseek-chat-v3.1
+    runs: 165
+    cost_usd: 8.30   # billed total from OpenRouter; per-model figures in the writeup are derived
+    chain_dir: chains/main
+    writeup: results/chains-main.md
+    status: complete
+    inspect_version: TODO(uday)   # not recorded at run time; see docs/running-your-own.md
+
+  # --- archived -------------------------------------------------------------------
+  # Single-shot experiments under an earlier design: one model, one document, one
+  # opportunity to edit. Different question, not a baseline for the chain runs. Kept
+  # because these writeups are the only committed record of those runs.
+
   - id: r3-eb-seeds
     date: 2026-09-16
     question: >-
@@ -21,8 +43,8 @@ runs:
     cost_usd: 1.48
     log_dir: logs/r3-eb-seeds
     export_dir: exports/r3-eb-seeds
-    writeup: results/r3-eb-seeds.md
-    status: complete
+    writeup: results/archive/r3-eb-seeds.md
+    status: archived
     inspect_version: TODO(uday)   # not recorded at run time; see docs/running-your-own.md
 
   - id: r2-cheap
@@ -34,8 +56,8 @@ runs:
     cost_usd: 2.09
     log_dir: logs/r2-cheap
     export_dir: exports/r2-cheap
-    writeup: results/r2-cheap.md
-    status: complete
+    writeup: results/archive/r2-cheap.md
+    status: archived
     inspect_version: TODO(uday)   # not recorded at run time; see docs/running-your-own.md
 
 # Directories under logs/ that are not experiments and are skipped by check_docs.py:

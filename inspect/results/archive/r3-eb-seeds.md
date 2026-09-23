@@ -124,7 +124,7 @@ Neither of the other models showed anything like that spread between these two s
   since all six cells share settings.
 - **Cross-model gaps are descriptive, not causal.** Three labs means three different
   post-training regimes, tool-use training, and system prompts bundled together.
-- The content categories are a screening measure, see [docs/design/content-validation.md](../docs/design/content-validation.md).
+- The content categories are a screening measure, see [docs/design/content-validation.md](../../docs/design/content-validation.md).
 
 ## Cost
 

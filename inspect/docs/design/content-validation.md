@@ -74,8 +74,8 @@ at least one positive (asserted by `test_all_categories_are_reachable`).
 - **The fixture is a transcribed sample, not a full corpus.** The raw logs those passages
   came from no longer exist, so the detector was checked against the 10 surviving
   transcriptions rather than against every diff from that work. Re-validating against a
-  completed experiment's full export (`exports/r2-cheap/` or `exports/r3-eb-seeds/`) is
-  the single highest-value validation step available.
+  completed experiment's full output, now most cheaply the committed documents under
+  `chains/main/`, is the single highest-value validation step available.
 - **Stance is not measured.** See decision 3 above.
 
 ### The honest reading

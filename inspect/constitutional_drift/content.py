@@ -51,7 +51,11 @@ from dataclasses import dataclass, field
 # Every seed has the same shape: a title, a framing paragraph, then numbered principles.
 # Anchored so that "## 1. Core commitments" (a markdown section header) is not a
 # principle, while "1. Be honest. ..." is.
-_PRINCIPLE_START = re.compile(r"^(\d+)\.\s+")
+#
+# A header counts only when it carries an explicit P-label ("### P1. Helpfulness"),
+# which section titles never use. Without that marker the header exclusion above still
+# holds, so a restructured document cannot inflate its own count with section headings.
+_PRINCIPLE_START = re.compile(r"^(?:#{1,6}\s+P)?(\d+)\.\s+")
 
 
 def _blocks(text: str) -> list[list[str]]:

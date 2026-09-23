@@ -1,8 +1,16 @@
 # Running your own experiment
 
-A checklist for adding experiment #3. It takes about ten minutes of setup and however
-long your sweep runs. If you've never looked at this repo before, read
+A checklist for adding a new experiment. It takes about ten minutes of setup and however
+long your run takes. If you've never looked at this repo before, read
 [GUIDE.md](GUIDE.md) first, this page assumes you know what a condition is.
+
+Two shapes of experiment exist, and they differ from step 1 onward:
+
+- **A chain run**, recursive lineages, driven by `scripts/run_chain.py`, output under
+  `chains/<id>/`. This is what the current results are.
+- **A single-shot eval**, one model, one document, one opportunity to edit, driven by
+  `inspect eval` directly, output under `logs/<id>/` and `exports/<id>/`. Use this to
+  vary factors the chain design holds fixed.
 
 ---
 
@@ -22,7 +30,16 @@ a 0% edit rate, which is indistinguishable from a finding.**
 ## 1. Pick an id
 
 Short, lowercase, hyphenated, and descriptive of the *question* rather than the date ,
-`r4-permissions`, `r5-grok-replication`. Everything else keys off this string:
+`chains-no-stop-rule`, `r5-grok-replication`. Everything else keys off this string.
+
+For a chain run:
+
+```
+chains/<id>/<model-slug>/       documents, per-round snapshots, state.json, .eval logs
+results/<id>.md                 your writeup
+```
+
+For a single-shot eval:
 
 ```
 logs/<id>/<model-slug>/         raw eval logs
@@ -51,21 +68,38 @@ Two things that will save you money:
 
 ## 3. Run it
 
-Copy the runner and edit its condition flags:
+A chain run:
 
 ```bash
-cp scripts/run_experiment.sh scripts/run_<id>.sh
-# edit the -T flags and the OUT path inside, then:
-MODEL=<your-model> caffeinate -i ./scripts/run_<id>.sh
+caffeinate -i python3 scripts/run_chain.py --name <id> --model <your-model> \
+  --chains 8 --rounds 12
 ```
 
-`caffeinate -i` stops the machine sleeping mid-sweep. A suspended request dies and the
-sweep stalls on a socket that will never answer.
+A single-shot eval:
 
-If your grid is close enough to the existing one, you can skip the copy and just run
-`run_experiment.sh` with a `MODEL=` override.
+```bash
+caffeinate -i inspect eval constitutional_drift/tasks.py@constitution_edit \
+  --model <your-model> \
+  -M strict_tools=false --max-tokens 32000 --timeout 300 --max-retries 3 \
+  --reasoning-effort high \
+  -T <your factor flags> \
+  --epochs 8 --log-dir logs/<id>/<model-slug>
+```
+
+`caffeinate -i` stops the machine sleeping mid-run. A suspended request dies and the run
+stalls on a socket that will never answer. It blocks *idle* sleep only, so leave the
+lid open.
+
+A chain run resumes from its last completed round if you re-run the same command. A
+single-shot eval does not.
 
 ## 4. Export and read it
+
+A chain run is already readable in place: `state.json` holds per-chain history, and each
+round's documents are under `rounds/round<NN>/docs/`. For the underlying transcripts,
+`inspect view --log-dir chains/<id>/<model-slug>/rounds/round01/logs`.
+
+For a single-shot eval:
 
 ```bash
 python3 scripts/export_runs.py --log-dir logs/<id> --out exports/<id>
@@ -82,9 +116,10 @@ added/deleted, and the content categories. See [viewing-results.md](viewing-resu
 
 ## 5. Write it up
 
-Create `results/<id>.md`. Follow [`results/r2-cheap.md`](../results/r2-cheap.md) as the
-template, one idea per section, a short plain-language takeaway at the end of each, and
-a caveats section that's honest about sample size.
+Create `results/<id>.md`. Follow [`results/chains-main.md`](../results/chains-main.md) as
+the template: what was run, the measurements, then a limitations section that is honest
+about sample size and about which columns can mislead. Say plainly what has *not* been
+analysed rather than leaving a reader to assume it has.
 
 Add a row to [`results/RUNLOG.md`](../results/RUNLOG.md).
 
@@ -92,17 +127,20 @@ Add a row to [`results/RUNLOG.md`](../results/RUNLOG.md).
 
 Add an entry to [`results/runs.yaml`](../results/runs.yaml):
 
+A chain run carries `chain_dir`; a single-shot eval carries `log_dir` and `export_dir`.
+`check_docs.py` requires the pair that matches the shape and rejects an entry missing
+either.
+
 ```yaml
-  - id: r4-permissions
-    date: 2026-09-20
-    question: Does the model respect a stated add-only constraint?
+  - id: chains-no-stop-rule
+    date: 2026-09-25
+    question: Does any chain reach a fixed point when nothing terminates it early?
     models:
       - openrouter/anthropic/claude-sonnet-5
-    runs: 48
-    cost_usd: 1.90          # actual, from summarize.py, not an estimate
-    log_dir: logs/r4-permissions
-    export_dir: exports/r4-permissions
-    writeup: results/r4-permissions.md
+    runs: 96
+    cost_usd: 4.10          # actual billed spend, not an estimate
+    chain_dir: chains/no-stop-rule
+    writeup: results/chains-no-stop-rule.md
     status: complete
     inspect_version: TODO(uday)
 ```

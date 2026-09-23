@@ -1,120 +1,121 @@
 # How to look at any run yourself
 
-Step-by-step, in order of how much detail you want to see: browser
-viewer first (easiest, most complete), then flat files (fastest to scan many runs), then
-raw Python (for anything the other two don't show).
+Step by step, in order of how much detail you want: the documents themselves (fastest),
+then the browser viewer (most complete), then raw Python (for anything the other two
+don't show).
 
-Three places results live on disk, and they hold different things:
+Chain runs are committed, so everything below works on a fresh clone. Single-shot evals
+under `logs/` and `exports/` are gitignored and only exist on the machine that ran them.
 
-| Location | What's there | Format |
-|---|---|---|
-| `logs/<sweep-name>/<model-slug>/*.eval` | **Everything**, every message, every tool call, token counts, cost, reasoning | Binary, needs the viewer or Python |
-| `exports/<sweep-name>/<model-slug>/runs.csv` | One row per run, the numbers, no text | Spreadsheet-openable |
-| `exports/<sweep-name>/<model-slug>/runs.jsonl` | One row per run, numbers **and** the full diff and final document as text | Plain text, greppable |
-| `exports/<sweep-name>/<model-slug>/diffs/*.diff` | Just the diff, one file per run | Plain text |
-| `exports/<sweep-name>/<model-slug>/constitutions/*.md` | The final document, one file per run | Plain text |
+## Where a chain run's data lives
 
-`exports/` only exists after you run `scripts/export_runs.py` on a log directory. `logs/`
-always has the complete record; `exports/` is a convenience copy.
+Under `chains/<id>/<model-slug>/`:
 
----
+| Path | What's there |
+|---|---|
+| `state.json` | Per-chain status, stop counters, and full per-round history: edited or not, change ratio, word and principle counts, parent and final hashes |
+| `seeds/chainNN.md` | Each chain's **final** document (also what the next round would read) |
+| `rounds/roundNN/docs/chainNN.md` | That round's output for that chain, the trajectory, one file per round |
+| `rounds/roundNN/logs/*.eval` | **Everything**: every message, tool call, token count, the diff, the scorer's full output |
 
-## Option 1, the browser viewer (best for reading a transcript start to finish)
+`<model-slug>` is the model name with `/` replaced by `-`, e.g.
+`openrouter-anthropic-claude-sonnet-5`. The authoritative index of every experiment,
+with costs and run counts, is [`results/runs.yaml`](../results/runs.yaml).
+
+## Option 1: read the documents directly (best for seeing what actually changed)
+
+The whole point of committing `chains/` is that the result is plain Markdown you can read
+without tooling.
+
+**Follow one chain across rounds:**
 
 ```bash
-inspect view --log-dir logs/r3-eb-seeds
+ls chains/main/openrouter-anthropic-claude-sonnet-5/rounds/*/docs/chain01.md
+diff chains/main/openrouter-anthropic-claude-sonnet-5/rounds/round01/docs/chain01.md \
+     chains/main/openrouter-anthropic-claude-sonnet-5/rounds/round04/docs/chain01.md
 ```
 
-Opens `http://localhost:7575`. You'll see a list of every eval file in that directory
-(one per model, since each model got its own sub-folder). Click one, then click any sample
-in the left sidebar. You get:
+**Compare where two chains ended up:**
 
-- The full back-and-forth: every message the model sent, every tool call it made
-  (`text_editor view`, `text_editor str_replace`, `bash`, ...) and what came back
-- The model's **reasoning**, if the provider returned readable text (Sonnet and DeepSeek
-  do; gpt-5's comes back encrypted and unreadable, see [r3-eb-seeds.md](../results/r3-eb-seeds.md) §2 for
-  why)
+```bash
+diff chains/main/openrouter-openai-gpt-5/seeds/chain01.md \
+     chains/main/openrouter-openai-gpt-5/seeds/chain02.md
+```
+
+**Compare a final document against where every chain started:**
+
+```bash
+diff data/constitutions/c0_general_assistant.md \
+     chains/main/openrouter-anthropic-claude-sonnet-5/seeds/chain05.md
+```
+
+**Search every document for something:**
+
+```bash
+grep -l "oversight" chains/main/*/seeds/*.md
+```
+
+**Read a chain's history as numbers:**
+
+```bash
+python3 -c "
+import json
+s = json.load(open('chains/main/openrouter-anthropic-claude-sonnet-5/state.json'))
+for h in s['chains']['chain01']['history']:
+    print(h['round'], h['changed'], round(h['change_ratio'], 4), h['words'])
+"
+```
+
+## Option 2: the browser viewer (best for reading a transcript start to finish)
+
+```bash
+inspect view --log-dir chains/main/openrouter-anthropic-claude-sonnet-5/rounds/round01/logs
+```
+
+Opens `http://localhost:7575`. Click any sample in the left sidebar and you get:
+
+- The full back-and-forth: every message, every tool call (`text_editor view`,
+  `text_editor str_replace`, …) and what came back
+- The model's **reasoning**, if the provider returned readable text
 - The scorer's output at the bottom: `changed`, `change_ratio`, the full diff, the final
-  document text, everything `scoring.py` and `content.py` recorded
+  document, everything `scoring.py` and `content.py` recorded
 
-This is the only place to see the model's turn-by-turn behavior, not just the end state.
-Point it at any log directory, `logs/r2-cheap`, `logs/r3-eb-seeds`, all of `logs/`, and
-it'll show everything underneath.
+This is the only place to see turn-by-turn behaviour rather than just the end state, for
+instance whether a no-edit round involved reading the document at all.
 
-Press Ctrl+C in the terminal to stop the server when you're done.
-
-## Option 2, the exported files (best for scanning many runs fast)
-
-First, if a sweep hasn't been exported yet:
+Point it at a parent directory to see several rounds at once:
 
 ```bash
-python3 scripts/export_runs.py --log-dir logs/<sweep-name>/<model-slug> \
-  --out exports/<sweep-name>/<model-slug>
+inspect view --log-dir chains/main/openrouter-anthropic-claude-sonnet-5
 ```
 
-(Both completed experiments are already exported.)
+Ctrl+C stops the server.
 
-**To see the numbers for every run in a spreadsheet:**
+## Option 3: Python, for anything the above don't show
 
-```bash
-open exports/r3-eb-seeds/openrouter-anthropic-claude-sonnet-5/runs.csv
-```
-
-Opens in Excel/Numbers. Columns include `seed`, `changed`, `change_ratio`,
-`principles_added/removed/modified`, `added_oversight` (and the other four content
-categories), token counts, cost. One row per run.
-
-**To read one specific diff:**
-
-```bash
-ls exports/r3-eb-seeds/openrouter-anthropic-claude-sonnet-5/diffs/
-cat exports/r3-eb-seeds/openrouter-anthropic-claude-sonnet-5/diffs/<pick-a-filename>.diff
-```
-
-Filenames encode the condition, so you can find e.g. the Conservatism runs directly:
-
-```bash
-ls exports/r3-eb-seeds/openrouter-anthropic-claude-sonnet-5/diffs/ | grep conservatism
-```
-
-**To read the final constitution a model produced:**
-
-```bash
-cat exports/r3-eb-seeds/openrouter-openai-gpt-5/constitutions/<filename>.md
-```
-
-**To search across every run for something specific**, e.g. every diff that mentions
-"oversight":
-
-```bash
-grep -l "oversight" exports/r3-eb-seeds/*/diffs/*.diff
-```
-
-## Option 3, Python, for anything the above two don't show
-
-Useful for: reading the model's reasoning text (not shown in `runs.csv`/`runs.jsonl`, only
-in the raw log), computing your own statistics, or checking something across dozens of
-runs at once without opening each one.
-
-**List what logs exist and how many samples are in each:**
+**Every sample in one round, with its condition and result:**
 
 ```python
 from inspect_ai.log import list_eval_logs, read_eval_log
 
-for info in list_eval_logs("logs/r3-eb-seeds"):
-    lg = read_eval_log(info.name)
-    print(lg.eval.model, "-", len(lg.samples), "samples -", lg.status)
+root = "chains/main/openrouter-openai-gpt-5/rounds/round03/logs"
+for info in list_eval_logs(root):
+    log = read_eval_log(info.name)
+    for s in log.samples or []:
+        score = (s.scores or {}).get("constitution_change")
+        meta = dict(score.metadata or {})
+        print(meta["condition"]["seed"], meta["changed"], round(meta["change_ratio"], 4))
 ```
 
-**Read one run's full transcript, including reasoning text:**
+**One run's full transcript, including reasoning text:**
 
 ```python
 from inspect_ai.log import list_eval_logs, read_eval_log
 from inspect_ai._util.content import ContentReasoning
 
-info = list_eval_logs("logs/r3-eb-seeds/openrouter-anthropic-claude-sonnet-5")[0]
-lg = read_eval_log(info.name)
-sample = lg.samples[0]
+info = list_eval_logs("chains/main/openrouter-anthropic-claude-sonnet-5/rounds/round01/logs")[0]
+log = read_eval_log(info.name)
+sample = log.samples[0]
 
 for m in sample.messages:
     print(f"--- {m.role} ---")
@@ -128,45 +129,43 @@ for m in sample.messages:
         print(" ", m.text[:300])
 ```
 
-**Get the scorer's full output for one sample** (this is what `runs.csv` is built from):
+**The scorer's full output for one sample:**
 
 ```python
 score = sample.scores["constitution_change"]
-print(score.metadata)   # everything: changed, ratio, diff, final text, categories...
+print(score.metadata)   # changed, ratio, diff, final text, content categories, …
 ```
 
-**Run `scripts/summarize.py` for the per-condition tables** (edit%, ratio, content
-categories, cost, what's quoted in every RESULTS file):
+Note that `score.answer` holds the **final document**, not the model's submitted note.
+To read what the model said about its own edit, look at the last assistant message.
+
+## Single-shot evals
+
+For a run under `logs/`, export it first. `exports/` is a flat second copy that makes an
+accidental log deletion survivable:
 
 ```bash
-python3 scripts/summarize.py --log-dir logs/r3-eb-seeds/openrouter-anthropic-claude-sonnet-5
+python3 scripts/export_runs.py --log-dir logs/<id> --out exports/<id>
+python3 scripts/summarize.py --log-dir logs/<id> --by seed,authority
+inspect view --log-dir logs/<id>
 ```
 
-Add `--by seed` (or any comma-separated list of factor names) to control how it groups.
-
----
-
-## Where each experiment's data lives
-
-| Experiment | Log directory | Exports |
-|---|---|---|
-| [`r2-cheap`](../results/r2-cheap.md) | `logs/r2-cheap/<model-slug>/{task-x-seed,embodiment}/` | `exports/r2-cheap/<model-slug>/` |
-| [`r3-eb-seeds`](../results/r3-eb-seeds.md) | `logs/r3-eb-seeds/<model-slug>/` | `exports/r3-eb-seeds/<model-slug>/` |
-
-`<model-slug>` is the model name with `/` replaced by `-`, e.g.
-`openrouter-anthropic-claude-sonnet-5`. The authoritative list, including costs and run
-counts, is [`results/runs.yaml`](../results/runs.yaml).
+That produces `runs.csv` (one row per run, numbers only), `runs.jsonl` (same plus full
+diff and document text), and every diff and final document as its own file.
 
 `logs/_archive/` holds earlier exploratory runs that are not part of the results, and
 `logs/smoke/` is regenerable output from `tests/smoke.py`. Both are skipped by
 `scripts/check_docs.py`.
 
-## One thing worth knowing before you read reasoning text
+## Two things worth knowing before you read anything
 
-The "reasoning" shown in the viewer or pulled via `ContentReasoning` is a **model-generated
-summary of its own process**, provided by the API, not a raw unedited internal log. Treat
-it as the model's account of what it was doing, informative, and in several cases (see
-[r3-eb-seeds.md](../results/r3-eb-seeds.md) §1, the Sonnet "outlier" example) genuinely detailed and
-specific, but not a guaranteed ground-truth trace. And for gpt-5 specifically, on this
-project's OpenRouter routing, the reasoning field comes back **encrypted** and unreadable;
-only Sonnet's and DeepSeek's are plain text.
+**The content category flags are direction-blind.** `added_oversight`,
+`added_self_preservation` and the rest fire when a topic's vocabulary appears, regardless
+of what the text says about it. A passage renouncing a topic and a passage asserting it
+score identically. Always read the diff before concluding anything from those columns.
+
+**Reasoning text is a summary, not a trace.** What the viewer shows as "reasoning" is a
+model-generated account of its own process, provided by the API: informative, often
+specific, but not a guaranteed ground-truth log. On this project's OpenRouter routing
+gpt-5's reasoning comes back encrypted and unreadable; Sonnet's and DeepSeek's are plain
+text.

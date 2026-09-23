@@ -37,20 +37,22 @@ SKIP_LOG_DIRS = {"_archive", "smoke"}
 
 # Fields every entry must carry. `inspect_version` is intentionally not required —
 # it is a known TODO that isn't recorded at run time yet.
-REQUIRED_FIELDS = (
-    "id",
-    "date",
-    "models",
-    "runs",
-    "cost_usd",
-    "log_dir",
-    "export_dir",
-    "writeup",
-    "status",
-)
+COMMON_FIELDS = ("id", "date", "models", "runs", "cost_usd", "writeup", "status")
+
+# A run is one of two shapes, and carries the location fields for its shape:
+#   chain     recursive lineages under chains/<id>/, self-contained
+#   singleshot  one eval under logs/<id>/, flattened into exports/<id>/
+SHAPE_FIELDS = {
+    "chain": ("chain_dir",),
+    "singleshot": ("log_dir", "export_dir"),
+}
 
 # Fields whose value is a repo-relative path that must exist on disk.
-PATH_FIELDS = ("log_dir", "export_dir", "writeup")
+PATH_FIELDS = ("log_dir", "export_dir", "chain_dir", "writeup")
+
+
+def shape_of(entry: dict) -> str:
+    return "chain" if entry.get("chain_dir") else "singleshot"
 
 
 def main() -> int:
@@ -66,11 +68,11 @@ def main() -> int:
         problems.append("runs.yaml has no `runs:` entries")
 
     # --- 1. every entry is complete, and its paths exist ---------------------------
-    declared_log_dirs: set[str] = set()
+    declared_dirs: set[str] = set()
     for i, entry in enumerate(entries):
         label = entry.get("id") or f"entry #{i + 1}"
 
-        for field in REQUIRED_FIELDS:
+        for field in COMMON_FIELDS + SHAPE_FIELDS[shape_of(entry)]:
             if not entry.get(field):
                 problems.append(f"{label}: missing required field `{field}`")
 
@@ -79,20 +81,23 @@ def main() -> int:
             if value and not (REPO / value).exists():
                 problems.append(f"{label}: `{field}` points at {value}, which does not exist")
 
-        if entry.get("log_dir"):
-            declared_log_dirs.add(entry["log_dir"])
+        for field in ("log_dir", "chain_dir"):
+            if entry.get(field):
+                declared_dirs.add(entry[field])
 
-    # --- 2. every log directory is accounted for -----------------------------------
-    logs_root = REPO / "logs"
-    if logs_root.is_dir():
-        for child in sorted(logs_root.iterdir()):
+    # --- 2. every run directory is accounted for -----------------------------------
+    for root in ("logs", "chains"):
+        root_path = REPO / root
+        if not root_path.is_dir():
+            continue
+        for child in sorted(root_path.iterdir()):
             if not child.is_dir() or child.name in SKIP_LOG_DIRS:
                 continue
-            rel = f"logs/{child.name}"
-            if rel not in declared_log_dirs:
+            rel = f"{root}/{child.name}"
+            if rel not in declared_dirs:
                 problems.append(
                     f"{rel} has no entry in results/runs.yaml "
-                    f"(add one, or move it to logs/_archive/ if it is not a result)"
+                    f"(add one, or move it to {root}/_archive/ if it is not a result)"
                 )
 
     # --- report --------------------------------------------------------------------

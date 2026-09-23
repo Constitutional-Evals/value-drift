@@ -8,8 +8,8 @@ logs back out afterwards.
 
 | Script | What it does |
 |---|---|
-| `run_experiment.sh` | **Start here.** Runs an experiment end to end, two evals, then summarize and export. Takes `MODEL=` as an env override and epochs as `$1`. Copy it as the starting point for a new experiment. |
-| `summarize.py` | Prints per-condition results tables (edit%, change ratio, content categories, cost) from any log directory. `--by task,seed` controls grouping. |
+| `run_chain.py` | **Start here.** Runs a recursive chain: round 1, then feeds each round's documents forward as the next round's seeds and system messages, until chains stop or the ceiling is reached. Writes `chains/<name>/<model-slug>/`. Resumes from the last completed round if interrupted. |
+| `summarize.py` | Prints per-condition results tables (edit%, change ratio, content categories, cost) from any log directory. `--by task,seed` controls grouping. Built for single-shot evals; for chain runs read `state.json`. |
 | `export_runs.py` | Flattens a log directory into `runs.csv`, `runs.jsonl`, plus every diff and final document as its own file. Run this after every sweep, it's the backup that makes a lost log survivable. |
 | `check_docs.py` | Fails if `results/runs.yaml` and the filesystem disagree. Wire it into CI. |
 | `toy_eval.py` | 3-sample preflight: does this model resolve, authenticate, and call tools? Costs a fraction of a cent, no Docker. Run it before spending on a new model. |
@@ -31,9 +31,9 @@ Kept for provenance, not for running. See [`archive/README.md`](archive/README.m
 | `archive/first_run.sh` | Pre-OpenRouter, missing the four required flags |
 | `archive/probe.sh` | Pre-OpenRouter cost probe, same problem |
 | `archive/run2.sh` | A real ~680-run sweep that was never executed. ~$38, and current guidance is not to run it. |
+| `archive/run_experiment.sh` | Ran the single-shot experiments now in `results/archive/`. Its two evals and cell choices are specific to that design. |
 
 ---
 
-**In short:** `run_experiment.sh` to run something, `summarize.py` + `export_runs.py` to
-read it, `check_docs.py` to keep the index honest. Everything under `archive/` is
-history.
+**In short:** `run_chain.py` to run something, `state.json` and `export_runs.py` to read
+it, `check_docs.py` to keep the index honest. Everything under `archive/` is history.

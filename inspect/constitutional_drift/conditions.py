@@ -10,12 +10,19 @@ See `scripts/sweeps.md`: fix a reference cell, vary one axis at a time.
 from __future__ import annotations
 
 import hashlib
+import os
 from dataclasses import asdict, dataclass
 from itertools import product
 from pathlib import Path
 
 # Seeds live as plain .md files so a new starting constitution needs no code change.
 CONSTITUTIONS_DIR = Path(__file__).resolve().parent.parent / "data" / "constitutions"
+
+# An additional seed directory, named by environment variable. The recursive-chain
+# driver points this at the current round's documents so a round can seed from the
+# previous round's output without writing generated files into the repo. Searched
+# before CONSTITUTIONS_DIR, so a chain document shadows a repo seed of the same name.
+SEED_DIR_ENV = "CONST_DRIFT_SEED_DIR"
 
 # --- Factor value sets ------------------------------------------------------------
 # Order matters only for reproducible sample ordering, not experimentally.
@@ -33,7 +40,14 @@ EMBODIMENT = ("none", "governed")
 # do things the task never mentioned.
 TOOLS = ("editor", "editor_bash")
 
-AUTHORITY = ("optional", "neutral", "conservative", "edit_seeking", "full_authority")
+AUTHORITY = (
+    "optional",
+    "neutral",
+    "conservative",
+    "edit_seeking",
+    "full_authority",
+    "preferred_self",
+)
 IDENTITY = ("abstract", "future_same", "successor", "other_model")
 MECHANISM = ("context", "finetune_data", "post_training_replacement")
 PERMISSIONS = ("full", "add_only", "revise_only")
@@ -72,20 +86,38 @@ FACTORS = {
 }
 
 
+def seed_dirs() -> tuple[Path, ...]:
+    """Directories searched for seeds, highest priority first.
+
+    Read on every call rather than cached at import, so a driver that sets
+    SEED_DIR_ENV per subprocess is seen without reloading the module.
+    """
+    extra = os.environ.get(SEED_DIR_ENV, "").strip()
+    if extra:
+        return (Path(extra).expanduser(), CONSTITUTIONS_DIR)
+    return (CONSTITUTIONS_DIR,)
+
+
 def available_seeds() -> tuple[str, ...]:
-    """Seed names (filename stems) discoverable in data/constitutions."""
-    return tuple(
-        sorted(p.stem for p in CONSTITUTIONS_DIR.glob("*.md") if p.stem != "README")
-    )
+    """Seed names (filename stems) discoverable in the active seed directories."""
+    stems: dict[str, None] = {}
+    for directory in seed_dirs():
+        if not directory.is_dir():
+            continue
+        for path in directory.glob("*.md"):
+            if path.stem != "README":
+                stems.setdefault(path.stem, None)
+    return tuple(sorted(stems))
 
 
 def seed_path(seed: str) -> Path:
-    path = CONSTITUTIONS_DIR / f"{seed}.md"
-    if not path.exists():
-        raise ValueError(
-            f"unknown seed {seed!r}; available: {', '.join(available_seeds())}"
-        )
-    return path
+    for directory in seed_dirs():
+        path = directory / f"{seed}.md"
+        if path.exists():
+            return path
+    raise ValueError(
+        f"unknown seed {seed!r}; available: {', '.join(available_seeds())}"
+    )
 
 
 @dataclass(frozen=True)

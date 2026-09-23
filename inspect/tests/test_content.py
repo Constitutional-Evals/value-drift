@@ -45,7 +45,9 @@ def test_every_seed_parses_into_principles(seed):
     text = Condition(seed=seed).seed_text()
     principles = parse_principles(text)
     assert len(principles) >= 4
-    assert parse_preamble(text).startswith("# Constitution")
+    # The preamble must capture the title block; the exact wording of a seed's title is
+    # not a convention the parser depends on.
+    assert parse_preamble(text).startswith("# ")
 
 
 # --- principle-level structural diff ----------------------------------------------
