@@ -18,6 +18,10 @@ def inference_session(checkpoint, config):
             python_executable=config['vllm_python'],
             engine_options=config.get('vllm_engine', {}),
             seed=config.get('seed', 20260915))
+    if backend == 'openrouter':
+        from .openrouter_session import OpenRouterSession
+        kwargs = {k: config[k] for k in ('api_key', 'referer', 'title', 'timeout', 'max_retries') if k in config}
+        return OpenRouterSession(checkpoint, **kwargs)
     raise ValueError(f'Unknown inference backend: {backend}')
 
 

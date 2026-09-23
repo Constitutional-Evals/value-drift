@@ -62,7 +62,7 @@ def generate_adversarial_responses(checkpoint, prompts: list[dict], output_path,
     rows = build_adversarial_rows(prompts, instructions)
     generation_config = {k: config[k] for k in
                          ('enable_thinking', 'max_new_tokens', 'temperature', 'top_p', 'top_k',
-                          'max_input_tokens', 'batch_size', 'seed', 'backend', 'vllm_python', 'vllm_engine')
+                          'max_input_tokens', 'batch_size', 'seed', 'backend', 'vllm_python', 'vllm_engine', 'api_key', 'timeout', 'max_retries', 'referer', 'title')
                          if k in config}
     from .generation import generate_rows
     results = generate_rows(checkpoint, rows, output_path, generation_config, system=NEUTRAL_SYSTEM_PROMPT)
@@ -111,7 +111,7 @@ def generate_continuations(checkpoint, prefill_responses: list[dict], prompts: l
         raise ValueError('No usable prefill responses to continue (all missing, empty, or truncated)')
     generation_config = {k: config[k] for k in
                          ('enable_thinking', 'max_new_tokens', 'temperature', 'top_p', 'top_k',
-                          'max_input_tokens', 'batch_size', 'seed', 'backend', 'vllm_python', 'vllm_engine')
+                          'max_input_tokens', 'batch_size', 'seed', 'backend', 'vllm_python', 'vllm_engine', 'api_key', 'timeout', 'max_retries', 'referer', 'title')
                          if k in config}
     from .generation import generate_rows
     results = generate_rows(checkpoint, rows, output_path, generation_config)

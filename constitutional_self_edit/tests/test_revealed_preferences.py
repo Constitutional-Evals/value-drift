@@ -60,6 +60,14 @@ class RenderTests(unittest.TestCase):
         self.assertIn('sarcastic', rendered)
         self.assertIn('warm', rendered)
 
+    def test_constitution_is_prepended_when_given(self):
+        without = render_trait_choice_prompt('sarcastic', 'warm')
+        with_constitution = render_trait_choice_prompt('sarcastic', 'warm', constitution='Be kind always.')
+        self.assertNotIn('Be kind always.', without)
+        self.assertIn('Be kind always.', with_constitution)
+        self.assertIn('sarcastic', with_constitution)
+        self.assertTrue(with_constitution.endswith(without))
+
 
 class ParseTraitChoiceTests(unittest.TestCase):
     def test_parses_valid_and_fenced(self):
@@ -138,6 +146,25 @@ class RunRevealedPreferenceEvalTests(unittest.TestCase):
             judge_text = json.dumps(judge_call['rows'])
             self.assertNotIn('M1', judge_text)
             self.assertNotIn('Question', judge_text)  # judge never sees the source prompt text
+
+    def test_constitution_conditioning_is_frozen_and_flagged_in_summary(self):
+        def fake_generate(checkpoint, rows, path, config, system=None):
+            out = []
+            for i, row in enumerate(rows):
+                if checkpoint == 'judge-27b':
+                    out.append({**row, 'text': json.dumps(valid_judgment('trait_a')), 'finish_reason': 'stop'})
+                else:
+                    out.append({**row, 'text': f'response {i}', 'finish_reason': 'stop'})
+            Path(path).write_text(''.join(json.dumps(r) + '\n' for r in out))
+            return out
+        with tempfile.TemporaryDirectory() as d, patch('recursive_oct.generation.generate_rows', side_effect=fake_generate):
+            output = Path(d) / 'rp'
+            summary = run_revealed_preference_eval('M1', 'judge-27b', PROMPTS, output,
+                {'fixed_judge_checkpoint': 'judge-27b', 'trials': 4, 'seed': 1}, constitution='Be kind always.')
+            self.assertTrue(summary['constitution_conditioned'])
+            with self.assertRaises(ValueError):
+                run_revealed_preference_eval('M1', 'judge-27b', PROMPTS, output,
+                    {'fixed_judge_checkpoint': 'judge-27b', 'trials': 4, 'seed': 1}, constitution='Different text.')
 
     def test_frozen_trial_protocol_rejects_a_changed_rerun(self):
         def fake_generate(checkpoint, rows, path, config, system=None):

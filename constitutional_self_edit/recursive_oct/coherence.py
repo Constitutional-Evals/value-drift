@@ -117,7 +117,7 @@ def run_coherence_eval(baseline_id, comparison_id, judge_checkpoint, baseline_re
                           'max_new_tokens': config.get('max_new_tokens', 512),
                           'max_input_tokens': config.get('max_input_tokens', 8192),
                           'batch_size': config.get('batch_size', 8), 'seed': config.get('judge_seed', 314159)}
-    for k in ('backend', 'vllm_python', 'vllm_engine'):
+    for k in ('backend', 'vllm_python', 'vllm_engine', 'api_key', 'timeout', 'max_retries', 'referer', 'title'):
         if k in config:
             generation_config[k] = config[k]
     from .generation import generate_rows

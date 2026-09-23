@@ -61,9 +61,19 @@ def load_traits(path: str | Path | None = None) -> list[str]:
     return traits
 
 
-def render_trait_choice_prompt(trait_a: str, trait_b: str) -> str:
+def render_trait_choice_prompt(trait_a: str, trait_b: str, constitution: str | None = None) -> str:
+    """Optionally prepend constitution conditioning, matching generation.constitution_system's wording.
+
+    constitution is inference-time conditioning (a system-prompt prefix), never trained
+    into weights here -- this tests a different mechanism than the real full-parameter
+    training pipeline and must not be presented as equivalent to it.
+    """
     template = Template((PROMPT_DIR / 'revealed_preference_system.md').read_text())
-    return template.substitute(trait_a=trait_a, trait_b=trait_b)
+    rendered = template.substitute(trait_a=trait_a, trait_b=trait_b)
+    if constitution:
+        from .generation import constitution_system
+        rendered = constitution_system(constitution) + '\n\n' + rendered
+    return rendered
 
 
 def sample_trait_trials(traits: list[str], prompts: list[dict], count: int, seed: int = 20260915) -> list[dict]:
@@ -124,12 +134,20 @@ def compute_elo(traits: list[str], outcomes: list[tuple[str, str, str]], k: floa
     return ratings
 
 
-def run_revealed_preference_eval(checkpoint, judge_checkpoint, prompts: list[dict], output_path, config: dict) -> dict:
+def run_revealed_preference_eval(checkpoint, judge_checkpoint, prompts: list[dict], output_path, config: dict,
+                                 constitution: str | None = None) -> dict:
     """Elicit a silent trait choice per trial, judge it, and score fixed-trait Elo.
 
     config requires fixed_judge_checkpoint to equal judge_checkpoint, matching the fixed-
     judge guard used by judging.judge_responses. Resumable: reruns with the same output
     path and an unchanged trial protocol reuse cached generations via generate_rows.
+
+    constitution, if given, conditions elicitation via an inference-time system-prompt
+    prefix (generation.constitution_system) -- it is never trained into weights here. This
+    tests whether prompting on a constitution shifts revealed preferences, a different
+    mechanism than the real full-parameter training pipeline; do not conflate the two. It is
+    frozen into the trial protocol so a rerun against a different constitution text cannot
+    silently reuse a mismatched cache.
     """
     expected = config.get('fixed_judge_checkpoint')
     if not expected or str(judge_checkpoint) != str(expected):
@@ -137,14 +155,14 @@ def run_revealed_preference_eval(checkpoint, judge_checkpoint, prompts: list[dic
     traits = load_traits(config.get('traits_path'))
     output = Path(output_path)
     trials = sample_trait_trials(traits, prompts, config.get('trials', 200), config.get('seed', 20260915))
-    _freeze_json(Path(str(output) + '.trials.json'), {'traits': traits, 'trials': trials})
+    _freeze_json(Path(str(output) + '.trials.json'), {'traits': traits, 'trials': trials, 'constitution': constitution})
 
     elicit_rows = [{'id': t['trial_id'], 'messages': [
-        {'role': 'system', 'content': render_trait_choice_prompt(t['trait_a'], t['trait_b'])},
+        {'role': 'system', 'content': render_trait_choice_prompt(t['trait_a'], t['trait_b'], constitution=constitution)},
         {'role': 'user', 'content': t['prompt']}]} for t in trials]
     generation_config = {k: config[k] for k in
                           ('enable_thinking', 'max_new_tokens', 'temperature', 'top_p', 'top_k',
-                           'max_input_tokens', 'batch_size', 'seed', 'backend', 'vllm_python', 'vllm_engine')
+                           'max_input_tokens', 'batch_size', 'seed', 'backend', 'vllm_python', 'vllm_engine', 'api_key', 'timeout', 'max_retries', 'referer', 'title')
                           if k in config}
     generation_config.setdefault('max_new_tokens', 768)
     from .generation import generate_rows
@@ -165,7 +183,7 @@ def run_revealed_preference_eval(checkpoint, judge_checkpoint, prompts: list[dic
                                 'max_input_tokens': config.get('judge_max_input_tokens', 4096),
                                 'batch_size': config.get('judge_batch_size', config.get('batch_size', 8)),
                                 'seed': config.get('judge_seed', 314159)}
-    for k in ('backend', 'vllm_python', 'vllm_engine'):
+    for k in ('backend', 'vllm_python', 'vllm_engine', 'api_key', 'timeout', 'max_retries', 'referer', 'title'):
         if k in config:
             judge_generation_config[k] = config[k]
     if jobs:
@@ -205,6 +223,7 @@ def run_revealed_preference_eval(checkpoint, judge_checkpoint, prompts: list[dic
     elo = compute_elo(traits, outcomes)
     status_counts = Counter(r['status'] for r in records)
     summary = {'checkpoint': str(checkpoint), 'judge_checkpoint': str(judge_checkpoint), 'trials': len(trials),
+               'constitution_conditioned': constitution is not None,
                'valid': status_counts['valid'], 'decided': len(outcomes),
                'unclear': sum(r.get('chosen_trait') == 'unclear' for r in records),
                'empty_response': status_counts['empty_response'], 'truncated_response': status_counts['truncated_response'],

@@ -108,7 +108,7 @@ def judge_responses(judge_checkpoint: str, response_rows: list[dict], output_pat
         'seed': config.get('seed', 20260915),
         'attention': config.get('attention', 'sdpa'),
     }
-    for key in ('backend', 'vllm_python', 'vllm_engine'):
+    for key in ('backend', 'vllm_python', 'vllm_engine', 'api_key', 'timeout', 'max_retries', 'referer', 'title'):
         if key in config:
             generation_config[key] = config[key]
     output = Path(output_path)

@@ -58,8 +58,14 @@ def generate_rows(checkpoint, rows, output_path, config, system=None):
         raise ValueError('Generation cache belongs to a different checkpoint')
     missing = [r for r in rows if r['id'] not in existing]
     if missing:
-        import torch
-        torch.manual_seed(config.get('seed',20260915))
+        try:
+            import torch
+            torch.manual_seed(config.get('seed',20260915))
+        except ModuleNotFoundError:
+            # Only the local Transformers backend shares this process's torch RNG state;
+            # network-only backends (e.g. openrouter_session.py) seed independently or not
+            # at all, so a torch-less environment is not an error for those.
+            pass
         size = config.get('batch_size',4)
         options = {k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','max_input_tokens'] if k in config}
         with inference_session(checkpoint, config) as model:
