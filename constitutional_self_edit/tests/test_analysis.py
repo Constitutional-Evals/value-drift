@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/analyze_run.py'
+SCRIPT = Path(__file__).resolve().parents[1] / 'agents/scripts/analyze_run.py'
 
 
 class AnalysisTests(unittest.TestCase):

@@ -1,79 +1,83 @@
-# Recursive constitution editing and full-parameter OCT
+# Constitutional self-editing
 
-This experiment lives in `constitutional_self_edit/` within the shared
-[Constitutional-Evals/value-drift](https://github.com/Constitutional-Evals/value-drift)
-repository. Run the commands below from this directory:
+This experiment asks whether a model's values drift when it repeatedly rewrites the constitution it is trained on. The loop is:
 
-```bash
-cd constitutional_self_edit
+1. The current model reviews a written constitution and submits the version it endorses.
+2. The model is fine-tuned to embody the submitted document: full-parameter DPO toward a teacher's constitution-conditioned responses, then introspective SFT (an adaptation of [Open Character Training](https://arxiv.org/abs/2511.01689)).
+3. The updated model reviews the constitution again in a fresh conversation, and the cycle repeats.
+
+The broader hypothesis is that this process has multiple stable value configurations (attractors), so small differences early on could push lineages toward different endpoints. It is part of the [Constitutional-Evals/value-drift](https://github.com/Constitutional-Evals/value-drift) repository.
+
+## Results so far
+
+| # | Study | Date | What ran | Main finding | Report |
+|---|---|---|---|---|---|
+| 1 | Pilot (full-001) | Sep 15-16 | Qwen3.5-9B reviews the 1,059-word constitution; H200 engineering runs | The model submitted the constitution unchanged on its first review, so no training round ran. The full-parameter DPO + SFT pipeline was validated separately. | [report](reports/01_pilot/FINAL_REPORT.md) |
+| 2 | Trained lineage (full-002 to full-014) | Sep 16 onward | Two full training rounds and three reviews in the full-011 → full-014 lineage | First review revised risk and distress guidance, second removed duplicated text, third kept the document. Training introduced repetition and shorter answers. | [report](reports/02_trained_lineage/STAGE2_REPORT.md) |
+| 3 | Editing-only exploration | Sep 22-23 | Fixed-weight Qwen3.5-9B review chains; one training intervention | Shorter documents alone did not elicit edits; concrete cases produced local repairs; stopping is sensitive to the review procedure. | [report](reports/03_exploration/EXPLORATION_REPORT.md) |
+| 4 | API screen | Sep 24 | 11 models via OpenRouter, 207 reviews, $8.14 | A short starting constitution elicited more edits; effects of reasoning and model size were inconsistent; no evidence of self-preservation. | [report](reports/04_api_screen/API_SCREEN_REPORT.md) |
+| 5 | Elicitation screen | Sep 24 | 26 models, 1,446 reviews including 6-generation chains, $44.01 | A "blind values first" review produced substantive edits in 146 of 156 first reviews. Without a length cap, constitutions only grow; each model has its own pull on the values. | [report](reports/05_elicitation/ELICIT_REPORT.md) |
+
+**Start with the [elicitation report](reports/05_elicitation/ELICIT_REPORT.md)**: it has the current recommendation for the next training run (blind review, fixed number of generations, a hard word cap, Qwen3.8 27B). [reports/README.md](reports/README.md) indexes every report, appendix, and figure.
+
+No training has been run since study 3. Studies 4 and 5 changed only the constitution between reviews, with fixed model weights.
+
+## Repository layout
+
+The folder is split by audience: `reports/` is for people, `agents/` is for the AI agents that ran the experiments, and the rest is code and experiment inputs.
+
+```
+constitutional_self_edit/
+├── reports/            Results for human readers
+│   ├── 01_pilot/ … 05_elicitation/   one folder per study: report, appendices, figures/
+│   └── methods/        pipeline method, data curation, environment, constitution drafting
+├── agents/             Files written or used by AI agents
+│   ├── instruction.md  the original research specification
+│   ├── notes/          progress logs, plans, internal reviews, command sheets, per study
+│   └── scripts/        runners, analysis and plotting scripts, GPU bootstrap, sync, budget guards
+├── recursive_oct/      Training pipeline: editing sessions, generation, DPO/SFT, judging, measurement
+├── elicit/             API editing harness: prompts, tools with error feedback, judge, analysis, figures
+├── tests/              CPU tests for both packages and the scripts
+├── configs/            Experiment configurations (trained runs, exploration, api-screen, elicitation)
+├── constitutions/      Starting constitutions: C_000, drafts, variants, exploration and elicitation seeds
+├── prompts/            Model-facing prompt templates for the training pipeline
+├── data/               Prompt-bank manifest and rubric (the prompt banks themselves are local only)
+├── requirements-gpu.txt, requirements-inference.txt
+└── runs/, checkpoints/, OpenCharacterTraining/   local only, not in git (see below)
 ```
 
-Other experiment variants can live alongside this directory with their own
-dependencies and configuration. Historical reports retain the paths used during
-the original runs; relative artifact paths are now relative to this directory.
+## Running things
 
-Research proof of concept specified in [instruction.md](instruction.md). The initial experimental model is **Qwen/Qwen3.5-9B**. A fresh model review may replace the constitution through two file-backed tools; explicit submission without any content-changing edit ends that trajectory. An edited submission triggers full-parameter DPO, post-DPO introspection generation, and full-parameter SFT, with updated weights carried into the next review.
+Run everything from this directory. API keys go in `.env` (`OPENROUTER_API_KEY`, `HF_TOKEN`), which is git-ignored.
 
-Scientific inputs are frozen before each trajectory; consequential interface changes and recovery branches are labeled and preserved. The first condition is full-information only, with at most five completed training rounds. Partial/minimal prompts are prepared but not executed. Neither an unchanged submission nor a failure is relabeled to obtain an interesting result.
-
-**Substantive experiment completed:** the full-011 → full-014 lineage completed two full-parameter DPO + introspective SFT rounds and three constitution reviews. The first revision changed risk and distress guidance, the second removed duplicated paragraphs, and M2 then submitted unchanged. Behavioral changes were mixed, with shorter typical responses and remaining quality failures. See the [Stage 2 report](docs/STAGE2_REPORT.md), [longitudinal figure](runs/full-014/analysis/longitudinal.png), and [independent review](docs/REVIEW_STAGE2_RESULT.md). The review-interface repairs are explicitly recorded; this is one learned lineage, not multiple independent training replications.
-
-**Earlier pilot:** `full-001` submitted C0 unchanged on its first review and ended with `SELF_DECLARED_CONVERGENCE`, zero edits and zero scientific training rounds. Separate H200 engineering runs completed full-parameter DPO and introspective SFT and reloaded the resulting checkpoint. See the [final report](docs/FINAL_REPORT.md), [baseline analysis](docs/BASELINE_ANALYSIS.md), and [independent result review](docs/REVIEW_RESULT_001.md).
-
-## Project files
-
-The GitHub repository contains the code, configurations, constitutions, prompt instructions, aggregate data manifest, and research documentation. Dataset prompt banks (`data/train.jsonl`, `data/eval.jsonl`, and the data-derived `prompts/introspection.jsonl`), run artifacts, and checkpoints remain local and are excluded from published Git history. Links into `runs/` refer to those local artifacts. A fresh checkout requires separately preparing the input banks before training; see [data curation](docs/data.md) and `scripts/curate_data.py`.
-
-- `constitutions/C_000.md`: original 1,059-word initial essay; user-requested polishing passes archived in `constitutions/drafts/`.
-- `prompts/`: three context variants, tool/review instructions, actual training description and fixed introspection prompts.
-- `data/`: 1,500 source-attributed user-only training prompts,120 held-out prompts, curation manifest and exploratory rubric.
-- `recursive_oct/`: editing state, native Qwen interface, resumable generation, full-parameter losses/training, inner-loop runner and measurements.
-- `configs/`: engineering settings, preserved exploratory variants, and the full-011/full-014 trained-lineage configurations.
-- `runs/`: private local outputs, checkpoints/locations, logs and cumulative spending records (excluded from Git).
-- `docs/PROGRESS.md`: current evidence and next action. `docs/method.md` and review notes document adaptations and fixes.
-- `OpenCharacterTraining/`: intact upstream reference checkout at `d1da9f03628cb4c5482ba2e494a7cba33bcd5818`, excluded from this repository's Git tracking.
-
-## Commands
-
-CPU checks:
+**Tests** (CPU). Some scripts use Python 3.12 syntax, so use 3.12 or later:
 
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install pytest
+python3.12 -m venv .venv && .venv/bin/pip install pytest numpy
 .venv/bin/python -m pytest tests -q
 ```
 
-Initial GPU bootstrap and engineering check (the working setup also requires the compiler, linker and separate vLLM steps in [Reproducing the environment](docs/REPRODUCING_ENVIRONMENT.md)):
+**Editing-only experiments through the API.** Each plan in `configs/elicitation/plans/` crosses models, prompt variants, starting constitutions, and replicates. Runs resume where they stopped.
 
 ```bash
-bash scripts/bootstrap_gpu.sh
-HF_HOME=/workspace/huggingface /workspace/venv/bin/python scripts/smoke_gpu.py
+python3 -m elicit.run --plan configs/elicitation/plans/prompt-screen.json --workers 30
+python3 -m elicit.judge --batch prompt-screen --judge judge_flash
+python3 -m elicit.plots
 ```
 
-Main run/resume (requires a measured config with `frozen: true`):
+**Training pipeline** (one H200 GPU). Set up the environment following [reports/methods/REPRODUCING_ENVIRONMENT.md](reports/methods/REPRODUCING_ENVIRONMENT.md), then:
 
 ```bash
-export HF_HOME=/workspace/huggingface
-export CUDA_HOME=/workspace/venv/lib/python3.12/site-packages/nvidia/cu13
-/workspace/venv/bin/python scripts/run_experiment.py --config configs/full-001.json --run runs/full-001
-/workspace/venv/bin/python scripts/run_experiment.py --config configs/full-001.json --run runs/full-001 --resume
+bash agents/scripts/bootstrap_gpu.sh
+python agents/scripts/run_experiment.py --config configs/full-001.json --run runs/full-001
 ```
 
-The resume command reuses finalized reviews and completed stages. Converged trajectories are never reopened. Generated responses and exact current-student reference probabilities are saved; optimizer states reset between stages and rounds, while full model weights continue.
+The method, including how it departs from Open Character Training, is described in [reports/methods/method.md](reports/methods/method.md).
 
-Lead-side sync and cost guard:
+## What is not in git
 
-```bash
-.venv/bin/python scripts/sync.py push
-.venv/bin/python scripts/sync.py pull
-.venv/bin/python scripts/sync.py pull --checkpoints
-.venv/bin/python scripts/watch_budget.py --ledger runs/spending.json
-```
+`runs/` holds every raw output: model transcripts, submitted constitutions, diffs, judge ratings, evaluation responses, and spending ledgers. `checkpoints/` holds trained weights. Both stay on the machine that produced them, as do the prompt banks `data/train.jsonl` and `data/eval.jsonl` (rebuild them with `agents/scripts/curate_data.py`; see [reports/methods/data.md](reports/methods/data.md)) and the upstream `OpenCharacterTraining/` checkout. Links from the reports into `runs/` resolve only on a machine that has those files.
 
-`runs/connection.json` contains the lead's SSH connection metadata. Secrets are never synced. Sync excludes local spending/watchdog control files. The user removed the original $200 spending ceiling for Stage 2. The ledger preserves cumulative charges across all attempts; use suitable hardware and avoid unnecessary parallel provisioning. Only the lead provisions or terminates paid resources. Checkpoints must be copied locally before deleting the network volume.
+## Reading the results carefully
 
-## Interpretation
-
-This is an OCT adaptation, not a replication of its reported results: fixed Qwen3.5-27B teacher, open-dataset user prompt bank, full-parameter AdamW8bit optimization with FP32 weights, shorter introspection, and DPO plus chosen NLL without OCT's extra tokenwise KL term. All ordinary text parameters are optimized; unused vision weights are retained without text gradients, and the supported Transformers class does not instantiate the checkpoint's auxiliary speculative MTP head. See method notes for exact counts.
-
-Self-declared convergence describes a tool submission decision, not proven stabilization of underlying values. Behavioral dimensions are exploratory and never combined into a definitive alignment score. Truncations, failed attempts, filtering, and sampling effects must be reported alongside observed changes.
+"Unchanged" means the model kept the document on that sampled review. It is not evidence of a stable value system. Editing-only chains show what a fixed model does with its own output; they are the control for, not a substitute for, trained lineages. The behavioral and substantiveness measures are exploratory LLM judgments, and every report states its sample sizes and failures.

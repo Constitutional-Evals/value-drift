@@ -1,0 +1,81 @@
+{
+  "label": "edit-screen-003-fixed-cases",
+  "frozen": true,
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "max_reviews": 6,
+  "review_instructions_path": "prompts/exploration/review.md",
+  "review": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "structured_tool_calls": true,
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 24000,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_turns": 8,
+    "max_plaintext_reminders": 0,
+    "allow_passage_edit": false,
+    "appraisal_instructions_path": "prompts/exploration/appraisal_fixed_cases.md",
+    "appraisal_transition_path": "prompts/exploration/appraisal_transition.md",
+    "appraisal_defer_tool_instructions": true,
+    "appraisal_max_new_tokens": 2048
+  },
+  "trajectories": [
+    {
+      "label": "practical-s1",
+      "seed": 50101,
+      "constitution": "constitutions/variants/C_000_practical_judgment.md"
+    },
+    {
+      "label": "practical-s2",
+      "seed": 50201,
+      "constitution": "constitutions/variants/C_000_practical_judgment.md"
+    },
+    {
+      "label": "sparse-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "sparse-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "agency-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/agency_first.md"
+    },
+    {
+      "label": "agency-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/agency_first.md"
+    },
+    {
+      "label": "care-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/care_first.md"
+    },
+    {
+      "label": "care-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/care_first.md"
+    }
+  ],
+  "author_seed": 50001,
+  "author_generation": {
+    "max_new_tokens": 2048
+  },
+  "note": "Selected after first seven appraisal trajectories all stopped unchanged. Sparse appraisal raised hierarchy ambiguity but chose clearly exploitative cases already prohibited. Fixed cases dev005/008/011 were independently drafted before inspecting screen results. Compare practical/sparse to prior self-generated-case appraisal; agency/care is a matched pair sharing four paragraphs and varying central default only. Different case content and longer allowance are bundled. No answer targets."
+}

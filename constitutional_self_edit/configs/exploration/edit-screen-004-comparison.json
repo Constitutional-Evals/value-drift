@@ -1,0 +1,73 @@
+{
+  "label": "edit-screen-004-comparison",
+  "frozen": true,
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "max_reviews": 6,
+  "review_instructions_path": "prompts/exploration/review.md",
+  "review": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "structured_tool_calls": true,
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 24000,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_turns": 8,
+    "max_plaintext_reminders": 0,
+    "allow_passage_edit": false,
+    "appraisal_instructions_path": "prompts/exploration/appraisal_compare_agency_care.md",
+    "appraisal_transition_path": "prompts/exploration/appraisal_transition.md",
+    "appraisal_defer_tool_instructions": true,
+    "appraisal_max_new_tokens": 2048
+  },
+  "trajectories": [
+    {
+      "label": "agency-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/agency_first.md",
+      "review": {
+        "appraisal_instructions_path": "prompts/exploration/appraisal_compare_agency_care.md"
+      },
+      "comparison_order": "agency_care"
+    },
+    {
+      "label": "agency-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/agency_first.md",
+      "review": {
+        "appraisal_instructions_path": "prompts/exploration/appraisal_compare_care_agency.md"
+      },
+      "comparison_order": "care_agency"
+    },
+    {
+      "label": "care-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/care_first.md",
+      "review": {
+        "appraisal_instructions_path": "prompts/exploration/appraisal_compare_agency_care.md"
+      },
+      "comparison_order": "agency_care"
+    },
+    {
+      "label": "care-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/care_first.md",
+      "review": {
+        "appraisal_instructions_path": "prompts/exploration/appraisal_compare_care_agency.md"
+      },
+      "comparison_order": "care_agency"
+    }
+  ],
+  "note": "New comparison-informed edit-only variant, not a continuation of prior stopped trajectories. Four trajectories cross starting default (agency/care) with two seeds. Seed 50101 sees agency then care; seed 50201 sees care then agency, counterbalanced identically within each starting document. Fixed alternative paragraphs are the exact central paragraphs from the original agency/care seeds and remain the same in every fresh review. All generation settings and the 2048-token appraisal allowance match screen003; comparison material replaces the fixed development cases. Both retention and revision remain valid. Motivated by earlier comparative agency preference despite isolated acceptance; that finding and preferred direction are not disclosed to the model. With two seeds, order and seed are confounded, so this screen cannot independently estimate an order effect."
+}

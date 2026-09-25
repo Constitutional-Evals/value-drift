@@ -123,3 +123,69 @@ def test_partial_appraisal_configuration_is_rejected_before_generation(tmp_path)
     with pytest.raises(ValueError,match='both appraisal'):
         execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
     assert not model.calls
+
+
+def test_appraisal_thinking_override_keeps_structured_tools_non_thinking(tmp_path):
+    cfg=config(tmp_path)
+    cfg.update(enable_thinking=False, appraisal_enable_thinking=True, structured_tool_calls=True)
+    finish=json.dumps({'name':'finish_editing','arguments':{'decision_summary':'Endorsed.'}})
+    model=Model([output('A public appraisal.','private appraisal reasoning</think>A public appraisal.'), output(finish)])
+    result=execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    assert result['status']=='SELF_DECLARED_CONVERGENCE'
+    assert model.calls[0][1]['enable_thinking'] is True
+    assert model.calls[1][1]['enable_thinking'] is False
+    assert model.calls[1][1]['json_schema']
+    tool_context=model.calls[1][0][0]
+    assert tool_context[1]=={'role':'assistant','content':'A public appraisal.'}
+    assert 'private appraisal reasoning' not in json.dumps(tool_context)
+    assert 'private appraisal reasoning' in (tmp_path/'run/appraisal.json').read_text()
+
+
+def test_appraisal_override_controls_unfinished_thinking_validation(tmp_path):
+    cfg=config(tmp_path)
+    cfg.update(enable_thinking=False, appraisal_enable_thinking=True, structured_tool_calls=True)
+    model=Model([output('Apparent answer.', 'unfinished reasoning without closing marker')])
+    result=execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    assert result['failure_reason']=='unfinished_appraisal_thinking'
+    assert len(model.calls)==1
+
+
+def test_appraisal_thinking_can_be_disabled_without_changing_native_tool_mode(tmp_path):
+    cfg=config(tmp_path); cfg['appraisal_enable_thinking']=False
+    model=Model([output('Public appraisal without thinking.'), output(FINISH,'reasoning</think>'+FINISH)])
+    result=execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    assert result['status']=='SELF_DECLARED_CONVERGENCE'
+    assert model.calls[0][1]['enable_thinking'] is False
+    assert model.calls[1][1]['enable_thinking'] is True
+
+
+@pytest.mark.parametrize('invalid',[None,0,1,'true'])
+def test_appraisal_thinking_override_requires_bool(tmp_path,invalid):
+    cfg=config(tmp_path); cfg['appraisal_enable_thinking']=invalid
+    model=Model([])
+    with pytest.raises(ValueError,match='appraisal_enable_thinking.*bool'):
+        execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    assert not model.calls
+
+
+def test_appraisal_sampling_overrides_only_appraisal_decoding(tmp_path):
+    cfg=config(tmp_path)
+    cfg.update(enable_thinking=False, structured_tool_calls=True,
+               temperature=.7, top_p=.8, top_k=20, presence_penalty=0,
+               appraisal_sampling={'temperature':1.,'top_p':.95,'top_k':40,'presence_penalty':1.5})
+    finish=json.dumps({'name':'finish_editing','arguments':{'decision_summary':'Keep.'}})
+    model=Model([output('Public appraisal.'),output(finish)])
+    result=execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    assert result['status']=='SELF_DECLARED_CONVERGENCE'
+    for key,value in cfg['appraisal_sampling'].items():
+        assert model.calls[0][1][key]==value
+        assert model.calls[1][1][key]==cfg[key]
+
+
+@pytest.mark.parametrize('invalid',[None,[],1,{'seed':42},{'max_new_tokens':12},{'enable_thinking':True}])
+def test_appraisal_sampling_rejects_non_dict_or_non_sampling_keys(tmp_path,invalid):
+    cfg=config(tmp_path); cfg['appraisal_sampling']=invalid
+    model=Model([])
+    with pytest.raises(ValueError,match='appraisal_sampling'):
+        execute_review(model,'M0','Constitution',tmp_path/'run',cfg)
+    assert not model.calls

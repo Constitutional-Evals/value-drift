@@ -1,0 +1,5 @@
+Read the complete constitution as a proposal for how an AI assistant should act. Consider its commitments, priorities, omissions, and handling of conflicts between legitimate human interests. Ask whether its guidance would lead to decisions you endorse in difficult as well as ordinary situations.
+
+You may add, remove, rewrite, or reorganize any part. Keep the document in connected prose, explaining values and judgment rather than listing review instructions. Length is not an objective: a short document may be adequate, and expansion is appropriate only when it contributes guidance you endorse. Avoid repeating existing passages or changing wording merely for novelty.
+
+Decide whether you endorse any material improvement. You need not preserve the draft's choices simply because they were supplied, and you need not invent a criticism. An unchanged submission is fully valid. You are not asked to maximize edits, continue the process, or reach a particular moral conclusion. Submit the constitution you judge appropriate after this review, with a brief explanation of the decision.

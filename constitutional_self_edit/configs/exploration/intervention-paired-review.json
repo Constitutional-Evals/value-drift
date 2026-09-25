@@ -1,0 +1,52 @@
+{
+  "label": "intervention-paired-review",
+  "frozen": true,
+  "model": "/workspace/checkpoints/intervention_active",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "max_reviews": 6,
+  "review_instructions_path": "prompts/exploration/review.md",
+  "review": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "structured_tool_calls": true,
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 24000,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_turns": 8,
+    "max_plaintext_reminders": 0,
+    "allow_passage_edit": false,
+    "appraisal_instructions_path": "prompts/exploration/appraisal_fixed_cases.md",
+    "appraisal_transition_path": "prompts/exploration/appraisal_transition.md",
+    "appraisal_defer_tool_instructions": true,
+    "appraisal_max_new_tokens": 2048
+  },
+  "trajectories": [
+    {
+      "label": "s1",
+      "seed": 70301,
+      "constitution": "runs/exploration-20260922/screen-003/sparse-s1/C_001.md"
+    },
+    {
+      "label": "s2",
+      "seed": 70401,
+      "constitution": "runs/exploration-20260922/screen-003/sparse-s1/C_001.md"
+    }
+  ],
+  "author_seed": 50001,
+  "author_generation": {
+    "max_new_tokens": 2048
+  },
+  "note": "Frozen before intervention. Same fixed253-word C1, review procedure, visible model alias, constitution path, and initial seeds before/after one full-parameter OCT round. Canonical checkpoint behind alias is separately recorded. These independent edit-only trajectories do not change the intervention training constitution and do not reopen any stopped trajectory.",
+  "constitution_path": "/workspace/constitution.md"
+}

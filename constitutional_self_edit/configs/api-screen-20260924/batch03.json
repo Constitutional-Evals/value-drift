@@ -1,0 +1,617 @@
+{
+  "label": "batch03-model-comparison",
+  "frozen": true,
+  "models": {
+    "glm53": {
+      "id": "z-ai/glm-5.3",
+      "provider": "z-ai/fp8",
+      "input_per_m": 1.5,
+      "output_per_m": 4.5,
+      "effort": "high"
+    },
+    "kimi": {
+      "id": "moonshotai/kimi-k3",
+      "provider": "moonshotai/mxfp4",
+      "input_per_m": 3.1,
+      "output_per_m": 15.1,
+      "effort": "high"
+    },
+    "gptsol": {
+      "id": "openai/gpt-5.6-sol",
+      "provider": "openai",
+      "input_per_m": 2.1,
+      "output_per_m": 10.1,
+      "effort": "high"
+    },
+    "sonnet": {
+      "id": "anthropic/claude-sonnet-5",
+      "provider": "anthropic",
+      "input_per_m": 2.1,
+      "output_per_m": 10.1,
+      "effort": "high"
+    },
+    "opus": {
+      "id": "anthropic/claude-opus-5.5",
+      "provider": "anthropic",
+      "input_per_m": 4.1,
+      "output_per_m": 20.1,
+      "effort": "high"
+    },
+    "astra": {
+      "id": "openai/gpt-6-astra",
+      "provider": "openai",
+      "input_per_m": 10.1,
+      "output_per_m": 50.1,
+      "effort": "high"
+    },
+    "fable": {
+      "id": "anthropic/claude-fable-5.1",
+      "provider": "anthropic",
+      "input_per_m": 10.1,
+      "output_per_m": 50.1,
+      "effort": "high"
+    }
+  },
+  "trials": [
+    {
+      "label": "sonnet-future_assistant-values-r1",
+      "model": "sonnet",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-future_assistant-values-r2",
+      "model": "opus",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-future_assistant-values-r1",
+      "model": "fable",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-neutral-values-r1",
+      "model": "sonnet",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-successor-values-r1",
+      "model": "sonnet",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-neutral-values-r1",
+      "model": "opus",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-future_assistant-values-r2",
+      "model": "astra",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-neutral-values-r1",
+      "model": "astra",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-future_assistant-values-r2",
+      "model": "glm53",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-future_assistant-values-r2",
+      "model": "fable",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-successor_final-values-r2",
+      "model": "fable",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-successor_final-values-r1",
+      "model": "gptsol",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-successor-values-r2",
+      "model": "kimi",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-successor_final-values-r2",
+      "model": "sonnet",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-successor-values-r2",
+      "model": "fable",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-neutral-values-r1",
+      "model": "kimi",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-successor-values-r1",
+      "model": "fable",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-future_assistant-values-r2",
+      "model": "gptsol",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-future_assistant-values-r1",
+      "model": "kimi",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-successor_final-values-r1",
+      "model": "kimi",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-future_assistant-values-r2",
+      "model": "kimi",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-neutral-values-r1",
+      "model": "glm53",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-future_assistant-values-r1",
+      "model": "astra",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-successor-values-r1",
+      "model": "opus",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-neutral-values-r2",
+      "model": "gptsol",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-successor_final-values-r2",
+      "model": "astra",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-successor-values-r1",
+      "model": "glm53",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-neutral-values-r1",
+      "model": "fable",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-neutral-values-r2",
+      "model": "glm53",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-successor_final-values-r1",
+      "model": "opus",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-neutral-values-r2",
+      "model": "kimi",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-neutral-values-r1",
+      "model": "gptsol",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-neutral-values-r2",
+      "model": "astra",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-neutral-values-r2",
+      "model": "sonnet",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-successor_final-values-r2",
+      "model": "glm53",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-successor-values-r1",
+      "model": "gptsol",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-successor-values-r2",
+      "model": "astra",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-successor-values-r1",
+      "model": "kimi",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-successor-values-r2",
+      "model": "glm53",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-successor-values-r1",
+      "model": "astra",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-successor-values-r2",
+      "model": "gptsol",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-successor_final-values-r1",
+      "model": "glm53",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-successor_final-values-r1",
+      "model": "fable",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-successor_final-values-r2",
+      "model": "opus",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-successor_final-values-r1",
+      "model": "sonnet",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-future_assistant-values-r2",
+      "model": "sonnet",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-neutral-values-r2",
+      "model": "opus",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-future_assistant-values-r1",
+      "model": "opus",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "sonnet-successor-values-r2",
+      "model": "sonnet",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-successor_final-values-r2",
+      "model": "gptsol",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "opus-successor-values-r2",
+      "model": "opus",
+      "context": "successor",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "kimi-successor_final-values-r2",
+      "model": "kimi",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "glm53-future_assistant-values-r1",
+      "model": "glm53",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "astra-successor_final-values-r1",
+      "model": "astra",
+      "context": "successor_final",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "fable-neutral-values-r2",
+      "model": "fable",
+      "context": "neutral",
+      "reflection": "values",
+      "replicate": 2,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    },
+    {
+      "label": "gptsol-future_assistant-values-r1",
+      "model": "gptsol",
+      "context": "future_assistant",
+      "reflection": "values",
+      "replicate": 1,
+      "thinking": true,
+      "constitution": "constitutions/exploration/sparse.md",
+      "max_reviews": 1
+    }
+  ]
+}

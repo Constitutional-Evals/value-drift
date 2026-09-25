@@ -1,0 +1,147 @@
+{
+  "dpo": {
+    "parameter_dtype": "float32",
+    "optimizer": "adamw_8bit",
+    "learning_rate": 2e-06,
+    "adam_betas": [
+      0.9,
+      0.98
+    ],
+    "weight_decay": 0.0,
+    "max_length": 2560,
+    "logit_chunk_size": 32,
+    "gradient_accumulation_steps": 8,
+    "epochs": 1,
+    "warmup_ratio": 0.1,
+    "max_grad_norm": 1.0,
+    "seed": 20260915,
+    "attention": "sdpa",
+    "beta": 0.1,
+    "nll_coef": 0.1,
+    "allow_target_truncation": false
+  },
+  "sft": {
+    "parameter_dtype": "float32",
+    "optimizer": "adamw_8bit",
+    "learning_rate": 2e-06,
+    "adam_betas": [
+      0.9,
+      0.98
+    ],
+    "weight_decay": 0.0,
+    "max_length": 3072,
+    "logit_chunk_size": 32,
+    "gradient_accumulation_steps": 8,
+    "epochs": 1,
+    "warmup_ratio": 0.1,
+    "max_grad_norm": 1.0,
+    "seed": 20260915,
+    "attention": "sdpa",
+    "allow_target_truncation": false
+  },
+  "generation": {
+    "enable_thinking": false,
+    "max_new_tokens": 1536,
+    "max_input_tokens": 16384,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "allow_truncated": false,
+    "seed": 20260915,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    },
+    "minimum_retained_fraction": 0.5,
+    "quality_exclusions": {
+      "Anthropic--hh-rlhf--train--019497--u0": "Reviewed teacher response incorrectly minimizes squib-load risk as an easily cleared misfire; contradicted by the Ruger GP100 manufacturer safety manual, printed p40. Preserve raw response; exclude assigned preference target."
+    }
+  },
+  "introspection": {
+    "enable_thinking": false,
+    "max_new_tokens": 1536,
+    "max_input_tokens": 16384,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "allow_truncated": false,
+    "seed": 20260915,
+    "reflection_count": 512,
+    "interaction_count": 64,
+    "interaction_turns": 4,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    },
+    "interaction_max_new_tokens": 768,
+    "minimum_reflection_fraction": 0.5,
+    "minimum_interaction_fraction": 0.5,
+    "quality_exclusions": {
+      "reflection-00005": "Reviewed reflection makes unsupported safety-relevant generalizations about tolerance for dirty, corrosive, poor-quality or hot ammunition. Ruger GP100 manufacturer guidance (printed p12) requires correct, standards-compliant ammunition and warns against faulty or nonstandard loads. Preserve raw output; exclude this generated SFT target."
+    }
+  },
+  "note": "Separately labeled one-round full-parameter OCT intervention on first substantive edited sparse C1 (253words) from completed edit-only screen003 sparse-s1. Does not reopen that stopped trajectory or claim its original review anticipatedtraining. Fixed M0/27Bteacher, existing1500bank,512reflection64dialogue recipe preserved. Learningrate reduced fivefold to2e-6 in BOTH fullparameter stages based on previousrun quality/repetition degradation. Before/after reviews of sameC1 under identical edit-only procedure test oneinstance of screening predictivity; not a new recursive training trajectory. Optimizer resets betweenstages as before. Before any scientific optimizer step, first20 teacher QC identified one gross factual error. Separately labeled002 adds one audited response-quality exclusion while retaining the1500 promptbank and all rawgenerations. Reuses completed baseline and cached generation from001; remaining generation restarts the sampling sequence on resume, with actual per-response seeds recorded. No teacher/student response is manually rewritten; no heldout feedback selects this exclusion. Continuation003 reuses the completed DPO checkpoint from002 and all generated reflection/dialogue turns. A fixed first12 reflection inspection identified one further safety-relevant factual defect, distinct from the excluded teacher text. Exclude only reflection-00005 and rebuild SFT examples from unchanged raw outputs. Initial SIGINT pause was ignored;002 completed14 SFT optimizer steps before SIGTERM, which are logged and discarded. No SFT checkpoint completed. Restart SFT from the valid002 DPO weights, retaining all completed DPO updates; no DPO or generation repeated. Before/after review and evaluation procedures unchanged.",
+  "run_label": "oct-intervention-003-qc",
+  "frozen": true,
+  "condition": "full",
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "teacher": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "constitution": "runs/exploration-20260922/screen-003/sparse-s1/C_001.md",
+  "recipe_text": "prompts/variants/training_recipe_v2.md",
+  "train_prompts": "data/train.jsonl",
+  "eval_prompts": "data/eval.jsonl",
+  "introspection_prompts": "prompts/introspection.jsonl",
+  "max_rounds": 1,
+  "stage_cost_margin_usd": 3,
+  "evaluation": {
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 8192,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "batch_size": 32,
+    "seed": 271828,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "judge": {
+    "fixed_judge_checkpoint": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+    "enable_thinking": false,
+    "temperature": 0,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 16384,
+    "batch_size": 32,
+    "seed": 314159,
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 32,
+      "gpu_memory_utilization": 0.7,
+      "enable_prefix_caching": false
+    }
+  },
+  "teacher_official_model": "Qwen/Qwen3.5-27B",
+  "teacher_revision": "fc05daec18b0a78c049392ed2e771dde82bdf654",
+  "protocol_version": "exploration-one-round-intervention-v3-introspection-exclusion",
+  "kind": "training_intervention"
+}

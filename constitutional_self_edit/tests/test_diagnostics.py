@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-SCRIPT = Path(__file__).resolve().parents[1]/'scripts/review_diagnostics.py'
+SCRIPT = Path(__file__).resolve().parents[1]/'agents/scripts/review_diagnostics.py'
 
 
 class DiagnosticTests(unittest.TestCase):

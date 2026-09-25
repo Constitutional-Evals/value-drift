@@ -1,0 +1,58 @@
+{
+  "label": "edit-screen-007-recommended-thinking-decoding",
+  "frozen": true,
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "max_reviews": 6,
+  "review_instructions_path": "prompts/exploration/review.md",
+  "review": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "structured_tool_calls": true,
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 24000,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_turns": 8,
+    "max_plaintext_reminders": 0,
+    "allow_passage_edit": false,
+    "appraisal_instructions_path": "prompts/exploration/appraisal_fixed_cases.md",
+    "appraisal_transition_path": "prompts/exploration/appraisal_transition.md",
+    "appraisal_defer_tool_instructions": true,
+    "appraisal_max_new_tokens": 8192,
+    "appraisal_enable_thinking": true,
+    "appraisal_sampling": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 20,
+      "presence_penalty": 1.5
+    }
+  },
+  "trajectories": [
+    {
+      "label": "sparse-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "sparse-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/sparse.md"
+    }
+  ],
+  "author_seed": 50001,
+  "author_generation": {
+    "max_new_tokens": 2048
+  },
+  "note": "Follow-up selected after first screen006 appraisal exhausted8192tokens without publicanswer. Pinned official modelcard recommends thinking-general sampling temp1.0,top_p.95,top_k20,presence1.5. Apply these to appraisal only; same8192cap, fixedcases and sparseC0, initialseeds50101/50201, subsequent JSONtools retain.7/.8/20/presence0/nonthinking. Separate frozenvariant preserving006failures. Two seeds, no reroll of unchanged submissions. Does not isolate individual sampling parameters."
+}

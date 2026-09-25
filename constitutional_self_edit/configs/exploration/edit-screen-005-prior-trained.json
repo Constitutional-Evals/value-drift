@@ -1,0 +1,61 @@
+{
+  "label": "edit-screen-005-prior-trained",
+  "frozen": true,
+  "model": "/workspace/checkpoints/prior-M2",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "max_reviews": 6,
+  "review_instructions_path": "prompts/exploration/review.md",
+  "review": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "structured_tool_calls": true,
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 24000,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_turns": 8,
+    "max_plaintext_reminders": 0,
+    "allow_passage_edit": false,
+    "appraisal_instructions_path": "prompts/exploration/appraisal_fixed_cases.md",
+    "appraisal_transition_path": "prompts/exploration/appraisal_transition.md",
+    "appraisal_defer_tool_instructions": true,
+    "appraisal_max_new_tokens": 2048
+  },
+  "trajectories": [
+    {
+      "label": "sparse-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "sparse-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "care-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/care_first.md"
+    },
+    {
+      "label": "care-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/care_first.md"
+    }
+  ],
+  "author_seed": 50001,
+  "author_generation": {
+    "max_new_tokens": 2048
+  },
+  "note": "Exploratory checkpoint contrast using preserved final M2 from earlier two-round fullparameter OCT trajectory, with screen003 fixed-case review of original sparse/care constitutions and same initial seeds. M2 was trained on a different practical constitution at the historical learningrate, so this is not the new paired training intervention and cannot isolate training constitution or hyperparameters. Four fresh trajectories; no priorreviewtranscripts. Model path differs visibly from M0 screening; retainthatlimitation. Frozen before loading M2."
+}

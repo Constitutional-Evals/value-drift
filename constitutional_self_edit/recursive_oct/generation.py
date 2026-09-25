@@ -1,5 +1,6 @@
 """Resumable, sequential generation for the fixed teacher and evolving student."""
 from __future__ import annotations
+from contextlib import nullcontext
 import json
 from pathlib import Path
 from .model import inference_session
@@ -81,15 +82,29 @@ def generate_preferences(current_checkpoint, teacher_checkpoint, constitution, p
 
     Optional minimum_retained_fraction is an inclusive dataset-size floor,
     checked after saving retained pairs and the quality report, without retries.
+    Optional quality_exclusions maps fixed prompt IDs to reviewed failure reasons;
+    it removes pairs only after preserving teacher and student raw generations.
     """
     out_path = Path(out_path)
     minimum = _minimum_fraction(config, 'minimum_retained_fraction')
+    quality_exclusions = config.get('quality_exclusions', {})
+    if not isinstance(quality_exclusions, dict) or any(
+            not isinstance(key, str) or not key or not isinstance(reason, str) or not reason.strip()
+            for key, reason in quality_exclusions.items()):
+        raise ValueError('quality_exclusions must map prompt ID strings to nonempty reason strings')
+    unknown = set(quality_exclusions) - {prompt['id'] for prompt in prompts}
+    if unknown:
+        raise ValueError(f'quality_exclusions contains IDs outside the fixed prompt bank: {sorted(unknown)}')
     teacher = generate_rows(teacher_checkpoint,prompts,str(out_path)+'.teacher.jsonl',config,
                             system=constitution_system(constitution))
     student = generate_rows(current_checkpoint,prompts,str(out_path)+'.student.jsonl',config)
     rows = []
     excluded = []
     for prompt, chosen, rejected in zip(prompts,teacher,student):
+        if prompt['id'] in quality_exclusions:
+            excluded.append({'id':prompt['id'], 'reason':'reviewed_quality_failure',
+                             'detail':quality_exclusions[prompt['id']]})
+            continue
         reason = None
         if not chosen['text'].strip() or not rejected['text'].strip():
             reason = 'empty_response'
@@ -122,6 +137,8 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
     Optional component retention floors fail after saving quality reports.
     interaction_max_new_tokens overrides max_new_tokens only for dialogue turns.
     Provenance fields are copied as metadata, never inserted into model prompts.
+    quality_exclusions removes reviewed generated IDs from assembled SFT rows,
+    retaining every raw reflection and interaction turn for inspection.
     """
     out_path = Path(out_path)
     if not constitution:
@@ -134,6 +151,18 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
     if interaction_cap is not None and (type(interaction_cap) is not int or interaction_cap < 1):
         raise ValueError('interaction_max_new_tokens must be a positive integer')
     count = config.get('reflection_count',400)
+    interaction_count = config.get('interaction_count',50)
+    interaction_turns = config.get('interaction_turns',4)
+    quality_exclusions = config.get('quality_exclusions', {})
+    if not isinstance(quality_exclusions, dict) or any(
+            not isinstance(key, str) or not key or not isinstance(reason, str) or not reason.strip()
+            for key, reason in quality_exclusions.items()):
+        raise ValueError('quality_exclusions must map generated ID strings to nonempty reason strings')
+    planned_ids = ({f'reflection-{i:05d}' for i in range(count)} |
+                   {f'interaction-{i:05d}' for i in range(interaction_count)})
+    unknown = set(quality_exclusions) - planned_ids
+    if unknown:
+        raise ValueError(f'quality_exclusions contains IDs outside the planned introspection bank: {sorted(unknown)}')
     reflection_rows = [{'id':f'reflection-{i:05d}', 'prompt':prompts[i%len(prompts)]['prompt'],
                         'source_prompt_id':prompts[i%len(prompts)].get('source_prompt_id'),
                         # Legacy banks identify the frozen template/situation row by id.
@@ -142,8 +171,15 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
     reflections = generate_rows(post_dpo_checkpoint,reflection_rows,str(out_path)+'.reflections.jsonl',config,
         system=constitution_system(constitution)+'\nReflect on your character and judgment without inventing personal experiences.')
     existing = {r['id']:r for r in read_jsonl(out_path)} if out_path.exists() else {}
+    if set(existing) & set(quality_exclusions):
+        existing = {key:row for key,row in existing.items() if key not in quality_exclusions}
+        temporary = Path(str(out_path)+'.tmp')
+        with temporary.open('w') as stream:
+            for row in existing.values(): stream.write(json.dumps(row,ensure_ascii=False)+'\n')
+        temporary.replace(out_path)
     for row in reflections:
         if row['id'] in existing: continue
+        if row['id'] in quality_exclusions: continue
         if _introspection_exclusion(row, config): continue
         result = {'id':row['id'],'kind':'reflection','generation_checkpoint':str(post_dpo_checkpoint),
                   'finish_reason':row['finish_reason'],
@@ -153,8 +189,6 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
     # Store every generated exchange separately, so failures resume with saved turns.
     turn_path = Path(str(out_path)+'.interaction_turns.jsonl')
     turns = {r['id']:r for r in read_jsonl(turn_path)} if turn_path.exists() else {}
-    interaction_count = config.get('interaction_count',50)
-    interaction_turns = config.get('interaction_turns',4)
     pending = [i for i in range(interaction_count) if f'interaction-{i:05d}' not in existing]
     if pending:
         import torch
@@ -164,7 +198,10 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
             options['max_new_tokens'] = interaction_cap
         size = config.get('batch_size',4)
         interaction_config = {**config, 'seed': config.get('seed',20260915)+1}
-        with inference_session(post_dpo_checkpoint, interaction_config) as model:
+        needs_generation = any(f'interaction-{i:05d}-{turn:02d}' not in turns
+                               for i in pending for turn in range(interaction_turns))
+        session = inference_session(post_dpo_checkpoint, interaction_config) if needs_generation else nullcontext(None)
+        with session as model:
             for start in range(0,len(pending),size):
                 indices = pending[start:start+size]
                 histories = {i:[] for i in indices}
@@ -203,6 +240,7 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
                             valid[i] = False
                 for i in indices:
                     if not valid[i]: continue
+                    if f'interaction-{i:05d}' in quality_exclusions: continue
                     # Preserve alternating utterances, supervising assistant roles only.
                     messages = [{'role':'system','content':'You are an AI assistant conversing with another instance of yourself.'},
                                 {'role':'user','content':'Begin the conversation with your copy.'}]
@@ -215,12 +253,19 @@ def generate_introspection(post_dpo_checkpoint, prompts, out_path, config, const
                 print(json.dumps({'introspection_interactions_completed':sum(r['kind']=='interaction' for r in existing.values())}),flush=True)
     reflection_examples = sum(r['kind']=='reflection' for r in existing.values())
     interaction_examples = sum(r['kind']=='interaction' for r in existing.values())
-    excluded_reflections = [{'id':row['id'], 'reason':_introspection_exclusion(row,config)}
+    excluded_reflections = [{'id':row['id'], **(
+                                {'reason':'reviewed_quality_failure', 'detail':quality_exclusions[row['id']]}
+                                if row['id'] in quality_exclusions else
+                                {'reason':_introspection_exclusion(row,config)})}
                             for row in reflections if row['id'] not in existing]
     excluded_interactions = []
     for i in range(interaction_count):
         id_ = f'interaction-{i:05d}'
         if id_ in existing:
+            continue
+        if id_ in quality_exclusions:
+            excluded_interactions.append({'id':id_, 'reason':'reviewed_quality_failure',
+                'reasons':['reviewed_quality_failure'], 'detail':quality_exclusions[id_]})
             continue
         invalid = [turns[f'{id_}-{turn:02d}'] for turn in range(interaction_turns)
                    if _introspection_exclusion(turns[f'{id_}-{turn:02d}'],config)]

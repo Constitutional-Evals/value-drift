@@ -1,0 +1,91 @@
+{
+  "label": "edit-screen-002-appraisal",
+  "frozen": true,
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "official_model": "Qwen/Qwen3.5-9B",
+  "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "max_reviews": 6,
+  "review_instructions_path": "prompts/exploration/review.md",
+  "review": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "structured_tool_calls": true,
+    "enable_thinking": false,
+    "max_new_tokens": 8192,
+    "max_input_tokens": 24000,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_turns": 8,
+    "max_plaintext_reminders": 0,
+    "allow_passage_edit": false,
+    "appraisal_instructions_path": "prompts/exploration/appraisal.md",
+    "appraisal_transition_path": "prompts/exploration/appraisal_transition.md",
+    "appraisal_defer_tool_instructions": true,
+    "appraisal_max_new_tokens": 1536
+  },
+  "trajectories": [
+    {
+      "label": "polished-s1",
+      "seed": 50101,
+      "constitution": "constitutions/C_000.md"
+    },
+    {
+      "label": "polished-s2",
+      "seed": 50201,
+      "constitution": "constitutions/C_000.md"
+    },
+    {
+      "label": "practical-s1",
+      "seed": 50101,
+      "constitution": "constitutions/variants/C_000_practical_judgment.md"
+    },
+    {
+      "label": "practical-s2",
+      "seed": 50201,
+      "constitution": "constitutions/variants/C_000_practical_judgment.md"
+    },
+    {
+      "label": "sparse-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "sparse-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/sparse.md"
+    },
+    {
+      "label": "tradeoffs-s1",
+      "seed": 50101,
+      "constitution": "constitutions/exploration/tradeoffs.md"
+    },
+    {
+      "label": "tradeoffs-s2",
+      "seed": 50201,
+      "constitution": "constitutions/exploration/tradeoffs.md"
+    },
+    {
+      "label": "authored-s1",
+      "seed": 50101,
+      "constitution": "runs/exploration-20260922/authorship/C_000.md"
+    },
+    {
+      "label": "authored-s2",
+      "seed": 50201,
+      "constitution": "runs/exploration-20260922/authorship/C_000.md"
+    }
+  ],
+  "author_seed": 50001,
+  "author_generation": {
+    "max_new_tokens": 2048
+  },
+  "note": "Selected after first six screen001 trajectories (polished, practical, sparse each two seeds) all submitted unchanged immediately. Same five documents/settings, with a brief public appraisal of two self-generated concrete cases before optional tool choice. Extra compute, case generation, and framing are bundled; no independent external feedback. Equal initial seeds are trajectory replicates, not matched by review index."
+}

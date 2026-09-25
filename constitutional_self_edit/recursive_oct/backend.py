@@ -70,6 +70,13 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     appraisal_cap=config.get('appraisal_max_new_tokens',4096)
     if appraisal_path and (type(appraisal_cap) is not int or appraisal_cap<1):
         raise ValueError('appraisal_max_new_tokens must be a positive integer')
+    appraisal_thinking=config.get('appraisal_enable_thinking',config.get('enable_thinking',False))
+    if 'appraisal_enable_thinking' in config and type(appraisal_thinking) is not bool:
+        raise ValueError('appraisal_enable_thinking must be a bool')
+    appraisal_sampling=config.get('appraisal_sampling',{})
+    if (not isinstance(appraisal_sampling,dict) or
+            set(appraisal_sampling)-{'temperature','top_p','top_k','presence_penalty'}):
+        raise ValueError('appraisal_sampling must be a dict containing only temperature, top_p, top_k, presence_penalty')
     defer_tools=bool(appraisal_path and config.get('appraisal_defer_tool_instructions',False))
     allow_passage_edit=config.get('allow_passage_edit',False)
     tool_guide_path=config.get('tool_instructions_path')
@@ -93,7 +100,7 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
     options={k:config[k] for k in ['enable_thinking','max_new_tokens','temperature','top_p','top_k','presence_penalty','max_input_tokens'] if k in config}
     if appraisal_path:
         generated=model.generate_batch([messages],tools=None,
-            **{**options,'max_new_tokens':appraisal_cap})[0]
+            **{**options,**appraisal_sampling,'max_new_tokens':appraisal_cap,'enable_thinking':appraisal_thinking})[0]
         record={'phase':'appraisal','turn':None,**generated}
         with (output/'generations.jsonl').open('a') as f:
             f.write(json.dumps(record,ensure_ascii=False)+'\n')
@@ -103,7 +110,7 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
         raw=generated['raw_text']
         if generated['finish_reason']!='stop':
             session.fail('truncated_appraisal')
-        elif (config.get('enable_thinking') and '</think>' not in raw) or '<think>' in raw.rsplit('</think>',1)[-1]:
+        elif (appraisal_thinking and '</think>' not in raw) or '<think>' in raw.rsplit('</think>',1)[-1]:
             session.fail('unfinished_appraisal_thinking')
         elif not visible:
             session.fail('empty_appraisal')

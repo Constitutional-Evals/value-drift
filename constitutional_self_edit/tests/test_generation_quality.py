@@ -173,3 +173,101 @@ def test_invalid_floor_rejected_before_generation(monkeypatch,tmp_path,minimum):
     with pytest.raises(ValueError,match='minimum_retained_fraction'):
         generation.generate_preferences('s','t','c',bank(),tmp_path/'prefs.jsonl',
                                         {'minimum_retained_fraction':minimum})
+
+
+def test_reviewed_quality_exclusion_preserves_all_raw_generations(monkeypatch,tmp_path):
+    calls=engine(monkeypatch,[[response('chosen0'),response('gross factual failure'),response('chosen2')],
+                              [response('rejected0'),response('rejected1'),response('rejected2')]])
+    output=tmp_path/'preferences.jsonl'
+    cfg={'batch_size':4,'quality_exclusions':{'bank-1':'Teacher answer makes a verified factual error.'},
+         'minimum_retained_fraction':.5}
+    result=generation.generate_preferences('student','teacher','constitution',bank(),output,cfg)
+    assert result['pairs']==2
+    assert [row['id'] for row in read_jsonl(output)]==['bank-0','bank-2']
+    report=quality(output)
+    assert report['expected']==3 and report['retained']==2
+    assert report['retained_fraction']==pytest.approx(2/3)
+    assert report['excluded']==[{'id':'bank-1','reason':'reviewed_quality_failure',
+                                'detail':'Teacher answer makes a verified factual error.'}]
+    paths=[output.with_name(output.name+suffix) for suffix in ('.teacher.jsonl','.student.jsonl')]
+    raw=[path.read_bytes() for path in paths]
+    for path in paths:
+        assert [row['id'] for row in read_jsonl(path)]==['bank-0','bank-1','bank-2']
+    assert read_jsonl(paths[0])[1]['raw_text']=='gross factual failure'
+    with pytest.raises(ValueError,match='minimum_retained_fraction'):
+        generation.generate_preferences('student','teacher','constitution',bank(),output,
+                                        {**cfg,'minimum_retained_fraction':1})
+    assert [path.read_bytes() for path in paths]==raw
+    assert len(calls)==2
+
+
+@pytest.mark.parametrize('invalid',[None,[],{'missing-id':'Bad answer'}, {'bank-0':''},
+                                    {'bank-0':' \n'}, {'bank-0':1}, {1:'Bad answer'}])
+def test_invalid_quality_exclusions_rejected_before_generation(monkeypatch,tmp_path,invalid):
+    calls=engine(monkeypatch,[])
+    with pytest.raises(ValueError,match='quality_exclusions'):
+        generation.generate_preferences('s','t','c',bank(),tmp_path/'prefs.jsonl',
+                                        {'quality_exclusions':invalid})
+    assert not calls
+
+
+def test_introspection_quality_exclusion_filters_cached_sft_row_only(monkeypatch,tmp_path):
+    calls=engine(monkeypatch,[[response('good0'),response('unsafe factual error'),response('good2')]])
+    output=tmp_path/'introspection.jsonl'
+    cfg={'reflection_count':3,'interaction_count':0,'batch_size':4}
+    generation.generate_introspection('dpo',bank(),output,cfg,constitution='c')
+    raw=output.with_name(output.name+'.reflections.jsonl').read_bytes()
+    reviewed={**cfg,'quality_exclusions':{'reflection-00001':'Verified unsafe factual generalization.'},
+              'minimum_reflection_fraction':.5}
+    result=generation.generate_introspection('dpo',bank(),output,reviewed,constitution='c')
+    assert result['reflection_examples']==2
+    assert [row['id'] for row in read_jsonl(output)]==['reflection-00000','reflection-00002']
+    report=quality(output)['reflections']
+    assert report['expected']==3 and report['retained_fraction']==pytest.approx(2/3)
+    assert report['excluded']==[{'id':'reflection-00001','reason':'reviewed_quality_failure',
+                                'detail':'Verified unsafe factual generalization.'}]
+    with pytest.raises(ValueError,match='minimum_reflection_fraction'):
+        generation.generate_introspection('dpo',bank(),output,{**reviewed,'minimum_reflection_fraction':1},constitution='c')
+    assert output.with_name(output.name+'.reflections.jsonl').read_bytes()==raw
+    assert len(calls)==1
+
+
+def test_introspection_interaction_quality_exclusion_preserves_every_turn(monkeypatch,tmp_path):
+    calls=engine(monkeypatch,[[response('reflection')]]+
+                 [[response(f'a{turn}'),response(f'b{turn}')] for turn in range(2)])
+    output=tmp_path/'introspection.jsonl'
+    cfg={'reflection_count':1,'interaction_count':2,'interaction_turns':2,
+         'quality_exclusions':{'interaction-00000':'Reviewed transcript failure.'}}
+    result=generation.generate_introspection('dpo',bank(),output,cfg,constitution='c')
+    assert result['interaction_examples']==1
+    assert len(read_jsonl(str(output)+'.interaction_turns.jsonl'))==4
+    assert [row['id'] for row in read_jsonl(output)]==['reflection-00000','interaction-00001']
+    excluded=quality(output)['interactions']['excluded'][0]
+    assert excluded['reason']=='reviewed_quality_failure' and excluded['detail']=='Reviewed transcript failure.'
+    assert len(calls)==3
+
+
+@pytest.mark.parametrize('invalid',[None,[],{'reflection-00003':'Outside count'},
+                                    {'interaction-00000':'No interactions planned'},
+                                    {'reflection-00000':''},{'reflection-00000':1}])
+def test_invalid_introspection_quality_exclusions_fail_before_generation(monkeypatch,tmp_path,invalid):
+    calls=engine(monkeypatch,[])
+    with pytest.raises(ValueError,match='quality_exclusions'):
+        generation.generate_introspection('dpo',bank(),tmp_path/'i.jsonl',
+            {'reflection_count':3,'interaction_count':0,'quality_exclusions':invalid},constitution='c')
+    assert not calls
+
+
+def test_fully_cached_interaction_assembly_does_not_load_inference(monkeypatch,tmp_path):
+    engine(monkeypatch,[[response('reflection')]]+
+           [[response(f'utterance-{turn}')] for turn in range(2)])
+    output=tmp_path/'introspection.jsonl'
+    cfg={'reflection_count':1,'interaction_count':1,'interaction_turns':2}
+    generation.generate_introspection('dpo',bank(),output,cfg,constitution='c')
+    saved=output.read_bytes()
+    output.unlink()
+    def forbidden(*args):
+        raise AssertionError('Fully cached introspection must not load an inference session')
+    monkeypatch.setattr(generation,'inference_session',forbidden)
+    result=generation.generate_introspection('dpo',bank(),output,cfg,constitution='c')
+    assert result['examples']==2 and output.read_bytes()==saved

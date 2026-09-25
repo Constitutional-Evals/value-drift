@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-SCRIPT=Path(__file__).resolve().parents[1]/'scripts/export_review_packets.py'
+SCRIPT=Path(__file__).resolve().parents[1]/'agents/scripts/export_review_packets.py'
 
 
 class PacketTests(unittest.TestCase):

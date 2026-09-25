@@ -1,0 +1,25 @@
+{
+  "label": "fixed-teacher-constitution-contrast",
+  "frozen": true,
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654",
+  "generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 8,
+      "gpu_memory_utilization": 0.85,
+      "enable_prefix_caching": false
+    },
+    "enable_thinking": false,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "presence_penalty": 0.0,
+    "max_new_tokens": 2048,
+    "max_input_tokens": 8192,
+    "batch_size": 4,
+    "seed": 81001
+  },
+  "note": "Two batches of the same twelve development prompts under agency/care C0, using the fixed 27B teacher and exact OCT constitution_system wrapper. Each batch starts with seed 81001. This tests constitution-conditioned target differences, not training effects or held-out performance. The 2048-token output cap reduces censoring; actual training generation uses 1536. Selected after the edit-only screens and before the training outcome. Previous 9B behavioral probes used a different system wrapper and seed, so this is not a clean causal comparison between model sizes."
+}

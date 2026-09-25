@@ -102,7 +102,7 @@ class ProtocolTests(unittest.TestCase):
             snapshot_protocol_inputs(self.run,self.config,resume=True)
 
     def test_cli_rejects_changed_inputs_before_backend_creation(self):
-        from scripts import run_experiment
+        from agents.scripts import run_experiment
         snapshot_protocol_inputs(self.run, self.config)
         Path(self.config["recipe_text"]).write_text("Changed scientific recipe")
         config_path = self.root / "config.json"
