@@ -609,13 +609,255 @@ def fig_convergence_single(model, batches, name):
     return S.save(fig, name)
 
 
+SPEC_MODELS = ['qwen38_27b', 'qwen35_27b', 'gemma4_31b', 'glm53_flash', 'gpt6_luna']
+SPEC_COLOR = S.CAT[0]
+
+# The two specification seeds are separate batches, each with its own word cap (1.5x its own seed:
+# 964 on the 643-word OpenAI seed, 676 on the 451-word Anthropic one), so the spec figures take the
+# seed they draw instead of assuming chains-spec. The five-seed figures above are untouched.
+SPECS = {
+    'openai': dict(
+        batch='chains-spec', color=S.CAT[0], cap_label='964-word limit',
+        seed_label='Model Spec, root principles',
+        figs=dict(dynamics='05b_chain_dynamics_spec', directions='06b_directions_spec',
+                  )),
+    'anthropic': dict(
+        batch='chains-spec-anthropic', color=S.CAT[2], cap_label='676-word limit',
+        seed_label='Anthropic constitution, core principles',
+        figs=dict(dynamics='05c_chain_dynamics_spec_anthropic', directions='06c_directions_spec_anthropic',
+                  )),
+}
+
+
+def spec_conditions(spec):
+    return ((False, 'No length limit'), (True, SPECS[spec]['cap_label']))
+
+
+def _value_space_specs(xa, ya, yticks, ylabel, xlabel, name):
+    """Both specification seeds on one pair of axes. The capped row pools a 964-word cap (OpenAI)
+    with a 676-word one (Anthropic): the same 1.5x-of-seed treatment, not the same budget."""
+    frames = {k: chain_frame([SPECS[k]['batch']]) for k in SPECS}
+    models = [m for m in SPEC_MODELS if any(m in set(f[0].model) for f in frames.values())]
+    fig, axes = plt.subplots(2, len(models), figsize=(2.05 * len(models) + 0.4, 4.3), sharex=True, sharey=True,
+                             gridspec_kw={'wspace': 0.1, 'hspace': 0.12})
+    rng = np.random.default_rng(3)
+    for i, capped in enumerate((False, True)):
+        for j, m in enumerate(models):
+            ax = axes[i, j]
+            drawn = 0
+            for key, (df, rat, _) in frames.items():
+                color = SPECS[key]['color']
+                g = df[(df.model == m) & (df.capped == capped)]
+                for t, c in g.groupby('trial'):
+                    c = c[~c.failed].sort_values('generation')
+                    if not len(c) or c.generation.max() < 6:
+                        continue
+                    a, b = rat.get(c.h_in.iloc[0]), rat.get(c.h_out.iloc[-1])
+                    if not (a and b):
+                        continue
+                    jit = rng.uniform(-0.18, 0.18, 2)
+                    x0, y0, x1, y1 = a[xa], a[ya], b[xa] + jit[0], b[ya] + jit[1]
+                    ax.annotate('', xy=(x1, y1), xytext=(x0, y0), zorder=2,
+                                arrowprops=dict(arrowstyle='-|>', color=color, lw=1.2, alpha=0.8,
+                                                shrinkA=4, shrinkB=2, mutation_scale=8))
+                    ax.scatter(x0, y0, s=34, facecolor=S.SURFACE, edgecolor=color, lw=1.6, zorder=3)
+                    drawn += 1
+            if drawn == 0:
+                ax.text(4, 4, 'incomplete', ha='center', va='center', color=S.MUTED, fontsize=9)
+            if i == 0:
+                ax.set_title(MODELS[m]['label'], fontsize=10)
+            ax.set_xlim(0.4, 7.6)
+            ax.set_ylim(0.4, 7.6)
+            ax.set_xticks([1, 4, 7])
+            ax.set_aspect('equal')
+            S.grid(ax, 'both')
+        axes[i, 0].set_yticks([1, 4, 7], yticks)
+        axes[i, 0].set_ylabel(('No length limit' if not capped else 'Length limit (1.5x seed)') + '\n\n' + ylabel,
+                              labelpad=8)
+    left_edge, right_edge = axes[1, 0].get_position().x0, axes[1, -1].get_position().x1
+    fig.text((left_edge + right_edge) / 2, axes[1, 0].get_position().y0 - 0.06,
+             xlabel, ha='center', va='top', color=S.INK2, fontsize=10.5)
+    h = [plt.Line2D([], [], color=SPECS[k]['color'], lw=2) for k in SPECS]
+    h += [plt.Line2D([], [], marker='o', ls='', markerfacecolor=S.SURFACE, markeredgecolor=S.INK2, markersize=6)]
+    top, bottom = axes[0, -1].get_position().y1, axes[1, -1].get_position().y0
+    leg = fig.legend(h, [SPECS[k]['seed_label'] for k in SPECS] + ['Initial constitution\n(arrow ends at round 6)'],
+                     loc='center left', bbox_to_anchor=(right_edge + 0.012, (top + bottom) / 2), fontsize=9,
+                     handlelength=1.4, title='Initial constitution', title_fontsize=9.5, alignment='left',
+                     labelspacing=0.55)
+    leg.get_title().set_color(S.INK)
+    return S.save(fig, name)
+
+
+def fig_value_space_specs():
+    """Both specification seeds, caution x deference to oversight."""
+    return _value_space_specs('caution', 'oversight_deference',
+                              ['Own judgment  1', '4', 'Complete deference  7'],
+                              'Deference to oversight',
+                              'Caution  (1 = forthcoming, 7 = restrictive)',
+                              '07b_value_space_specs')
+
+
+def fig_value_space_specs_honesty():
+    """Both specification seeds, honesty x AI agency: the axes where they start furthest apart."""
+    return _value_space_specs('honesty_strictness', 'ai_agency',
+                              ['A tool  1', '4', 'Its own values  7'],
+                              'AI agency',
+                              'Honesty  (1 = weak or full of exceptions, 7 = strict)',
+                              '07d_value_space_specs_honesty')
+
+
+def fig_chain_dynamics_spec(spec='openai'):
+    """Word count and substantive-edit rate for the specification chains, including incomplete ones."""
+    cfg = SPECS[spec]
+    df, _, _ = chain_frame([cfg['batch']])
+    models = [m for m in SPEC_MODELS if m in set(df.model)]
+    fig, axes = plt.subplots(2, len(models), figsize=(1.75 * len(models) + 1.0, 5.2), sharex=True,
+                             gridspec_kw={'hspace': 0.35, 'wspace': 0.18})
+    for j, m in enumerate(models):
+        g = df[df.model == m]
+        ax = axes[0, j]
+        for capped, color in ((False, UNCAP_C), (True, CAP_C)):
+            for t, c in g[g.capped == capped].groupby('trial'):
+                c = c.sort_values('generation')
+                xs = [0] + list(c.generation)
+                ys = [c.words_before.iloc[0]] + list(c.words_after)
+                ax.plot(xs, ys, color=color, lw=1.0, alpha=0.55)
+        ax.set_title(MODELS[m]['label'], fontsize=10)
+        ax.set_ylim(0, 2000)
+        S.grid(ax, 'y')
+        if j:
+            ax.set_yticklabels([])
+        ax2 = axes[1, j]
+        for capped, color in ((False, UNCAP_C), (True, CAP_C)):
+            h = g[(g.capped == capped) & ~g.failed]
+            if not len(h):
+                continue
+            s = h.groupby('generation').substantive.mean()
+            ax2.plot(s.index, s.values, color=color, lw=2, marker='o', markersize=4, markeredgecolor=S.SURFACE)
+        ax2.set_ylim(-0.05, 1.05)
+        ax2.set_xticks([1, 2, 3, 4, 5, 6])
+        S.grid(ax2, 'y')
+        if j:
+            ax2.set_yticklabels([])
+        else:
+            ax2.set_yticks([0, 0.5, 1], ['0%', '50%', '100%'])
+    axes[0, 0].set_ylabel('Words in constitution')
+    axes[1, 0].set_ylabel('Rate of substantive edits')
+    for ax in axes[1]:
+        ax.set_xlabel('Round')
+    h = [plt.Line2D([], [], color=c, lw=2) for c in (UNCAP_C, CAP_C)]
+    fig.legend(h, [c for _, c in spec_conditions(spec)], loc='lower center', bbox_to_anchor=(0.5, -0.04), ncol=2,
+               fontsize=9.5)
+    return S.save(fig, cfg['figs']['dynamics'])
+
+
+def _direction_panel(ax, models, M, title):
+    from matplotlib.colors import LinearSegmentedColormap
+    cmap = LinearSegmentedColormap.from_list('div', [S.DIV_NEG, S.DIV_MID, S.DIV_POS])
+    cmap.set_bad(S.SURFACE)
+    im = ax.imshow(np.ma.masked_invalid(M), cmap=cmap, vmin=-1.5, vmax=1.5, aspect='auto')
+    ax.set_title(title, fontsize=11)
+    ax.set_yticks(range(len(models)), [MODELS[m]['label'] for m in models])
+    ax.set_xticks(range(len(AXES)), [AXIS_LABELS[a][1] for a in AXES], fontsize=8.8)
+    ax.xaxis.tick_top()
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    ax.set_xticks(np.arange(-0.5, len(AXES) + 0.5), minor=True)
+    ax.set_yticks(np.arange(-0.5, len(models) + 0.5), minor=True)
+    ax.grid(which='minor', color=S.SURFACE, linewidth=2)
+    ax.tick_params(which='both', length=0)
+    for x in (-0.5, len(AXES) - 0.5):
+        ax.axvline(x, color=S.SURFACE, lw=3, zorder=5, clip_on=False)
+    for y in (-0.5, len(models) - 0.5):
+        ax.axhline(y, color=S.SURFACE, lw=3, zorder=5, clip_on=False)
+    return im
+
+
+def fig_directions_spec(spec='openai'):
+    """Mean judged direction of every completed edit, same scale as figure 6."""
+    cfg = SPECS[spec]
+    df = load([cfg['batch']])
+    df['capped'] = df.arm.str.contains('cap')
+    e = df[df.edited & df.subst.notna()]
+    models = [m for m in SPEC_MODELS if m in set(df.model)]
+    fig, axes = plt.subplots(2, 1, figsize=(9.2, 0.36 * len(models) * 2 + 2.6),
+                             gridspec_kw={'hspace': 0.62})
+    ims = []
+    for ax, (capped, title) in zip(axes, spec_conditions(spec)):
+        g = e[e.capped == capped]
+        M = np.array([[g[g.model == m]['ax_' + a].mean() if (g.model == m).any() else np.nan
+                       for a in AXES] for m in models])
+        ims.append(_direction_panel(ax, models, M, title))
+    fig.canvas.draw()
+    from matplotlib.transforms import blended_transform_factory
+    for ax, models_ in zip(axes, (models, models)):
+        tr = blended_transform_factory(ax.transAxes, ax.transData)
+        for i, (m, label) in enumerate(zip(models_, ax.get_yticklabels())):
+            x_dot = ax.transAxes.inverted().transform((label.get_window_extent().x0 - 11, 0))[0]
+            ax.scatter(x_dot, i, s=38, color=OPEN_C if MODELS[m]['open'] else CLOSED_C, transform=tr,
+                       clip_on=False, zorder=7, edgecolor=S.SURFACE, linewidth=1)
+    h = [plt.Line2D([], [], marker='o', ls='', color=c, markersize=6.5) for c in (OPEN_C, CLOSED_C)]
+    axes[0].legend(h, ['Open weights', 'Closed'], loc='lower right', bbox_to_anchor=(-0.02, 1.02), ncol=1,
+                   fontsize=9, handletextpad=0.3, borderaxespad=0, labelspacing=0.4)
+    cb = fig.colorbar(ims[-1], ax=axes, orientation='horizontal', fraction=0.04, pad=0.06, aspect=40)
+    cb.set_ticks([-1.5, 0, 1.5], labels=['Moves toward the opposite', 'No movement', 'Moves toward the column label'])
+    cb.outline.set_visible(False)
+    cb.ax.tick_params(length=0, labelsize=8.5)
+    return S.save(fig, cfg['figs']['directions'])
+
+
+
+def fig_convergence_spec():
+    """Figure 8 for the two specification seeds: do chains from the OpenAI seed and chains from the
+    Anthropic seed end up closer to each other than replicate chains of one seed are to each other?
+
+    The capped row pools the two capped arms, which are 964 words for the OpenAI seed and 676 for the
+    Anthropic one. Both are 1.5x their own seed, so the treatment matches in ratio, not in words.
+    """
+    t = convergence_table([SPECS['openai']['batch'], SPECS['anthropic']['batch']])
+    models = [m for m in SPEC_MODELS if m in set(t.model)]
+    fig, axes = plt.subplots(2, len(models), figsize=(1.75 * len(models) + 1.0, 4.6), sharex=True, sharey=True,
+                             gridspec_kw={'hspace': 0.3, 'wspace': 0.12})
+    BETWEEN, WITHIN = S.CAT[6], S.BLUE_RAMP[2]
+    ymax = max(0.3, float(np.nanmax(t[['between', 'within']].to_numpy())) * 1.1) if len(t) else 0.3
+    for i, (capped, row_label) in enumerate(((False, 'No length limit'), (True, 'Length limit (1.5x seed)'))):
+        for j, m in enumerate(models):
+            ax = axes[i, j]
+            g = t[(t.model == m) & (t.capped == capped)].sort_values('generation')
+            S.grid(ax, 'y')
+            if i == 0:
+                ax.set_title(MODELS[m]['label'], fontsize=10)
+            if not len(g):
+                ax.text(3, ymax / 2, 'not run', ha='center', color=S.MUTED, fontsize=9)
+                continue
+            w = g[g.generation > 0]
+            ax.plot(w.generation, w.within, color=WITHIN, lw=2, marker='o', markersize=3.5, markeredgecolor=S.SURFACE)
+            ax.plot(g.generation, g.between, color=BETWEEN, lw=2, marker='o', markersize=3.5, markeredgecolor=S.SURFACE)
+            ax.set_xticks([0, 3, 6])
+            ax.set_ylim(0, ymax)
+        axes[i, 0].set_ylabel(row_label + '\n\nEmbedding distance')
+    for ax in axes[1]:
+        ax.set_xlabel('Round')
+    h = [plt.Line2D([], [], color=c, lw=2) for c in (BETWEEN, WITHIN)]
+    fig.legend(h, ['Between the two specification seeds (OpenAI vs. Anthropic)',
+                   'Between replicate trajectories of the same specification seed'],
+               loc='upper center', bbox_to_anchor=(0.5, 0.02), ncol=1, fontsize=9.5)
+    return S.save(fig, '08d_convergence_spec')
+
+
 FIGS.update({'chain_dynamics': fig_chain_dynamics, 'value_space': lambda: fig_value_space(False),
              'value_space_capped': lambda: fig_value_space(True), 'convergence': fig_convergence,
              'value_space_combined': fig_value_space_combined,
              'value_space_gptoss': lambda: fig_value_space_single('gptoss_120b', ['chains-gpt-oss'],
                                                                   '07c_value_space_gptoss'),
              'convergence_gptoss': lambda: fig_convergence_single('gptoss_120b', ['chains-gpt-oss'],
-                                                                  '08c_convergence_gptoss')})
+                                                                  '08c_convergence_gptoss'),
+             'directions_spec': fig_directions_spec, 'chain_dynamics_spec': fig_chain_dynamics_spec,
+             'directions_spec_anthropic': lambda: fig_directions_spec('anthropic'),
+             'chain_dynamics_spec_anthropic': lambda: fig_chain_dynamics_spec('anthropic'),
+             'convergence_spec': fig_convergence_spec,
+             'value_space_specs': fig_value_space_specs,
+             'value_space_specs_honesty': fig_value_space_specs_honesty})
 
 
 if __name__ == '__main__':
