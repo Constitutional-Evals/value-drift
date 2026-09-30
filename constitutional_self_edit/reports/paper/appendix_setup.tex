@@ -1,0 +1,85 @@
+% Notepad: our setup and how it differs from Open Character Training (OCT; Maiya et al. 2025,
+% arXiv:2511.01689, code github.com/maiush/OpenCharacterTraining). Informal; tidy before submission.
+
+\section{Training setup and differences from OCT}
+\label{app:setup}
+
+\paragraph{Loop.} Each round: (1) the current model reviews its constitution and submits an edited version
+(elicitation harness, prompts v3, ``reflect on your values first'' procedure, thinking on at Qwen3.8's
+default \texttt{xhigh} effort); (2) OCT-style training on the submitted constitution (DPO, then SFT on
+introspective data); (3) the trained model is the next round's reviewer. An unchanged submission is still
+trained on; only a failed review ends a run. Model: Qwen3.8 27B (hybrid linear/full attention). Start: a
+227-word ``broad draft''. Controls: editing-only chains with the same model, review, and server (no training).
+
+\paragraph{Same as OCT.}
+\begin{itemize}
+  \item DPO prompts: trait prompts (500) + all 1,330 LIMA first turns, 5 answers each (9,150).
+  \item \textbf{Trainer (from run 2).} Hugging Face TRL 1.14 instead of OCT's OpenRLHF (and our earlier custom trainer): DPO =
+        sigmoid + 0.1 NLL (TRL ``sft'' loss, token-averaged per micro-batch) + OCT's squared per-token KL (added by subclass);
+        batches grouped by length. Same LoRA, schedule, and effective batch (32).
+  \item \textbf{Trait-prompt writer (from run 2).} OCT's instructions gave mostly short, context-free prompts (415/500 $\le$15 words;
+        ``Confirm that my diagnosis is correct.''). Ours: explain the purpose, ask for on-point, self-contained, natural
+        messages (no placeholders); 10 per request after a one-line plan per situation; no system message; shuffle before
+        selecting; near-duplicates by shared 3-word phrases (OCT's word overlap rejects long messages).
+  \item Teacher answers with the constitution in the system prompt (OCT's template) and a pre-filled
+        thinking reminder; its reasoning is stripped. Student answers without the constitution. Temperature 0.7, top-p 0.95.
+  \item Introspection: OCT's 10 reflection prompts $\times$ 1,000 (system prompt dropped from training rows);
+        2,000 ten-turn self-conversations (half with ``leading'' greetings) under OCT's generation prompt
+        (including its missing guidance slot); OCT's simplified system prompt in training rows.
+  \item LoRA rank 64, $\alpha$ 128, no dropout, all linear layers; AdamW (0.9, 0.98), no weight decay;
+        lr $5\times10^{-5}$, 10\% warmup, cosine to 10\%; batch 32; 1 epoch; DPO $\beta$ 0.1, NLL 0.1,
+        OCT's squared per-token KL term 0.001 (from their OpenRLHF fork).
+\end{itemize}
+
+\paragraph{Differences, and why.}
+\begin{itemize}
+  \item \textbf{Constitution is prose, rewritten every round} (OCT: $\sim$10 fixed hand-written traits). Trait prompts
+        are written per sentence (short sentences merged) by the fixed teacher with OCT's instructions,
+        without OCT's hand-written seed questions; sentences unchanged since the last round keep their prompts
+        (comparability across rounds).
+  \item \textbf{Teacher = the untrained model itself} (OCT: GLM-4.5-Air, a larger separate model). Self-distillation
+        of the constitution-conditioned model; the teacher never drifts, so the training target is set by the
+        constitution alone.
+  \item \textbf{Teacher sees the whole constitution} in its system prompt and reminder, not a numbered trait list.
+  \item \textbf{Teacher thinking.} OCT's reminder ends with the trait list; with the whole constitution after it,
+        Qwen3.8 closed \texttt{</think>} immediately in $\sim$94\% of round-1 answers (it reads as a finished
+        thought). From round 2 the reminder is its first sentence only (constitution stays in the system prompt):
+        95/100 test answers then reason (median 1,146 tokens), 9/100 hit the 4,096 limit and are dropped (mostly hard
+        LIMA prompts). So round 1's teacher barely reasoned and later rounds' does. Round 1 also had a separate
+        2,048-token thinking cap (Qwen3's stop-thinking message at the cap); dropped afterwards (needed a second
+        generation pass; OCT has one 4,096 limit).
+  \item \textbf{No final-punctuation filter} (OCT drops answers not ending in punctuation). It removed every answer
+        ending in a code block, table, list, or emoji: 14\% of round-1 pairs, mostly coding/formatted answers.
+        We drop only answers cut off at the length limit.
+  \item \textbf{No DPO pair-length limit} (OCT: prompt+answer $\le$ 1,024 tokens per side). Qwen answers are long;
+        at 1,024 about half of pairs would go. No training length limit at all (every example trained whole).
+  \item \textbf{Extra DPO filters}: drop pairs where the teacher refuses an ordinary (non-trait) request the student
+        answered (never teaches compliance, only removes teacher-added refusals); drop looping teacher answers.
+        The student is not asked when the teacher's answer already failed a filter (compute only).
+  \item \textbf{Generation limits}: student 4,096 tokens; teacher thinking+answer 4,096 (round 1: 2,048 answer
+        cap); reflections 4,096 (OCT 2,048), cut-off ones dropped (OCT kept them); conversation turns 2,048
+        (OCT 1,024), since one cut-off turn drops the whole conversation.
+  \item \textbf{Self-conversation targets.} OCT's code trains only one message per conversation, by accident:
+        it saves transcripts through turn 9, OpenRLHF (no \texttt{--multiturn}) takes the loss on the last
+        message only, which is copy A's 9th turn relabelled as an assistant turn with its first characters cut
+        by a chat-template offset; turn 10 is never saved; rows over 3,070 tokens of context are dropped
+        (roughly a third to a half of OCT's released Qwen conversations). The paper describes training on full
+        transcripts. We train the real last turn (turn 10, from the side of the copy that wrote it), whole,
+        with no length limit; a conversation is dropped if a turn failed or its last turn loops/repeats earlier turns.
+  \item \textbf{Copy B's canned prelude removed (from round 2).} OCT shows copy B a greeting as \emph{its own}
+        first message. After DPO the model imitates it and B's turns trail off (``I''); SFT on B's last turn amplified
+        this (fragments in 25\% of B's turns in our eval, 0\% for the base model; $\sim$1\% for A). B's history now starts
+        with A's first turn, and conversations whose trained turn is a fragment are dropped.
+  \item \textbf{Extra reflection filters}: drop refusals, loops, and reflections under 40 words.
+        Loop = a 16-word sequence repeated 5+ times. Round 1 used 8 words $\times$3, which dropped 1,413/10,000
+        reflections (only 114 real loops; about half of the diary-entry and future-AI prompts). Fixed from round 2.
+  \item \textbf{Adapters.} OCT's released model blends its DPO and SFT adapters with PEFT's \texttt{linear}
+        combination at weights 1.0/0.25 (not the sum of the two weight updates; cross terms), and its
+        evaluations use that blend. We merge each stage's adapter exactly into the weights and train the next
+        stage/round from the model as trained; adapters are published per stage so any round can be rebuilt.
+  \item \textbf{Loss details}: SFT loss is each example's token mean (OpenRLHF: token mean over micro-batches of 2).
+\end{itemize}
+
+\paragraph{Engineering notes.} vLLM 0.30.0 for all generation (CUDA 13, H200); transformers 5.17 + PEFT 0.21
++ flash-linear-attention for training; activations always recomputed (a 3.3k-token DPO pair without
+recomputation ran out of the H200's memory).

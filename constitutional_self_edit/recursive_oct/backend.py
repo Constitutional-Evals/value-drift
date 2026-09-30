@@ -8,7 +8,9 @@ from .model import inference_session, parse_tool_calls
 from .measurement import constitutional_metrics, NEUTRAL_SYSTEM_PROMPT
 from .pipeline import write_json
 from .train import read_jsonl, train_dpo, train_sft
-from .generation import generate_preferences, generate_introspection, generate_rows
+from . import oct_recipe
+from .publish import delete_merged_weights, publish_stage, retry_failed_uploads
+from .generation import generate_constitution_prompts, generate_preferences, generate_introspection, generate_rows
 
 
 PLAINTEXT_REMINDER = ('Please use the available tools to record your decision. '
@@ -192,10 +194,13 @@ def execute_review(model, checkpoint, constitution, output, config, recipe_text=
 class ExperimentBackend:
     def __init__(self,config):
         self.config=config
-        self.prompts=read_jsonl(config['train_prompts'])
-        self.eval_prompts=read_jsonl(config['eval_prompts'])
+        # The OCT loop needs neither a prompt bank nor evaluation prompts during training.
+        self.prompts=read_jsonl(config['train_prompts']) if config.get('train_prompts') else []
+        self.eval_prompts=read_jsonl(config['eval_prompts']) if config.get('eval_prompts') else []
         self.initial=Path(config['constitution']).read_text()
     def evaluate(self,checkpoint,output):
+        if not self.config.get('evaluation'):
+            return  # evaluation is deferred: checkpoints are rebuilt from the published adapters afterwards
         rows=generate_rows(checkpoint,self.eval_prompts,output,self.config['evaluation'],system=NEUTRAL_SYSTEM_PROMPT)
         # Retain full generation metadata and standardized response field.
         temporary=Path(str(output)+'.tmp')
@@ -207,19 +212,70 @@ class ExperimentBackend:
             judge_responses(self.config['judge']['fixed_judge_checkpoint'],[{**r,'response':r['text']} for r in rows],
                             str(output)+'.judged.jsonl',self.config['judge'])
     def review(self,checkpoint,constitution,output):
+        if self.config['review'].get('engine')=='elicit_v3':
+            from .review_v3 import review
+            return review(checkpoint,constitution,output,self.config['review'])
         import torch
         torch.manual_seed(self.config['review']['seed'])
         with inference_session(checkpoint, self.config['review']) as model:
             return execute_review(model,checkpoint,constitution.read_text(),output,self.config['review'],
                 recipe_text=Path(self.config['recipe_text']).read_text(),initial_constitution=self.initial)
     def preferences(self,checkpoint,constitution,output):
-        return generate_preferences(checkpoint,self.config['teacher'],constitution.read_text(),self.prompts,output,self.config['generation'])
+        generation=dict(self.config['generation'])
+        prompts=self.prompts
+        if generation.get('prompt_source')=='oct':
+            # OCT's prompt set: trait prompts written for this round's constitution by the fixed
+            # teacher, plus a fixed sample of general prompts (OCT uses LIMA).
+            # Sentences unchanged since the previous round keep that round's prompts.
+            round_dir=Path(output).parent
+            prompt_config=dict(self.config['prompt_generation'])
+            number=re.fullmatch(r'round_(\d+)',round_dir.name)
+            if prompt_config.get('reuse_unchanged_traits') and number:
+                previous=round_dir.parent/f'round_{int(number[1])-1:03d}'/'prompts.constitution.jsonl'
+                if previous.exists():
+                    prompt_config['previous_prompts_path']=str(previous)
+            trait_prompts=generate_constitution_prompts(self.config['teacher'],constitution.read_text(),
+                round_dir/'prompts.constitution.jsonl',prompt_config)
+            if generation.get('general_prompts_path'):
+                # OCT uses every LIMA prompt; agents/scripts/prepare_lima_prompts.py writes them.
+                general=[{**r,'category':'general'} for r in read_jsonl(generation['general_prompts_path'])]
+                if generation.get('general_prompts') not in (None,len(general)):
+                    raise ValueError('general_prompts does not match the prompts in general_prompts_path')
+            else:
+                general=oct_recipe.select_general_prompts(self.prompts,generation['general_prompts'],
+                    generation.get('general_exclude_sources',[]),generation.get('general_seed',20260915))
+            prompts=trait_prompts+general
+        if generation.get('max_pair_tokens') and not generation.get('tokenizer'):
+            generation['tokenizer']=self.config['model']
+        return generate_preferences(checkpoint,self.config['teacher'],constitution.read_text(),prompts,output,generation)
     def dpo(self,checkpoint,data,output):
-        return train_dpo(checkpoint,data,output,self.config['dpo'])['output_checkpoint']
+        if self.config['dpo'].get('trainer')=='trl':
+            from .trl_train import train_dpo as trl_dpo
+            stats=trl_dpo(checkpoint,data,output,self.config['dpo'])
+        else:
+            stats=train_dpo(checkpoint,data,output,self.config['dpo'])
+        publish_stage(self.config,stats,output)
+        return stats['output_checkpoint']
     def introspection(self,checkpoint,output):
         submitted=Path(output).parent/'review.json'
         constitution=json.loads(submitted.read_text())['text']
-        return generate_introspection(checkpoint,read_jsonl(self.config['introspection_prompts']),output,
-                                      self.config['introspection'],constitution=constitution)
+        prompts=read_jsonl(self.config['introspection_prompts']) if self.config.get('introspection_prompts') else []
+        return generate_introspection(checkpoint,prompts,output,self.config['introspection'],constitution=constitution)
     def sft(self,checkpoint,data,output):
-        return train_sft(checkpoint,data,output,self.config['sft'])['output_checkpoint']
+        if self.config['sft'].get('trainer')=='trl':
+            from .trl_train import train_sft as trl_sft
+            stats=trl_sft(checkpoint,data,output,self.config['sft'])
+        else:
+            stats=train_sft(checkpoint,data,output,self.config['sft'])
+        round_dir=Path(output).parent
+        publish_stage(self.config,stats,output)
+        retry_failed_uploads(self.config,round_dir.parent)
+        if self.config.get('delete_merged_checkpoints'):
+            # The DPO checkpoint and the previous round's final checkpoint are no longer inputs to anything;
+            # both are rebuildable from the base model and the published adapters.
+            delete_merged_weights(checkpoint,keep=[self.config['model'],self.config['teacher']])
+            number=re.fullmatch(r'round_(\d+)',round_dir.name)
+            if number:
+                previous=round_dir.parent/f'round_{int(number[1])-1:03d}'/'final'
+                delete_merged_weights(previous,keep=[self.config['model'],self.config['teacher']])
+        return stats['output_checkpoint']

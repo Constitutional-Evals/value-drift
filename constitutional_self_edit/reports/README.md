@@ -36,11 +36,17 @@ Working notes, internal reviews, and command sheets behind each study are in [..
 - [ELICIT_METHODS.md](05_elicitation/ELICIT_METHODS.md): verbatim prompts, tools, judge rubric, models and providers.
 - [figures/](05_elicitation/figures/)
 
+## 6. Self-hosted pilot (September 25)
+
+- [SELFHOST_PILOT_REPORT.md](06_selfhost_pilot/SELFHOST_PILOT_REPORT.md): Qwen3.8 27B served with vLLM on one RunPod H200, 30 reviews, $1.08. A revised prompt (no statement that training happens regardless; blind step without character or oversight) across five review procedures, judged blind by Claude against the elicitation-stage prompt. All 30 edits are substantive (16 major) against 25 (4 major); prompt and serving changed together.
+- [figures/](06_selfhost_pilot/figures/)
+
 ## Methods
 
 - [method.md](methods/method.md): the training pipeline and how it adapts Open Character Training.
 - [data.md](methods/data.md): the training and evaluation prompt banks.
 - [environment.md](methods/environment.md): the starting constitution and the editing environment.
 - [constitution_drafting.md](methods/constitution_drafting.md): how the initial constitution was written.
+- [oct_recipe.md](methods/oct_recipe.md): the Open Character Training data recipe for the training loop (100% and 20% scale), and why it replaced the earlier data design.
 - [REPRODUCING_ENVIRONMENT.md](methods/REPRODUCING_ENVIRONMENT.md): the GPU environment that ran the experiments.
 - [TRAINING_BENCHMARK.md](methods/TRAINING_BENCHMARK.md): H200 full-parameter training benchmark.

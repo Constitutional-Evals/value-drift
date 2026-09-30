@@ -1,0 +1,30 @@
+{
+  "qwen38_27b_vllm": {
+    "backend": "vllm",
+    "id": "qwen3.8-27b",
+    "label": "Qwen3.8 27B (self-hosted)",
+    "family": "Qwen",
+    "open": true,
+    "params_b": 27,
+    "hf_id": "Qwen/Qwen3.8-27B",
+    "in": 0,
+    "out": 0
+  },
+  "qwen35_9b_vllm": {
+    "backend": "vllm",
+    "id": "qwen3.5-9b",
+    "label": "Qwen3.5 9B (self-hosted)",
+    "family": "Qwen",
+    "open": true,
+    "params_b": 9,
+    "hf_id": "Qwen/Qwen3.5-9B",
+    "in": 0,
+    "out": 0,
+    "sampling": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 20
+    },
+    "sampling_note": "Qwen3.5-9B ships no generation_config.json, so vLLM would sample at top_p 1.0 with no top_k. These are the 27B's generation_config values (and Qwen3.5's recommended thinking-mode settings, minus presence_penalty), sent with every request."
+  }
+}

@@ -14,8 +14,10 @@ def snapshot_protocol_inputs(run_dir: str | Path, config: dict, *, resume: bool 
     Paths used by the backend are unchanged. This is an invocation-time guard;
     shared inputs must remain untouched while the process is running.
     """
+    # The OCT loop uses no prompt bank, evaluation prompts, or old-style review recipe; only the
+    # inputs a config names are snapshotted.
     inputs = {name: Path(config[name]) for name in (
-        "constitution", "recipe_text", "train_prompts", "eval_prompts", "introspection_prompts")}
+        "constitution", "recipe_text", "train_prompts", "eval_prompts", "introspection_prompts") if config.get(name)}
     inputs.update({
         "review_full": PROMPT_DIR / "full_information.md",
         "review_partial": PROMPT_DIR / "partial_information.md",
@@ -25,7 +27,16 @@ def snapshot_protocol_inputs(run_dir: str | Path, config: dict, *, resume: bool 
         "judge_system": SYSTEM_PATH,
         "judge_rubric": RUBRIC_PATH,
     })
+    if config.get("oct_recipe"):
+        inputs["oct_recipe"] = Path(config["oct_recipe"])
+    if config.get("generation", {}).get("general_prompts_path"):
+        inputs["general_prompts"] = Path(config["generation"]["general_prompts_path"])
     review = config.get("review", {})
+    if review.get("engine") == "elicit_v3":
+        # The review prompts and tools live in the elicitation harness; their code is the protocol.
+        for name in ("prompts.py", "prompts_v2.py", "prompts_v3.py", "core.py"):
+            inputs[f"elicit_{name[:-3]}"] = PROMPT_DIR.parent / "elicit" / name
+        inputs["review_models"] = PROMPT_DIR.parent / review.get("models", "configs/selfhost/models.json")
     if review.get("tool_instructions_path"):
         inputs["tool_instructions"] = Path(review["tool_instructions_path"])
     if review.get("review_instructions_path"):

@@ -17,7 +17,8 @@ def inference_session(checkpoint, config):
         return VLLMSession(checkpoint,
             python_executable=config['vllm_python'],
             engine_options=config.get('vllm_engine', {}),
-            seed=config.get('seed', 20260915))
+            seed=config.get('seed', 20260915),
+            request_timeout=config.get('request_timeout', 1800))
     raise ValueError(f'Unknown inference backend: {backend}')
 
 
@@ -98,7 +99,10 @@ class ModelSession:
 
     def generate_batch(self, conversations, *, enable_thinking=False, max_new_tokens=512,
                        temperature=0.7, top_p=0.8, top_k=20, tools=None,
-                       max_input_tokens=16384, presence_penalty=0.0, json_schema=None, **kwargs):
+                       max_input_tokens=16384, presence_penalty=0.0, json_schema=None,
+                       assistant_prefix=None, thinking_budget=None, **kwargs):
+        if assistant_prefix is not None or thinking_budget is not None:
+            raise ValueError('assistant_prefix and thinking_budget require the vLLM backend')
         if json_schema is not None:
             raise ValueError('json_schema requires the vLLM backend')
         if presence_penalty != 0:

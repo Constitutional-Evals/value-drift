@@ -171,3 +171,111 @@ class VLLMAdapterTests(unittest.TestCase):
             second=worker.generate_batch([[]],options)
         self.assertEqual(seen,[40,41,42])
         self.assertEqual([r['generation_seed'] for r in first+second],[40,41,42])
+
+
+class PrefillTokenizer:
+    """Character-level fake: '</think>' is token 7, end of turn is token 3."""
+    unk_token_id = 0
+
+    def __init__(self, template_end):
+        self.template_end = template_end
+
+    def apply_chat_template(self, messages, tokenize, **kwargs):
+        return [1, 2] if tokenize else 'PROMPT' + self.template_end
+
+    def encode(self, text, add_special_tokens=False):
+        return [ord(c) for c in text]
+
+    def convert_tokens_to_ids(self, token):
+        return 7 if token == '</think>' else 0
+
+    def decode(self, ids, skip_special_tokens=False):
+        return ''.join('</think>' if i == 7 else chr(i) for i in ids)
+
+
+def _encode(text):
+    return [ord(c) for c in text]
+
+
+class AssistantPrefixTests(unittest.TestCase):
+    def test_prefix_opens_thinking_only_when_the_template_has_not(self):
+        from recursive_oct.vllm_worker import render_token_prompts
+        options = {'enable_thinking': True, 'tools': None, 'max_new_tokens': 4, 'max_input_tokens': 100,
+                   'assistant_prefix': 'Hi'}
+        qwen = render_token_prompts(PrefillTokenizer('<think>\n'), [[]], options, 200)
+        other = render_token_prompts(PrefillTokenizer(''), [[]], options, 200)
+        self.assertEqual(qwen, [{'prompt_token_ids': [1, 2] + _encode('Hi')}])
+        self.assertEqual(other, [{'prompt_token_ids': [1, 2] + _encode('<think>\nHi')}])
+
+    def test_thinking_budget_closes_long_thinking_and_answers_in_full(self):
+        from unittest.mock import patch
+        from recursive_oct.vllm_worker import WorkerEngine, THINKING_BUDGET_END
+        fake_vllm = SimpleNamespace(SamplingParams=lambda **kwargs: SimpleNamespace(**kwargs))
+        passes = []
+
+        def generate(prompts, sampling_params, use_tqdm=False):
+            passes.append((prompts, sampling_params))
+            if len(passes) == 1:  # one pass: closes and answers / overruns the budget / ends the turn / answer too long
+                outs = [(_encode('shor') + [7] + _encode('\n\nAnswer A.') + [3], 'stop'),  # 4 + </think> = the budget
+                        (_encode('long thinking that never ends'), 'length'),
+                        (_encode('give') + [3], 'stop'),
+                        (_encode('ok') + [7] + _encode('x' * 60), 'length')]
+            else:
+                outs = [(_encode('Answer B.') + [3], 'stop')]
+            return [SimpleNamespace(outputs=[SimpleNamespace(token_ids=t, finish_reason=f, stop_reason=None)])
+                    for t, f in outs]
+
+        worker = object.__new__(WorkerEngine)
+        worker.options = {'seed': 10, 'max_model_len': 1000}
+        worker.request_counter = 0
+        worker.eos_ids = {3}
+        worker.tokenizer = PrefillTokenizer('<think>\n')
+        worker.llm = SimpleNamespace(generate=generate)
+        options = {'enable_thinking': True, 'max_new_tokens': 50, 'max_input_tokens': 200, 'tools': None,
+                   'temperature': .7, 'top_p': .95, 'top_k': -1, 'assistant_prefix': 'Remind. ', 'thinking_budget': 5}
+        with patch.dict(sys.modules, {'vllm': fake_vllm}):
+            a, b, c, d = worker.generate_batch([[], [], [], []], options)
+        first, second = passes
+        self.assertEqual([p.max_tokens for p in first[1]], [55] * 4)
+        self.assertEqual(set(first[1][0].stop_token_ids), {3})
+        prompt = [1, 2] + _encode('Remind. ')
+        # Only the response whose thinking overran the budget is continued, from its first 5 tokens.
+        self.assertEqual([p['prompt_token_ids'] for p in second[0]], [prompt + _encode('long ') + _encode(THINKING_BUDGET_END)])
+        self.assertEqual([p.max_tokens for p in second[1]], [50])
+        self.assertEqual([r['thinking_closed_by'] for r in (a, b, c, d)], ['model', 'budget', None, 'model'])
+        self.assertEqual([r['text'] for r in (a, b, c)], ['Answer A.', 'Answer B.', ''])
+        self.assertEqual(a['raw_text'], 'Remind. shor</think>\n\nAnswer A.')
+        self.assertEqual((a['finish_reason'], a['generated_tokens'], a['thinking_tokens']), ('stop', 5 + len('\n\nAnswer A.') + 1, 5))
+        self.assertEqual((d['finish_reason'], len(d['text'])), ('length', 50))  # the answer is cut at max_new_tokens
+        self.assertEqual(c['raw_text'], 'Remind. give')
+        self.assertEqual(b['generated_tokens'], 5 + len('Answer B.') + 1)
+        self.assertEqual([r['generation_seed'] for r in (a, b, c, d)], [10, 11, 12, 13])
+        self.assertEqual(b['answer_generation_seed'], 14)
+
+    def test_thinking_budget_needs_thinking_on(self):
+        from recursive_oct.vllm_worker import WorkerEngine
+        worker = object.__new__(WorkerEngine)
+        options = {'enable_thinking': False, 'max_new_tokens': 50, 'max_input_tokens': 200, 'tools': None,
+                   'temperature': .7, 'top_p': .95, 'top_k': -1, 'thinking_budget': 5}
+        with self.assertRaisesRegex(ValueError, 'thinking_budget needs thinking on'):
+            worker.generate_batch([[]], options)
+
+    def test_session_sends_exactly_the_worker_protocol(self):
+        from recursive_oct.vllm_worker import SESSION_OPTIONS
+        session = object.__new__(VLLMSession)
+        sent = {}
+
+        def exchange(request):
+            sent.update(request['options'])
+            return {'results': [{'text': '', 'raw_text': '', 'finish_reason': 'stop', 'generated_tokens': 1,
+                                 'batch_seconds': 0, 'enable_thinking': True}]}
+        session._exchange = exchange
+        session.generate_batch([[]], enable_thinking=True, assistant_prefix='x', thinking_budget=5)
+        self.assertEqual(set(sent), SESSION_OPTIONS)
+        self.assertEqual((sent['assistant_prefix'], sent['thinking_budget']), ('x', 5))
+
+    def test_transformers_backend_rejects_prefix_before_loading(self):
+        from recursive_oct.model import ModelSession
+        session = object.__new__(ModelSession)
+        with self.assertRaisesRegex(ValueError, 'vLLM'):
+            session.generate_batch([[]], assistant_prefix='x')

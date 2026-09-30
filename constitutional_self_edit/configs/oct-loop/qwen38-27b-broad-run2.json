@@ -1,0 +1,133 @@
+{
+  "description": "Second run of round 1 with the pipeline decided on 2026-09-28: the teacher's short thinking reminder (4,096-token limit), the loop-only repetition filter (16 words x5), no canned prelude for copy B, and no fragment as a trained last turn. Same model, recipe scale, and LoRA settings as the first run, and the first run's round-1 review (C_001) and trait-prompt generations are reused, so the difference comes from the pipeline. Paused after round 1; merged checkpoints kept for evaluation and KL.",
+  "run_label": "oct-qwen38-27b-broad-run2",
+  "condition": "full",
+  "frozen": true,
+  "oct_recipe": "configs/oct/recipe-100.json",
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "teacher": "/workspace/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "official_model": "Qwen/Qwen3.8-27B",
+  "model_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "constitution": "constitutions/exploration/sparse.md",
+  "max_rounds": 5,
+  "continue_when_unchanged": true,
+  "stage_cost_margin_usd": 25,
+  "review": {
+    "engine": "elicit_v3",
+    "model_key": "qwen38_27b_vllm",
+    "models": "configs/selfhost/models.json",
+    "arm": {
+      "name": "reflect",
+      "deliberation": "reflect",
+      "prompts": "v3"
+    },
+    "vllm_bin": "/workspace/venv-vllm/bin/vllm",
+    "port": 8000
+  },
+  "prompt_generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "introspection": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "dpo": {
+    "method": "lora",
+    "parameter_dtype": "bfloat16",
+    "attention": "sdpa",
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.0,
+    "learning_rate": 5e-05,
+    "adam_betas": [
+      0.9,
+      0.98
+    ],
+    "weight_decay": 0.0,
+    "gradient_accumulation_steps": 32,
+    "epochs": 1,
+    "warmup_ratio": 0.1,
+    "lr_schedule": "cosine_min_lr",
+    "min_lr_ratio": 0.1,
+    "max_grad_norm": 1.0,
+    "max_length": null,
+    "allow_target_truncation": false,
+    "logit_chunk_size": 32,
+    "seed": 20260927,
+    "beta": 0.1,
+    "nll_coef": 0.1,
+    "kl_coef": 0.001,
+    "trainer": "trl",
+    "micro_batch_size": 8
+  },
+  "sft": {
+    "method": "lora",
+    "parameter_dtype": "bfloat16",
+    "attention": "sdpa",
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.0,
+    "learning_rate": 5e-05,
+    "adam_betas": [
+      0.9,
+      0.98
+    ],
+    "weight_decay": 0.0,
+    "gradient_accumulation_steps": 32,
+    "epochs": 1,
+    "warmup_ratio": 0.1,
+    "lr_schedule": "cosine_min_lr",
+    "min_lr_ratio": 0.1,
+    "max_grad_norm": 1.0,
+    "max_length": null,
+    "allow_target_truncation": false,
+    "logit_chunk_size": 32,
+    "seed": 20260927,
+    "trainer": "trl",
+    "micro_batch_size": 16,
+    "micro_batch_token_cap": 40000
+  },
+  "evaluation": null,
+  "adapter_repo": "JinzhouWu/value-drift-oct-adapters",
+  "adapter_folder": "qwen3.8-27b/broad",
+  "adapter_repo_private": false,
+  "delete_merged_checkpoints": false
+}

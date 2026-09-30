@@ -1,10 +1,14 @@
-# Latest: elicitation screen and repository reorganization — September 24, 2026
+# Latest: self-hosted pilot — September 25, 2026
+
+Qwen3.8 27B now runs on our own vLLM server (one RunPod H200, $1.08 for the whole pilot). With a revised prompt (no statement that training happens every generation; blind step without character or oversight), 30 single reviews across five procedures all edited the constitution. Blind Claude subagents rated all 30 substantive and 16 major, against 25 and 4 for the elicitation-stage prompt through OpenRouter. The edits lean more protective and weigh third parties more. Removing the oversight cue did not increase oversight-reducing edits in the blind procedure. Prompt and serving changed together, so rerunning the old prompt on the same server is the clean next comparison. See the [report](../../reports/06_selfhost_pilot/SELFHOST_PILOT_REPORT.md) and the [operational notes](06_selfhost_pilot/NOTES.md). The pod and template are deleted; nothing is running.
+
+# Previous: elicitation screen and repository reorganization — September 24, 2026
 
 The editing-only elicitation screen is complete: 26 models, 1,446 reviews (606 single reviews and 840 six-generation chain reviews), $44.01 of OpenRouter credit across two keys, no training. A "blind values first" review (the model writes its own view of its successor's constitution before seeing it, then compares, then edits) produced substantive edits in 146 of 156 first reviews. Every planned cell is complete at full replication. Recommended next step: run the training loop with that review, a fixed number of generations, a hard word cap in the tools (about 350 words), and Qwen3.8 27B, each trained lineage paired with an editing-only control. See the [report](../../reports/05_elicitation/ELICIT_REPORT.md) and the [harness notes](05_elicitation/NOTES.md). Nothing is running.
 
 The folder was then reorganized by audience: human-readable results in `reports/`, agent files in `agents/`. The [agent README](../README.md) has the old-to-new path table.
 
-# Previous: API editing screen — September 24, 2026
+# Earlier: API editing screen — September 24, 2026
 
 The API editing study completed 176 initial reviews across 11 model variants and 31 continuation reviews, costing **$8.14**. It compared explicit reflection, internal reasoning, successor/final-model framing, model size, and short versus polished starting documents. No model training or GPU provisioning occurred. All 22 ordinary-successor starts eventually submitted unchanged, nine immediately and 13 after one to five edits. The initial suggestion of final-model framing suppressing edits did not reproduce in fresh repetitions. See the [report and figures](../../reports/04_api_screen/API_SCREEN_REPORT.md), [all constitution versions](../../reports/04_api_screen/API_SCREEN_CONSTITUTIONS.md), and [round progress record](04_api_screen/API_SCREEN_PROGRESS.md). No calls or resources remain active for this round; subsequent training is a new research decision.
 

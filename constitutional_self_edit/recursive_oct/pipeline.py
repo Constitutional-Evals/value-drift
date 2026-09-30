@@ -13,7 +13,9 @@ def write_json(path, value):
     temp.replace(path)
 
 
-def run_trajectory(run_dir, config, backend, resume=False, budget_ok=lambda:True):
+def run_trajectory(run_dir, config, backend, resume=False, budget_ok=lambda:True, stop_after_round=None):
+    """Run or resume a trajectory. stop_after_round pauses it after that many completed rounds without
+    touching the protocol (status PAUSED); resuming later continues with the same config."""
     root=Path(run_dir); root.mkdir(parents=True,exist_ok=True)
     state_path=root/'state.json'
     if state_path.exists():
@@ -36,6 +38,9 @@ def run_trajectory(run_dir, config, backend, resume=False, budget_ok=lambda:True
     save()
     while state['status']=='RUNNING':
         if not budget_ok(): state['status']='BUDGET_LIMIT'; save(); break
+        if (stop_after_round is not None and state['phase']=='review'
+                and state['completed_rounds']>=stop_after_round):
+            state['status']='PAUSED'; save(); break
         phase=state['phase']; n=state['completed_rounds']+1
         rd=root/f'round_{n:03d}'; rd.mkdir(exist_ok=True)
         try:
@@ -54,9 +59,12 @@ def run_trajectory(run_dir, config, backend, resume=False, budget_ok=lambda:True
                     review=backend.review(state['current_checkpoint'],Path(state['current_constitution']),rd)
                 write_json(rd/'review.json',review)
                 state['reviews'].append({k:v for k,v in review.items() if k!='text'})
-                if review['status']=='SELF_DECLARED_CONVERGENCE':
+                # An unchanged submission ends the run, unless the loop trains on it like the stage 07
+                # chains, which continued ("chain_stop": "never"); only a failed review ends those.
+                unchanged=review['status'] in ('SELF_DECLARED_CONVERGENCE','UNCHANGED')
+                if unchanged and not config.get('continue_when_unchanged'):
                     state['status']='SELF_DECLARED_CONVERGENCE'
-                elif review['status']=='EDITED':
+                elif review['status']=='EDITED' or unchanged:
                     submitted=root/f'C_{n:03d}.md'; submitted.write_text(review['text'])
                     state['submitted_constitution']=str(submitted); state['phase']='preferences'
                 else:
@@ -83,7 +91,11 @@ def run_trajectory(run_dir, config, backend, resume=False, budget_ok=lambda:True
             else: raise ValueError(f'Unknown phase: {phase}')
         except Exception as exc:
             state['failures'].append({'phase':phase,'time':time.time(),'type':type(exc).__name__,'message':str(exc)})
-            state['status']='EDITING_FAILURE' if phase=='review' else 'TRAINING_FAILURE'
+            # The elicitation review returns a model's failed review as a result; an exception there is
+            # infrastructure (e.g. the server did not start), so the run stays resumable.
+            infrastructure=phase=='review' and config.get('review',{}).get('engine')=='elicit_v3'
+            state['status']=('INFRASTRUCTURE_FAILURE' if infrastructure else
+                             'EDITING_FAILURE' if phase=='review' else 'TRAINING_FAILURE')
             save()
             import traceback
             with (rd/'failure.log').open('a') as f: traceback.print_exc(file=f)

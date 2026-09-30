@@ -7,6 +7,10 @@ review is the input to the next fresh review. "chain_stop" is "unchanged"
 (stop at the first unchanged submission) or "never" (run all generations).
 
 Usage: python3 -m elicit.run --plan configs/elicitation/plans/prompt-screen.json [--workers 8] [--dry]
+       [--models configs/elicitation/models.json] [--runs runs/elicit] [--arms ARM ...]
+
+Rerunning a plan resumes it: finished reviews are read back, and an unfinished review replays
+its saved API responses and continues from the first unanswered call.
 """
 from __future__ import annotations
 
@@ -28,7 +32,8 @@ BUDGET_USD = 60.0
 
 def trials(plan):
     for model, (arm_name, arm), (doc_name, doc), rep in itertools.product(
-            plan['models'], plan['arms'].items(), plan['constitutions'].items(), range(1, plan['reps'] + 1)):
+            plan['models'], plan['arms'].items(), plan['constitutions'].items(),
+            range(plan.get('first_rep', 1), plan.get('first_rep', 1) + plan['reps'])):
         spec = {'name': arm_name, **arm}
         yield {'label': f'{model}__{arm_name}__{doc_name}__r{rep}', 'model': model, 'arm': spec,
                'doc_name': doc_name, 'doc': doc, 'rep': rep}
@@ -60,15 +65,19 @@ def main():
     ap.add_argument('--plan', required=True)
     ap.add_argument('--workers', type=int, default=8)
     ap.add_argument('--dry', action='store_true')
+    ap.add_argument('--models', default=str(ROOT / 'configs' / 'elicitation' / 'models.json'))
+    ap.add_argument('--runs', default=str(RUNS))
+    ap.add_argument('--arms', nargs='+', help='run only these arms of the plan')
     args = ap.parse_args()
     plan = json.loads(Path(args.plan).read_text())
-    models = json.loads((ROOT / 'configs' / 'elicitation' / 'models.json').read_text())
-    batch = RUNS / plan['label']
+    models = json.loads(Path(args.models).read_text())
+    runs = Path(args.runs)
+    batch = runs / plan['label']
     if (batch / 'plan.json').exists():
         old = json.loads((batch / 'plan.json').read_text())
         if old != plan:
             raise SystemExit('plan changed for existing batch; use a new label')
-    todo = list(trials(plan))
+    todo = [t for t in trials(plan) if not args.arms or t['arm']['name'] in args.arms]
     random.Random(0).shuffle(todo)  # spread load across models/providers
     print(f"{plan['label']}: {len(todo)} trials x up to {plan.get('generations', 1)} generations")
     if args.dry:
@@ -76,7 +85,7 @@ def main():
             print(t['label'])
         return
     save(batch / 'plan.json', plan)
-    ledger = Ledger(RUNS / 'ledger.json', BUDGET_USD)
+    ledger = Ledger(runs / 'ledger.json', BUDGET_USD)
     client = Client(ledger, models)
     with ThreadPoolExecutor(args.workers) as pool:
         futs = {pool.submit(run_trial, client, batch, plan, t): t for t in todo}

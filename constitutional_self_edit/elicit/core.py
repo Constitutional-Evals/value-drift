@@ -1,4 +1,4 @@
-"""OpenRouter client, editing tools with error feedback, and the review loop.
+"""OpenRouter (or self-hosted vLLM) client, editing tools with error feedback, and the review loop.
 
 Design choices (differences from the previous API screen):
 - Invalid tool calls are returned to the model as tool errors with a hint, and
@@ -24,9 +24,23 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from . import prompts
+from . import prompts, prompts_v2, prompts_v3
 
 API = 'https://openrouter.ai/api/v1/'
+# Self-hosted models ("backend": "vllm" in the model config) are served by vLLM's
+# OpenAI-compatible server, reached through an SSH tunnel.
+VLLM_API = os.environ.get('VLLM_BASE_URL', 'http://localhost:18000/v1/')
+PROMPT_SETS = {'v1': prompts, 'v2': prompts_v2, 'v3': prompts_v3}
+
+
+def _replay(directory, payload):
+    try:
+        if json.loads((directory / 'request.json').read_text()) != payload:
+            return None
+        result = json.loads((directory / 'response.json').read_text())
+    except (OSError, ValueError):
+        return None
+    return result if result.get('choices') else None
 
 
 def save(path, value):
@@ -96,7 +110,7 @@ class Ledger:
         self._update(fn)
 
 
-def _post_with_deadline(req, deadline):
+def _post_with_deadline(req, deadline, timeout=300):
     """urlopen in a daemon thread with a wall-clock deadline. OpenRouter keeps
     idle connections alive with whitespace, so a socket timeout alone never
     fires on a stalled provider or a connection killed by machine sleep."""
@@ -104,7 +118,7 @@ def _post_with_deadline(req, deadline):
 
     def target():
         try:
-            with urllib.request.urlopen(req, timeout=300) as h:
+            with urllib.request.urlopen(req, timeout=timeout) as h:
                 box['result'] = json.load(h)
         except BaseException as e:  # noqa: BLE001 - re-raised in caller
             box['error'] = e
@@ -129,8 +143,13 @@ class Client:
         with urllib.request.urlopen(req, timeout=60) as h:
             return json.load(h)
 
+    def _endpoint(self, m):
+        return (VLLM_API, 'EMPTY') if m.get('backend') == 'vllm' else (API, self.key)
+
     def payload(self, model_key, messages, tools, thinking, max_tokens, extra=None):
         m = self.models[model_key]
+        if m.get('backend') == 'vllm':
+            return self._vllm_payload(m, messages, tools, thinking, max_tokens, extra)
         p = {'model': m['id'], 'messages': messages, 'max_tokens': max_tokens, 'usage': {'include': True}}
         if m.get('reasoning', True):
             p['reasoning'] = {'effort': m.get('effort', 'high')} if thinking else {'enabled': False}
@@ -147,13 +166,45 @@ class Client:
             p.update(extra)
         return p
 
+    def _vllm_payload(self, m, messages, tools, thinking, max_tokens, extra=None):
+        """Plain OpenAI request. Sampling comes from the model's generation_config
+        (vLLM's default) unless the model entry sets "sampling"; the chat template
+        reads prior turns' reasoning from reasoning_content, so the history keeps it
+        under that name."""
+        msgs = []
+        for msg in messages:
+            msg = {k: v for k, v in msg.items() if k != 'reasoning_details'}
+            if msg.get('role') == 'assistant' and 'reasoning' in msg:
+                msg['reasoning_content'] = msg.pop('reasoning')
+            msgs.append(msg)
+        p = {'model': m['id'], 'messages': msgs, 'max_tokens': max_tokens,
+             'chat_template_kwargs': {'enable_thinking': thinking, **m.get('chat_template_kwargs', {})}}
+        if tools is not None:
+            p['tools'] = tools
+            p['tool_choice'] = 'auto'
+        if m.get('temperature') is not None:
+            p['temperature'] = m['temperature']
+        p.update(m.get('sampling', {}))
+        if extra:
+            p.update(extra)
+        return p
+
     def complete(self, model_key, messages, tools, directory, *, thinking=True, max_tokens=16000, extra=None):
         """One chat completion with logged retries. Saves request/response."""
         m = self.models[model_key]
+        api, key = self._endpoint(m)
+        local = m.get('backend') == 'vllm'
         payload = self.payload(model_key, messages, tools, thinking, max_tokens, extra)
         encoded = json.dumps(payload, ensure_ascii=False).encode()
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
+        # A call whose saved request matches exactly reuses the saved response, so a restarted
+        # review replays its completed calls and continues from the first unanswered one.
+        cached = _replay(directory, payload)
+        if cached is not None:
+            return cached
+        if (directory / 'response.json').exists():
+            (directory / 'response.json').replace(directory / 'response.superseded.json')
         save(directory / 'request.json', payload)
         # Realistic reservation (observed outputs are rarely above ~4k tokens); settled
         # with the provider-reported cost, and reconciled against key usage.
@@ -164,12 +215,22 @@ class Client:
             self.ledger.reserve(label, estimate)
             started = time.monotonic()
             try:
-                req = urllib.request.Request(API + 'chat/completions', data=encoded,
-                                             headers={'Authorization': 'Bearer ' + self.key,
+                req = urllib.request.Request(api + 'chat/completions', data=encoded,
+                                             headers={'Authorization': 'Bearer ' + key,
                                                       'Content-Type': 'application/json'})
-                result = _post_with_deadline(req, deadline=720)
+                # vLLM sends nothing until a non-streamed completion is done, so its
+                # socket timeout has to cover a full 16k-token generation under load.
+                result = (_post_with_deadline(req, deadline=3600, timeout=3000) if local
+                          else _post_with_deadline(req, deadline=720))
+                if local:
+                    for ch in result.get('choices') or []:
+                        msg = ch.get('message') or {}
+                        if msg.get('reasoning_content') and not msg.get('reasoning'):
+                            msg['reasoning'] = msg['reasoning_content']
+                        msg.pop('reasoning_content', None)
                 usage = result.get('usage') or {}
-                self.ledger.settle(label, usage.get('cost', 0.0 if 'error' in result else None), model=m['id'],
+                cost = 0.0 if local or 'error' in result else None
+                self.ledger.settle(label, usage.get('cost', cost), model=m['id'],
                                    provider=result.get('provider'), usage=usage,
                                    seconds=round(time.monotonic() - started, 1))
                 choices = result.get('choices') or []
@@ -368,7 +429,8 @@ def run_review(client, directory, model_key, arm, constitution, *, provenance='i
         return json.loads((directory / 'result.json').read_text())
     directory.mkdir(parents=True, exist_ok=True)
     (directory / 'input.md').write_text(constitution)
-    turns = prompts.build_messages(arm, constitution, provenance)
+    P = PROMPT_SETS[arm.get('prompts', 'v1')]
+    turns = P.build_messages(arm, constitution, provenance)
     toolset = arm.get('tools', 'new') if arm.get('style') == 'original' else 'new'
     tools = TOOLS_NEW if toolset == 'new' else TOOLS_ORIGINAL
     thinking = arm.get('thinking', True)
@@ -409,8 +471,8 @@ def run_review(client, directory, model_key, arm, constitution, *, provenance='i
                         failure = 'no_tool_call'
                         break
                     reminders += 1
-                    messages.append({'role': 'user', 'content': prompts.REMINDER_TRUNCATED
-                                     if ch.get('finish_reason') == 'length' else prompts.REMINDER_NO_TOOL})
+                    messages.append({'role': 'user', 'content': P.REMINDER_TRUNCATED
+                                     if ch.get('finish_reason') == 'length' else P.REMINDER_NO_TOOL})
                     continue
                 for tc in tcalls:
                     fn = tc.get('function') or {}
