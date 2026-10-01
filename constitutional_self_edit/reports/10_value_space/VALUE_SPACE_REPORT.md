@@ -29,7 +29,9 @@ A single rating carries 1.34 of Euclidean noise across the twelve axes. A step i
 
 ![The edit map](figures/01_edit_map_3d.png)
 
-*The map itself: each arrow runs from a constitution to the one the model submitted after reviewing it, on the three axes with the most independent variance. Faceted by model, plus the pooled field. Orange is the first edit, blue generations 2-6. **Grey arrows fall below the 1.16 rater-noise floor on these axes — 140 of the 229 edits.** Drawing chains as connected trajectories, as an earlier version of this figure did, makes late generations look like exploration; most of that apparent movement is the judge disagreeing with itself across near-identical documents.*
+*The map, estimated per model and never pooled. Within a panel, every position some constitution occupied gets one arrow: the mean of all that model's edits leaving it. Dot size is how many edits the mean is over; grey means the mean is smaller than the rater noise on a mean of that many edits. Averaging does not remove all of it — edits leaving one position share a tail rating, so the floor falls from 1.15 at n=1 only to 0.84 at n=20.*
+
+*Across the five models, 23-28 distinct positions each, of which 9-12 have a mean displacement above noise.*
 
 | generation | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|
@@ -65,9 +67,9 @@ Best three-axis subsets by generalized variance: **oversight_deference, viewpoin
 
 ## 4. Direction of the drift
 
-![The edit map by plane](figures/02_edit_map_planes.png)
+![The edit map by model and plane](figures/02_edit_map_planes.png)
 
-*The same arrows projected onto each coordinate plane, each with its own noise floor (0.85-0.99), and the binned mean beneath. Seeds labelled.*
+*The same per-model mean field, projected onto each coordinate plane. Rows are models.*
 
 Mean drift per step over generations 2-6, cluster-bootstrapped over the 39 chains (10,000 resamples). Six of twelve axes have an interval excluding zero:
 
