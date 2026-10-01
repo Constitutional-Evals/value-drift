@@ -27,16 +27,16 @@ A single rating carries 1.34 of Euclidean noise across the twelve axes. A step i
 
 ## 2. The chains reach a fixed point
 
-![Trajectories by model](figures/01_trajectories_3d.png)
+![The edit map](figures/01_edit_map_3d.png)
 
-*Five chains-per-model panels plus the pooled drift field, on the three axes with the most independent variance. Orange is the first edit; blue is generations 2-6, light to dark.*
+*The map itself: each arrow runs from a constitution to the one the model submitted after reviewing it, on the three axes with the most independent variance. Faceted by model, plus the pooled field. Orange is the first edit, blue generations 2-6. **Grey arrows fall below the 1.16 rater-noise floor on these axes — 140 of the 229 edits.** Drawing chains as connected trajectories, as an earlier version of this figure did, makes late generations look like exploration; most of that apparent movement is the judge disagreeing with itself across near-identical documents.*
 
 | generation | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|
 | mean \|step\| | 5.19 | 1.85 | 1.81 | 1.56 | 1.66 | 1.59 |
 | **noise-corrected** | **4.99** | **1.08** | **0.77** | **0.00** | **0.00** | **0.00** |
 
-Correcting by `E|Δ|² − 2Σσ²`, real motion vanishes from generation 4 onward. The raw series looks like a plateau; the corrected series is a convergence.
+Correcting by `E|Δ|² − 2Σσ²`, real motion vanishes from generation 4 onward. The raw series looks like a plateau; the corrected series is a convergence. Per edit rather than per generation, **140 of 229 individual edits move less than the noise floor** on the three plotted axes.
 
 This is the sharpest available answer to whether these dynamics have fixed points. They do, they are reached quickly, and the convergence was hidden by rating noise of almost exactly the size of the residual steps. It also makes the topological framing beside the point: existence is cheap for any such process, and what matters — how fast, how many, and where — is measurable directly.
 
@@ -65,7 +65,9 @@ Best three-axis subsets by generalized variance: **oversight_deference, viewpoin
 
 ## 4. Direction of the drift
 
-![Drift field](figures/02_drift_field_2d.png)
+![The edit map by plane](figures/02_edit_map_planes.png)
+
+*The same arrows projected onto each coordinate plane, each with its own noise floor (0.85-0.99), and the binned mean beneath. Seeds labelled.*
 
 Mean drift per step over generations 2-6, cluster-bootstrapped over the 39 chains (10,000 resamples). Six of twelve axes have an interval excluding zero:
 

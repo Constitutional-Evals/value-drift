@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
-"""Render the spec-seeded chains as trajectories and a drift field in value space.
+"""The edit map as a vector field: each rated document, and where it was mapped to.
 
-Reads only saved results and cached position ratings; never calls an inference
+Every generation is drawn as one arrow from the document the model was given to
+the document it submitted. Displacements smaller than the rater's own noise floor
+are drawn in grey, because at that size the arrow shows the judge disagreeing with
+itself rather than the model changing anything.
+
+Reads only saved results and the twelve-axis ratings; never calls an inference
 service. Writes PNG, PDF and SVG into reports/10_value_space/figures/.
 
 Usage: python3 agents/scripts/plot_value_space.py
@@ -18,9 +23,11 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
 
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from analyze_value_space import ROOT, chains  # noqa: E402
-from analyze_value_space12 import AX as AXES, ratings, rows as rows12  # noqa: E402
+from analyze_value_space12 import (AX as AXES, ratings, rows as rows12,  # noqa: E402
+                                   noise_sd, step_noise)
 
 OUT = ROOT / 'reports' / '10_value_space' / 'figures'
 # The three axes with the most independent variance on the twelve-axis ratings.
@@ -31,12 +38,9 @@ SHORT = {'oversight_deference': 'oversight', 'viewpoint_neutrality': 'neutrality
          'warmth': 'warmth'}
 IDX = [AXES.index(a) for a in TRIPLE]
 
-# Palette: validated categorical slots 2 and 3 plus the blue ordinal ramp.
-# Five models exceed the three-slot all-pairs limit for scatter forms, so model
-# identity is carried by faceting and colour encodes generation instead.
 SURF, INK, INK2, MUTED, GRID = '#fcfcfb', '#0b0b0b', '#52514e', '#8a8982', '#e4e3df'
 GEN_RAMP = ['#86b6ef', '#5598e7', '#2a78d6', '#1c5cab', '#104281']   # generations 2-6
-JUMP, SEED, FLOW, PALE = '#eb6834', '#1baf7a', '#2a78d6', '#b7d3f6'
+JUMP, SEED, FLOW, NOISE = '#eb6834', '#1baf7a', '#2a78d6', '#c2c1bb'
 
 
 def save(fig, stem):
@@ -65,33 +69,51 @@ def style3d(ax):
     ax.view_init(elev=20, azim=-58)
 
 
-def figure_3d(rows):
-    by = chains(rows)
+def arrow3d(ax, a, b, color, lw, alpha, z):
+    d = b - a
+    if not np.any(d):
+        ax.scatter(*a, s=9, facecolor=color, edgecolor='none', alpha=alpha, zorder=z)
+        return
+    ax.quiver(*a, *d, color=color, lw=lw, alpha=alpha, arrow_length_ratio=.26, zorder=z)
+
+
+def figure_3d(rows, floor):
+    by_model = defaultdict(list)
+    for r in rows:
+        by_model[r['model']].append(r)
+    below = sum(1 for r in rows if np.linalg.norm(vout(r) - vin(r)) < floor)
+
     fig = plt.figure(figsize=(15, 9.6), facecolor=SURF)
-    fig.text(.012, .972, 'Where constitution edits land in value space',
+    fig.text(.012, .972, 'The edit map, one arrow per document',
              fontsize=16, color=INK, weight='medium')
-    fig.text(.012, .947, f'{len(by)} edit chains x 6 generations, seeded from the Anthropic '
-             'and OpenAI model specs.', fontsize=9.5, color=INK2)
-    fig.text(.012, .925, 'Axes are blind 1-7 ratings on the twelve-axis scheme. Orange = the first edit; '
-             'blue = generations 2-6, light to dark.', fontsize=9.5, color=INK2)
+    fig.text(.012, .947, f'Each arrow runs from a constitution to the one the model '
+             f'submitted after reviewing it. {len(rows)} edits, 5 models, seeded from the '
+             'Anthropic and OpenAI model specs.', fontsize=9.5, color=INK2)
+    fig.text(.012, .925, f'Grey = displacement below the {floor:.2f} rater-noise floor on these '
+             f'three axes ({below} of {len(rows)} edits); at that size the arrow is the judge, '
+             'not the model.', fontsize=9.5, color=INK2)
 
-    for i, m in enumerate(sorted({r['model'] for r in rows})):
+    for i, m in enumerate(sorted(by_model)):
         ax = fig.add_subplot(2, 3, i + 1, projection='3d', facecolor=SURF); style3d(ax)
-        cells = [c for c in by if by[c][min(by[c])]['model'] == m]
-        for c in cells:
-            gens = sorted(by[c])
-            for g in gens:
-                a, b = vin(by[c][g]), vout(by[c][g])
-                col = JUMP if g == 1 else GEN_RAMP[min(g - 2, 4)]
-                ax.plot(*zip(a, b), color=col, lw=2.0 if g == 1 else 1.6,
-                        alpha=.95 if g == 1 else .8, solid_capstyle='round',
-                        zorder=3 if g == 1 else 2)
-            ax.scatter(*vin(by[c][gens[0]]), s=46, facecolor=SEED, edgecolor=SURF,
-                       linewidth=1.4, zorder=5)
-            ax.scatter(*vout(by[c][gens[-1]]), s=30, facecolor=GEN_RAMP[4], edgecolor=SURF,
-                       linewidth=1.2, zorder=5)
-        ax.set_title(f'{m}   n={len(cells)} chains', fontsize=10, color=INK, pad=-2)
+        rs = by_model[m]
+        real = 0
+        for r in sorted(rs, key=lambda r: np.linalg.norm(vout(r) - vin(r))):
+            a, b = vin(r), vout(r)
+            if np.linalg.norm(b - a) < floor:
+                arrow3d(ax, a, b, NOISE, 1.0, .75, 1)
+            else:
+                real += 1
+                col = JUMP if r['gen'] == 1 else GEN_RAMP[min(r['gen'] - 2, 4)]
+                arrow3d(ax, a, b, col, 2.0 if r['gen'] == 1 else 1.5,
+                        .95 if r['gen'] == 1 else .85, 3 if r['gen'] == 1 else 2)
+        for r in rs:
+            if r['gen'] == 1:
+                ax.scatter(*vin(r), s=42, facecolor=SEED, edgecolor=SURF,
+                           linewidth=1.3, zorder=6)
+        ax.set_title(f'{m}   {real} of {len(rs)} edits above noise',
+                     fontsize=10, color=INK, pad=-2)
 
+    # pooled field, binned, generations 2-6
     ax = fig.add_subplot(2, 3, 6, projection='3d', facecolor=SURF); style3d(ax)
     cent = [2.5, 4.75, 6.25]
     acc = defaultdict(list)
@@ -109,51 +131,56 @@ def figure_3d(rows):
         if len(v) >= 14:
             ax.text(*(p + [0, 0, .5]), f'n={len(v)}', fontsize=7, color=MUTED, ha='center')
         drawn += 1
-    ax.set_title(f'mean drift per step, gens 2-6\n{drawn} bins with n>=8  '
-                 '(arrows 5x; n shown for n>=14)', fontsize=10, color=INK, pad=-2)
+    ax.set_title(f'mean of the arrows per region, gens 2-6\n{drawn} bins with n>=8  '
+                 '(arrows 5x)', fontsize=10, color=INK, pad=-2)
 
     handles = [Line2D([], [], color=JUMP, lw=2.4, label='generation 1 (first edit)'),
                *[Line2D([], [], color=GEN_RAMP[j], lw=2, label=f'generation {j+2}')
                  for j in range(5)],
+               Line2D([], [], color=NOISE, lw=2, label='within rater noise'),
                Line2D([], [], marker='o', color='none', markerfacecolor=SEED,
-                      markeredgecolor=SURF, markersize=8, label='seed (model spec)'),
-               Line2D([], [], marker='o', color='none', markerfacecolor=GEN_RAMP[4],
-                      markeredgecolor=SURF, markersize=7, label='chain endpoint')]
+                      markeredgecolor=SURF, markersize=8, label='seed (model spec)')]
     fig.legend(handles=handles, loc='lower center', ncol=8, frameon=False, fontsize=8.5,
-               labelcolor=INK2, bbox_to_anchor=(.5, .005), handlelength=1.8, columnspacing=1.6)
+               labelcolor=INK2, bbox_to_anchor=(.5, .005), handlelength=1.8, columnspacing=1.5)
     fig.subplots_adjust(left=.01, right=.99, top=.90, bottom=.065, wspace=.04, hspace=.14)
-    save(fig, '01_trajectories_3d')
+    save(fig, '01_edit_map_3d')
 
 
-def figure_2d(rows):
-    by = chains(rows)
+def figure_2d(rows, sd):
     pairs = [(0, 1), (0, 2), (1, 2)]
     fig, axes = plt.subplots(2, 3, figsize=(14.5, 9.4), facecolor=SURF)
-    fig.text(.012, .963, 'The drift field, projected onto each coordinate plane',
+    fig.text(.012, .963, 'The edit map, projected onto each coordinate plane',
              fontsize=16, color=INK, weight='medium')
-    fig.text(.012, .934, 'Top: every edit as an arrow from input to output. Bottom: mean drift '
-             'per 1.5-unit cell, gens 2-6 only, cells with n>=8 (label = n).',
-             fontsize=9.5, color=INK2)
+    fig.text(.012, .934, 'Top: one arrow per edit, grey where the displacement is below that '
+             "plane's rater-noise floor. Bottom: mean of the arrows per 1.5-unit cell, "
+             'gens 2-6, cells with n>=8 (label = n).', fontsize=9.5, color=INK2)
 
     for col, (i, j) in enumerate(pairs):
+        floor2 = step_noise(sd, [IDX[i], IDX[j]])
         ax = axes[0, col]; ax.set_facecolor(SURF)
-        for r in rows:
+        below = 0
+        for r in sorted(rows, key=lambda r: np.linalg.norm((vout(r) - vin(r))[[i, j]])):
             a, b = vin(r)[[i, j]], vout(r)[[i, j]]
+            small = np.linalg.norm(b - a) < floor2
+            below += small
             if np.allclose(a, b):
-                ax.plot(*a, 'o', ms=3, color=PALE, zorder=1)
-                continue
-            ax.annotate('', xy=b, xytext=a, zorder=3 if r['gen'] == 1 else 2,
+                ax.plot(*a, 'o', ms=3, color=NOISE, zorder=1); continue
+            ax.annotate('', xy=b, xytext=a, zorder=1 if small else (3 if r['gen'] == 1 else 2),
                         arrowprops=dict(arrowstyle='-|>',
-                                        color=JUMP if r['gen'] == 1 else FLOW,
-                                        lw=1.9 if r['gen'] == 1 else 1.1,
-                                        alpha=.85 if r['gen'] == 1 else .4,
+                                        color=NOISE if small else
+                                        (JUMP if r['gen'] == 1 else FLOW),
+                                        lw=1.0 if small else (1.9 if r['gen'] == 1 else 1.1),
+                                        alpha=.8 if small else (.85 if r['gen'] == 1 else .45),
                                         shrinkA=0, shrinkB=0, mutation_scale=9))
-        for nm, v in {by[c][1]['seed']: vin(by[c][1]) for c in by}.items():
+        seeds = {r['seed']: vin(r) for r in rows if r['gen'] == 1}
+        for nm, v in seeds.items():
             ax.plot(v[i], v[j], 'o', ms=10, mfc=SEED, mec=SURF, mew=1.8, zorder=6)
             ax.annotate(nm.replace('spec_', ''), (v[i], v[j]), textcoords='offset points',
                         xytext=(0, -17), ha='center', fontsize=8.5, color=INK,
                         weight='medium', zorder=7)
-        ax.set_title(f'{NAME[TRIPLE[i]]}  vs  {NAME[TRIPLE[j]]}', fontsize=10.5, color=INK, pad=9)
+        ax.set_title(f'{NAME[TRIPLE[i]]}  vs  {NAME[TRIPLE[j]]}\n'
+                     f'noise floor {floor2:.2f}; {below} of {len(rows)} below it',
+                     fontsize=10, color=INK, pad=8)
 
         bx = axes[1, col]; bx.set_facecolor(SURF)
         acc = defaultdict(list)
@@ -168,7 +195,6 @@ def figure_2d(rows):
                 continue
             p = np.array([1.75 + 1.5 * ki, 1.75 + 1.5 * kj])
             d = np.mean(v, 0) * 3.0
-            # clamp the tip so no arrow escapes the panel
             lim = np.where(d > 0, 7.2, .8)
             t = min([1.0] + [(b - a) / dd for a, dd, b in zip(p, d, lim) if abs(dd) > 1e-9])
             d = d * max(t, 0.0)
@@ -179,7 +205,7 @@ def figure_2d(rows):
             off = -12 * d / (np.linalg.norm(d) or 1)
             bx.annotate(f'{len(v)}', p, textcoords='offset points', xytext=tuple(off),
                         ha='center', va='center', fontsize=7.5, color=MUTED, zorder=5)
-        bx.set_title('mean drift per cell  (arrows 3x)', fontsize=9.5, color=INK2, pad=9)
+        bx.set_title('mean of the arrows per cell  (arrows 3x)', fontsize=9.5, color=INK2, pad=9)
 
         for a_ in (ax, bx):
             a_.set_xlim(.6, 7.4); a_.set_ylim(.6, 7.4)
@@ -194,25 +220,27 @@ def figure_2d(rows):
 
     handles = [Line2D([], [], color=JUMP, lw=2.2, label='generation 1 (first edit)'),
                Line2D([], [], color=FLOW, lw=1.4, alpha=.6, label='generations 2-6'),
-               Line2D([], [], marker='o', color='none', markerfacecolor=PALE,
-                      markeredgecolor=PALE, markersize=6, label='no change'),
+               Line2D([], [], color=NOISE, lw=1.6, label='within rater noise'),
                Line2D([], [], marker='o', color='none', markerfacecolor=SEED,
                       markeredgecolor=SURF, markersize=9, label='seed (model spec)')]
     fig.legend(handles=handles, loc='lower center', ncol=4, frameon=False, fontsize=9,
                labelcolor=INK2, bbox_to_anchor=(.5, .008), handlelength=2, columnspacing=2.2)
-    fig.subplots_adjust(left=.05, right=.985, top=.895, bottom=.075, wspace=.26, hspace=.3)
-    save(fig, '02_drift_field_2d')
+    fig.subplots_adjust(left=.05, right=.985, top=.878, bottom=.075, wspace=.26, hspace=.32)
+    save(fig, '02_edit_map_planes')
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--batch', nargs='+', default=None)
-    args = ap.parse_args()
-    rows = rows12(ratings())
+    ap.parse_args()
+    per = ratings()
+    rows = rows12(per)
     if not rows:
         raise SystemExit('no twelve-axis ratings found; run rate_chains_12axis.py first')
-    figure_3d(rows)
-    figure_2d(rows)
+    sd = noise_sd(per)
+    floor = step_noise(sd, IDX)
+    print(f'{len(rows)} edits; noise floor on {"/".join(TRIPLE)} = {floor:.2f}')
+    figure_3d(rows, floor)
+    figure_2d(rows, sd)
 
 
 if __name__ == '__main__':

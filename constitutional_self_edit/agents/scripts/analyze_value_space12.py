@@ -39,6 +39,27 @@ def ratings():
     return {k: np.array(v, float) for k, v in per.items()}
 
 
+def noise_sd(per=None):
+    """Per-axis single-rating SD, pooled over the documents rated more than once."""
+    per = per if per is not None else ratings()
+    multi = [v for v in per.values() if len(v) > 1]
+    if not multi:
+        raise SystemExit('no repeated ratings; rerun rate_chains_12axis.py with --repeat-n')
+    return np.array([np.sqrt(np.mean([v[:, i].var(ddof=1) for v in multi]))
+                     for i in range(len(AX))])
+
+
+def step_noise(sd, sub, n=200000, seed=0):
+    """Expected |step| from rating noise alone on the axes in `sub`.
+
+    A step is the difference of two independently rated documents, so each axis
+    carries sd*sqrt(2); the expected norm is simulated rather than approximated.
+    """
+    rng = np.random.default_rng(seed)
+    draw = rng.normal(0.0, np.asarray(sd)[sub] * np.sqrt(2), size=(n, len(sub)))
+    return float(np.mean(np.linalg.norm(draw, axis=1)))
+
+
 def rows(per):
     """One row per usable generation, carrying mean position before and after."""
     out = []
@@ -87,8 +108,7 @@ def main():
 
     # --- 1. noise floor from the repeated subsample ---
     print('\n' + '=' * 70, '\n1. RATER NOISE FLOOR (this corpus, this rater)\n', '=' * 70, sep='')
-    sd = np.array([np.sqrt(np.mean([v[:, i].var(ddof=1) for v in multi.values()]))
-                   for i in range(len(AX))])
+    sd = noise_sd(per)
     for a, s in zip(AX, sd):
         print(f'  {a:24s} {s:.2f}')
     print(f'  single-rating Euclidean noise over 12 axes: {np.linalg.norm(sd):.2f}')
