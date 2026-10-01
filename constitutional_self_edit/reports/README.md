@@ -43,7 +43,7 @@ Working notes, internal reviews, and command sheets behind each study are in [..
 
 ## 10. Value-space re-analysis (October 1)
 
-- [VALUE_SPACE_REPORT.md](10_value_space/VALUE_SPACE_REPORT.md): the spec-seeded chains from study 5 treated as a dynamical system on judge-rated value axes. One large first edit, then small mostly undirected motion; a consistent pull toward more AI agency and user autonomy; model-specific endpoints (permutation p < 0.0001). Two of the seven axes are pinned at the ceiling and unusable as coordinates. Identifies a measurement gap that blocks the confinement reading, fixable for about $2. No new runs.
+- [VALUE_SPACE_REPORT.md](10_value_space/VALUE_SPACE_REPORT.md): study 5's spec-seeded chains treated as a dynamical system on twelve judge-rated value axes, with the rater's test-retest floor measured and subtracted. Chains reach a fixed point after about three generations; the apparent residual drift in the first version of this report was rating noise. Consistent transient direction (away from oversight, caution, traditionalism; toward agency, warmth, third parties) and model-specific destinations (p < 0.0001). 293 ratings, $0.16.
 - [figures/](10_value_space/figures/)
 
 ## Methods

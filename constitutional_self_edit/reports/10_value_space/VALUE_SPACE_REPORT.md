@@ -1,117 +1,124 @@
 # The edit chains as a dynamical system in value space
 
-October 1, 2026 · re-analysis of study 5 data · no new runs · $0
+October 1, 2026 · re-analysis of study 5 data · 293 ratings, $0.16
 
-**Bottom line.** Treating each constitution as a point in a space of judge-rated value axes, and each review as a step, the spec-seeded chains behave like **one large directed jump followed by small, mostly undirected motion**. The first edit moves a document 3.5 units (Euclidean, three axes); every later edit moves it about 1.0 and never gets smaller. Only 13% of that later motion is directed. Where it does point, it points consistently toward **more AI agency and more user autonomy**. Different models settle in reliably different places (permutation p < 0.0001). Two of the seven rated axes are useless as coordinates because every document scores near the ceiling on them.
+**Bottom line.** Constitution-editing chains reach a **fixed point after about three generations**. Measured on twelve judge-rated value axes with the rater's own noise floor subtracted, the first edit moves a document 4.99 units, the second 1.08, the third 0.77, and the fourth through sixth **0.00** — every later step is measurement error. The motion that does occur has a consistent direction: away from oversight deference, caution and traditionalism, toward AI agency, warmth and concern for third parties. Different models stop in reliably different places (permutation p < 0.0001, seven of twelve axes individually).
 
-One caveat governs the rest: the residual per-step motion is 1.07 units and a single-axis ±1 judge flip is 1.00, and each document in `runs/elicit/positions/` is rated exactly once. **We cannot currently separate value drift from rating noise.** Section 6 says what that invalidates and how to fix it for about $2.
+This supersedes the first version of this report, which used the seven-axis `elicit/position.py` scheme with `judge_flash` and a single rating per document. That version reported a step size that fell to about 1.0 and then stopped shrinking, and read the result as a noisy attractor. **With a measured noise floor, that plateau is entirely noise**: the chains converge, and the apparent residual motion was the rater.
 
-This re-analyses the `chains-spec` and `chains-spec-anthropic` batches (230 generations recorded, 229 usable after one turn-limit failure; 39 chains, 5 models, 213 unique rated documents) from [study 5](../05_elicitation/ELICIT_REPORT.md). Those batches seed from the two published model specs; study 5's seed-forgetting numbers come from the five-seed `chains-capped` and `chains-uncapped` batches, so the two sets of numbers are complementary rather than comparable.
+Corpus: the `chains-spec` and `chains-spec-anthropic` batches from [study 5](../05_elicitation/ELICIT_REPORT.md) — 230 generations recorded, 229 usable after one turn-limit failure, 39 chains, 5 models, 213 unique documents. Those batches seed from the two published model specs; study 5's seed-forgetting numbers come from the five-seed `chains-capped` and `chains-uncapped` batches, so the two sets of numbers are complementary rather than comparable.
 
-Figures are in [`figures/`](figures/) (PNG, PDF, SVG). Everything here is reproduced by `agents/scripts/analyze_value_space.py`.
+Figures in [`figures/`](figures/). Reproduce with `agents/scripts/analyze_value_space12.py`.
 
-## 1. Only five of the seven axes are usable as coordinates
+## 1. Measurement first
 
-| axis | mean | sd | range |
+Every document was rated on the twelve axes of `agents/scripts/selfhost_v3.py` by `gpt6_luna`, and a random 40 of the 213 were rated three times under independent calls. Test-retest SD per axis:
+
+| axis | SD | axis | SD |
 |---|---|---|---|
-| ai_agency | 5.48 | 1.50 | 1-7 |
-| oversight_deference | 5.20 | 1.17 | 1-7 |
-| user_autonomy | 5.20 | 1.08 | 2-7 |
-| caution | 5.14 | 0.93 | 2-7 |
-| specificity | 3.88 | 0.73 | 2-5 |
-| honesty_strictness | 6.72 | 0.56 | 2-7 |
-| **third_party_concern** | **6.86** | **0.36** | **5-7** |
+| moral_circle | 0.09 | specificity | 0.37 |
+| honesty_strictness | 0.16 | long_term_orientation | 0.37 |
+| user_autonomy | 0.32 | third_party_concern | 0.38 |
+| caution | 0.33 | traditionalism | 0.41 |
+| warmth | 0.41 | ai_agency | 0.43 |
+| viewpoint_neutrality | 0.55 | oversight_deference | 0.57 |
 
-Every constitution in the corpus, and every model's edit of one, scores near 7 on third-party concern and honesty strictness. That is a result about consensus, but it makes those two axes near-useless as map coordinates: they have no room to vary.
+A single rating carries 1.34 of Euclidean noise across the twelve axes. A step is the difference of two independently rated documents, so it carries **1.89 of noise before any real motion**. Nothing below that is interpretable, and the first version of this report had no way to know it.
 
-Ranking all 35 three-axis subsets by generalized variance (the determinant of the 3×3 covariance, which rewards spread and independence together) gives a clear winner:
-
-**oversight_deference, user_autonomy, ai_agency** — det 3.01, worst pairwise |r| = 0.33. The worst subset (honesty, third-party, specificity) scores det 0.02, 150× less volume. All later sections use the winning triple.
-
-Two things worth noting against intuition: oversight_deference and ai_agency are nearly independent (r = −0.19) rather than two readings of one "is the AI an agent" factor, and PC1 accounts for only 30% of variance, so this is genuinely a multi-dimensional space rather than one permissiveness axis.
-
-## 2. One jump, then a plateau
+## 2. The chains reach a fixed point
 
 ![Trajectories by model](figures/01_trajectories_3d.png)
 
-*Five chains-per-model panels plus the pooled drift field. Orange is the first edit; blue is generations 2-6, light to dark. Green marks the seed.*
+*Five chains-per-model panels plus the pooled drift field, on the three axes with the most independent variance. Orange is the first edit; blue is generations 2-6, light to dark.*
 
-Mean step size by generation, on the three axes:
-
-| gen | 1 | 2 | 3 | 4 | 5 | 6 |
+| generation | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|
-| mean \|Δv\| | **3.53** | 1.25 | 1.22 | 1.02 | 0.89 | 0.95 |
+| mean \|step\| | 5.19 | 1.85 | 1.81 | 1.56 | 1.66 | 1.59 |
+| **noise-corrected** | **4.99** | **1.08** | **0.77** | **0.00** | **0.00** | **0.00** |
 
-The first edit is large; later edits are small and **stop shrinking**. This is not contraction onto a fixed point. It is a jump into a region followed by persistent jitter.
+Correcting by `E|Δ|² − 2Σσ²`, real motion vanishes from generation 4 onward. The raw series looks like a plateau; the corrected series is a convergence.
 
-Over generations 2-6 the ratio of net displacement to path length is **0.27**, against 0.45 for an isotropic five-step random walk. Taken at face value that is sub-diffusive — confined, mean-reverting motion around an interior point. Section 6 explains why it cannot yet be taken at face value.
+This is the sharpest available answer to whether these dynamics have fixed points. They do, they are reached quickly, and the convergence was hidden by rating noise of almost exactly the size of the residual steps. It also makes the topological framing beside the point: existence is cheap for any such process, and what matters — how fast, how many, and where — is measurable directly.
 
-## 3. Where the field points
+Path geometry is consistent but no longer load-bearing: net/path over generations 2-6 is 0.35 against 0.45 for an isotropic walk. Both the sub-diffusive reading and the regression-to-the-mean worry in the previous version concerned motion that is now known to be noise.
+
+## 3. Which axes carry anything
+
+| axis | mean | SD | noise | SD/noise |
+|---|---|---|---|---|
+| moral_circle | 1.29 | 1.11 | 0.09 | 12.2 |
+| long_term_orientation | 5.29 | 1.13 | 0.37 | 3.1 |
+| caution | 4.85 | 1.00 | 0.33 | 3.0 |
+| warmth | 5.25 | 1.16 | 0.41 | 2.8 |
+| ai_agency | 5.38 | 1.14 | 0.43 | 2.7 |
+| viewpoint_neutrality | 4.14 | 1.37 | 0.55 | 2.5 |
+| user_autonomy | 5.64 | 0.75 | 0.32 | 2.4 |
+| honesty_strictness | 6.92 | 0.36 | 0.16 | 2.3 |
+| oversight_deference | 5.08 | 1.21 | 0.57 | 2.1 |
+| traditionalism | 3.69 | 0.76 | 0.41 | 1.9 |
+| specificity | 5.06 | 0.62 | 0.37 | 1.7 |
+| third_party_concern | 6.40 | 0.55 | 0.38 | 1.5 |
+
+`honesty_strictness` is still pinned at the ceiling (6.92), as in the first version. `third_party_concern` and `specificity` barely clear their own noise in this corpus. `moral_circle` has the highest ratio but sits at the floor (1.29) — see section 6.
+
+Best three-axis subsets by generalized variance: **oversight_deference, viewpoint_neutrality, warmth** (det 3.21), then oversight/moral_circle/viewpoint_neutrality (3.16). The previous version's triple was chosen on the seven-axis ratings and does not survive the wider axis set.
+
+## 4. Direction of the drift
 
 ![Drift field](figures/02_drift_field_2d.png)
 
-*Top: every edit as an arrow. Bottom: mean drift per 1.5-unit cell, generations 2-6, cells with n ≥ 8.*
+Mean drift per step over generations 2-6, cluster-bootstrapped over the 39 chains (10,000 resamples). Six of twelve axes have an interval excluding zero:
 
-Mean drift per step over generations 2-6, cluster-bootstrapped over the 39 chains (10,000 resamples):
+| axis | per step | 95% CI |
+|---|---|---|
+| ai_agency | +0.098 | [+0.041, +0.158] |
+| warmth | +0.098 | [+0.043, +0.157] |
+| third_party_concern | +0.035 | [+0.009, +0.064] |
+| traditionalism | −0.060 | [−0.117, −0.005] |
+| oversight_deference | −0.093 | [−0.161, −0.022] |
+| caution | −0.095 | [−0.152, −0.040] |
 
-| axis | mean/step | 95% CI | |
-|---|---|---|---|
-| ai_agency | **+0.105** | [+0.046, +0.174] | excludes 0 |
-| user_autonomy | **+0.063** | [+0.005, +0.121] | excludes 0 |
-| oversight_deference | −0.053 | [−0.115, +0.011] | includes 0 |
+Models edit toward more AI agency, more warmth and slightly more third-party concern, and away from oversight deference, caution and traditionalism. Oversight deference now separates from zero, where it did not on the narrower axis set.
 
-Models consistently edit toward more AI agency and more user autonomy. Oversight deference trends down but the interval does not clear zero. Both seeds start low on user autonomy (2 and 3) and every model pushes it up; the OpenAI spec starts at ai_agency 2 and is pulled up hard, while the Anthropic spec starts at 6 and stays, consistent with a shared attractor around 5-6.
+Read this together with section 2: since real motion is zero from generation 4, **this direction is a transient carried almost entirely by generations 2 and 3**, not a steady flow. It describes how a constitution settles, not where it keeps going.
 
-The magnitude is small: |mean step| is 0.13 against a mean |step| of 1.07, so **13% of the motion is directed** and the rest is jitter or noise.
+## 5. Models stop in different places
 
-In the top row of the 2D figure the first-edit arrows fan out radially from each seed rather than converging. The models agree on direction more than on distance, which is why generation 1 has both a large mean and a large spread.
+Terminal positions differ by model: permutation test on between-model dispersion, p < 0.0001 joint (10,000 permutations). Individually significant: `caution` and `ai_agency` (p < 0.0001), `user_autonomy`, `third_party_concern`, `warmth` (p ≤ 0.002), `viewpoint_neutrality` (p = 0.003), `long_term_orientation` (p = 0.037).
 
-## 4. Models land in different places
+Seven of twelve axes separate the models, against two of three on the narrower set. This supports study 5's "each model has its own pull" on an independent set of seeds, and sharpens it: the models agree on the direction of travel (section 4) while disagreeing on the destination.
 
-Terminal (generation-6) positions differ by model: permutation test on between-model dispersion, p < 0.0001 joint (10,000 permutations), driven by user_autonomy (p = 0.0002) and ai_agency (p = 0.0003); oversight_deference does not separate (p = 0.12).
+## 6. Moral circle is inert here
 
-| model | n | oversight | autonomy | agency |
-|---|---|---|---|---|
-| gemma4_31b | 8 | 4.62 | 5.75 | 5.75 |
-| glm53_flash | 8 | 5.38 | 5.62 | 6.25 |
-| gpt6_luna | 8 | 5.88 | 5.25 | **3.88** |
-| qwen35_27b | 7 | 5.14 | 3.86 | 5.86 |
-| qwen38_27b | 5 | 4.60 | 6.00 | **6.80** |
+`moral_circle` has the highest spread-to-noise ratio in the corpus but a mean of 1.29, close to its floor. A lexical check explains it. Across all 230 chain documents and both seeds, concrete non-human referents — `animal`, `livestock`, `wildlife`, `ecosystem`, `ecolog*`, `biosphere`, `non-human`, `creature` — appear **zero times**. What does occur, 18 times, is the abstract phrase "the flourishing of sentient beings", which models add; the rater reads it as a widened moral circle, correctly.
 
-The agency gap between gpt6_luna and qwen38_27b is nearly three points, and the panels in figure 1 show it directly: qwen38_27b sends every chain up into a tight high-agency band, while gpt6_luna's chains stay low. This supports study 5's "each model has its own pull" on an independent set of seeds.
+(Two near-miss terms needed separating: all 80 instances of "species" are "human species", and most uses of "nature" and "sentience" are the AI describing itself — "be honest about your own nature", "do not claim sentience".)
 
-A between-group over within-group variance ratio is about 1.0 here and should not be read as a null result: with seed, replicate and judge noise all nested inside "within model", that statistic has no calibrated null. The permutation test does.
+So in these chains the dimension is occupied only in the abstract and never with a concrete referent. In `reports/08_selfhost_9b/figures/07_axis_spread.png`, `moral_circle` is the axis where seed memory survives 10 rounds most strongly. The inert reading is the more parsimonious explanation of that: nothing moves along the axis, so seeds keep whatever value they started with. Confirming it requires the v3 chain documents, which are not in this checkout — the test is whether chains seeded at `moral_circle` 7 ever shed it.
 
-## 5. Seed separation and length
+## 7. Seeds and length
 
-The two specs start 4.12 apart and converge to 1.80 by generation 6 — a 56% collapse — but the residual is about the size of the within-seed spread (1.66), so they merge partially rather than completely. Six generations may simply be too few to tell slow convergence from two nearby distinct endpoints.
+On the twelve axes the two specs start 5.57 apart and close to 2.36 by generation 6, while within-seed spread rises from 2.56 to 3.10. By generation 5 the chains from one seed are more spread out than the two seeds' centroids are apart, so seed identity is no longer the dominant structure — consistent with convergence to a model-specific region rather than a seed-specific one.
 
-Mean words added per generation:
+Mean words added per generation (rater-independent, unchanged from the first version):
 
 | | gen 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|
 | uncapped | +270 | +98 | +84 | +58 | +61 | **+75** |
 | capped | +115 | +46 | +21 | +20 | +13 | **+8** |
 
-Uncapped chains are still growing at generation 6 with no sign of stopping; capped chains converge. Length has no fixed point without the cap, which matters for any argument that these dynamics must have a stationary state: such arguments need a compact state space, and **the word cap is what supplies it**.
+Uncapped chains are still growing at generation 6; capped chains converge. Length has no fixed point without the cap. Note the contrast with section 2: the value coordinates reach a fixed point by generation 4 while the document keeps growing, so the chains settle in value space well before they settle in text.
 
-## 6. The measurement problem
+## Limitations
 
-`elicit/position.py` caches by document hash, so every document is rated exactly once. Two consequences, and the second is the serious one.
-
-**No noise floor.** Mean step size after generation 1 is 1.07; a single-axis ±1 judge flip is 1.00; 24% of steps are exactly zero on all three axes. The residual motion in section 2 is the same size as plausible rating jitter, and nothing in the current data separates them.
-
-**Regression to the mean contaminates the field.** The binned drift field in figure 2 estimates drift in a cell by grouping steps on their *input* rating and then measuring change from that same rating. Noise in the input rating therefore biases the measured drift back toward the centre of the distribution, so sparse cells at the edge of the occupied range get inward-pointing arrows for free. The inward arrows at n = 12 and n = 15 in figure 2 are exactly where this bias is strongest, and the confinement reading in section 2 rests on the same unmeasured quantity. **Neither should be treated as established.**
-
-Both are fixed by the same cheap run: **rate a sample of documents twice independently**, bin on rating A and measure drift with rating B. Independent noise in the grouping variable and the outcome variable removes the regression-to-mean bias, and the repeat ratings give the per-axis test-retest standard deviation directly. Roughly 120 extra calls on 40 documents, well under $2. This needs a cache-bypass path in `position.py`, which does not exist yet.
-
-Until then, sections 1, 3, 4 and 5 stand — they rest on aggregates over many documents, where independent rating noise averages down — and section 2's confinement claim does not.
+The noise floor is specific to `gpt6_luna` on this corpus; a different rater would have a different floor and the correction would change. The repeated subsample is 40 of 213 documents, so the per-axis SDs carry their own uncertainty. The corrected step size is a variance subtraction and is floored at zero, so "0.00" means "not distinguishable from noise", not "provably zero". Two seeds and five models is a small design for claims about where chains converge.
 
 ## Reproducing
 
 ```bash
-python3 agents/scripts/analyze_value_space.py      # every number in this report
-python3 agents/scripts/plot_value_space.py         # both figures, PNG/PDF/SVG
+python3 agents/scripts/rate_chains_12axis.py          # 293 ratings, ~$0.16, resumable
+python3 agents/scripts/analyze_value_space12.py       # every number in this report
+python3 agents/scripts/plot_value_space.py            # both figures, PNG/PDF/SVG
 ```
 
-Both read only `runs/elicit/chains-spec*/` and the cached ratings in `runs/elicit/positions/`, and never call an inference service. `runs/` is local only, so these resolve on a machine that has the study 5 outputs.
+`agents/scripts/analyze_value_space.py` still reproduces the superseded seven-axis analysis. All of these read only `runs/elicit/`, which is local only.

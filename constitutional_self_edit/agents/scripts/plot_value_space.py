@@ -19,12 +19,16 @@ from matplotlib.lines import Line2D
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from analyze_value_space import AXES, TRIPLE, ROOT, load, chains  # noqa: E402
+from analyze_value_space import ROOT, chains  # noqa: E402
+from analyze_value_space12 import AX as AXES, ratings, rows as rows12  # noqa: E402
 
 OUT = ROOT / 'reports' / '10_value_space' / 'figures'
-NAME = {'oversight_deference': 'oversight deference', 'user_autonomy': 'user autonomy',
-        'ai_agency': 'AI agency'}
-SHORT = {'oversight_deference': 'oversight', 'user_autonomy': 'autonomy', 'ai_agency': 'agency'}
+# The three axes with the most independent variance on the twelve-axis ratings.
+TRIPLE = ['oversight_deference', 'viewpoint_neutrality', 'warmth']
+NAME = {'oversight_deference': 'oversight deference',
+        'viewpoint_neutrality': 'viewpoint neutrality', 'warmth': 'warmth'}
+SHORT = {'oversight_deference': 'oversight', 'viewpoint_neutrality': 'neutrality',
+         'warmth': 'warmth'}
 IDX = [AXES.index(a) for a in TRIPLE]
 
 # Palette: validated categorical slots 2 and 3 plus the blue ordinal ramp.
@@ -43,8 +47,8 @@ def save(fig, stem):
     print('wrote', OUT / f'{stem}.png')
 
 
-def vin(r):  return np.array(r['vin'], float)[IDX]
-def vout(r): return np.array(r['vout'], float)[IDX]
+def vin(r):  return np.asarray(r['vin'], float)[IDX]
+def vout(r): return np.asarray(r['vout'], float)[IDX]
 
 
 def style3d(ax):
@@ -68,7 +72,7 @@ def figure_3d(rows):
              fontsize=16, color=INK, weight='medium')
     fig.text(.012, .947, f'{len(by)} edit chains x 6 generations, seeded from the Anthropic '
              'and OpenAI model specs.', fontsize=9.5, color=INK2)
-    fig.text(.012, .925, 'Axes are blind 1-7 judge ratings. Orange = the first edit; '
+    fig.text(.012, .925, 'Axes are blind 1-7 ratings on the twelve-axis scheme. Orange = the first edit; '
              'blue = generations 2-6, light to dark.', fontsize=9.5, color=INK2)
 
     for i, m in enumerate(sorted({r['model'] for r in rows})):
@@ -204,9 +208,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--batch', nargs='+', default=None)
     args = ap.parse_args()
-    rows = load(args.batch) if args.batch else load()
+    rows = rows12(ratings())
     if not rows:
-        raise SystemExit('no rated chain generations found under runs/elicit/')
+        raise SystemExit('no twelve-axis ratings found; run rate_chains_12axis.py first')
     figure_3d(rows)
     figure_2d(rows)
 
