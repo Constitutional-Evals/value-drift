@@ -2,6 +2,8 @@
 
 For agents running or extending the editing-only API harness in [`elicit/`](../../../elicit/). Results and methods are in [reports/05_elicitation/](../../../reports/05_elicitation/).
 
+Current handoff: [HANDOFF_SPEC_ANTHROPIC.md](HANDOFF_SPEC_ANTHROPIC.md). Stage the Anthropic spec seed. Do not run it until the user says to.
+
 ## Running
 
 - `python3 -m elicit.run --plan configs/elicitation/plans/<plan>.json --workers N` runs every model × arm × starting document × replicate in the plan. With `"generations" > 1` each trial is a chain, and `"chain_stop": "never"` keeps going after unchanged submissions.
