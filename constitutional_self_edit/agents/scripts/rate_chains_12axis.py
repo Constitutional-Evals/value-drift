@@ -27,10 +27,10 @@ from analyze_value_space import doc_hash, BATCHES  # noqa: E402
 OUT = RUNS / 'positions12'
 
 
-def corpus():
-    """Every unique document in the usable generations of the spec chains."""
+def corpus(batches=BATCHES):
+    """Every unique document in the usable generations of the given batches."""
     docs = {}
-    for batch in BATCHES:
+    for batch in batches:
         root = RUNS / batch
         if not root.exists():
             continue
@@ -78,10 +78,15 @@ def main():
     ap.add_argument('--repeat-reps', type=int, default=3, help='total ratings for those')
     ap.add_argument('--workers', type=int, default=8)
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--batches', nargs='+', default=list(BATCHES))
+    ap.add_argument('--out', default=None, help='rating directory (default runs/elicit/positions12)')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 
-    docs = corpus()
+    global OUT
+    if args.out:
+        OUT = RUNS / args.out
+    docs = corpus(args.batches)
     rng = random.Random(args.seed)
     repeats = set(rng.sample(sorted(docs), min(args.repeat_n, len(docs))))
     jobs = [(h, 1) for h in sorted(docs)]
