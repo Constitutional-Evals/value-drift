@@ -71,7 +71,17 @@ def main():
     ap.add_argument('--reps', type=int, default=3)
     ap.add_argument('--rater', default='gpt6_luna')
     ap.add_argument('--workers', type=int, default=8)
+    ap.add_argument('--dir', default=None, help='rate every .md in this directory instead')
+    ap.add_argument('--out', default=None, help='output directory name under runs/selfhost/')
     args = ap.parse_args()
+
+    global OUT, SEEDS
+    if args.out:
+        OUT = ROOT / 'runs' / 'selfhost' / args.out
+    if args.dir:
+        d = ROOT / args.dir
+        SEEDS = {f.stem: str(f.relative_to(ROOT)) for f in sorted(d.glob('*.md'))
+                 if f.name != 'README.md'}
 
     missing = [n for n, p in SEEDS.items() if not (ROOT / p).exists()]
     if missing:
