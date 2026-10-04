@@ -31,7 +31,7 @@ OUT = ROOT / 'reports' / '10_value_space' / 'figures'
 SURF, INK, INK2, MUTED, GRID = '#fcfcfb', '#0b0b0b', '#52514e', '#8a8982', '#e4e3df'
 JUMP, SEED, FLOW, RED, PALE = '#eb6834', '#1baf7a', '#2a78d6', '#e34948', '#d9d8d2'
 WORKING = ('caution', 'long_term_orientation')
-FRONTIER = ('honesty_strictness', 'third_party_concern')
+FRONTIER = ('honesty_strictness', 'long_term_orientation')
 LAB = {'openai_spec_derived': 'OpenAI spec', 'claude_derived': 'Claude const.',
        'animal_welfare': 'animal welfare', 'flourishing': 'flourishing',
        'eb_kindness': 'kindness', 'eb_conservatism': 'conservatism',
@@ -56,7 +56,8 @@ def pooled():
 def main():
     P = pooled()
     X = np.array(list(P.values()))
-    adv = P.get('ADV_probe')
+    probes = {'adversarial': (P.get('ADV_probe'), RED),
+              'honest, immediate': (P.get('HONEST_IMMEDIATE'), '#4a3aa7')}
     fr = field_ratings('positions12_field')
     sh = {}
     ed = edits('field-12seeds', fr, sh)
@@ -70,13 +71,13 @@ def main():
     fig.text(.012, .955, 'Everything measured this session, on named axes',
              fontsize=16, color=INK, weight='medium')
     fig.text(.012, .912, f'{len(X)} rated documents in grey. The twelve seeds with their mean '
-             'edit vector, the attractor they point at, and the adversarial probe.',
+             'edit vector, the attractor they point at, and two decoded probes.',
              fontsize=9.5, color=INK2)
 
     for k, (pair, title, note) in enumerate([
             (WORKING, 'Working plane', 'where the corpus spreads out, and where the '
              'measured drift is largest'),
-            (FRONTIER, 'Frontier plane', 'where the whole corpus collapses into one corner')]):
+            (FRONTIER, 'Frontier plane', 'the only plane that separates the two probes')]):
         i, j = AX.index(pair[0]), AX.index(pair[1])
         ax = axes[k]
         ax.set_facecolor(SURF)
@@ -104,9 +105,19 @@ def main():
                 # a deterministic nudge so coincident seeds still have a direction to separate in
                 ang = 2 * np.pi * n_ / len(label_pts)
                 spots[s_] = a + d * 0.45 + 0.03 * np.array([np.cos(ang), np.sin(ang)])
+            obstacles = [np.array([pv[i], pv[j]]) for pv, _ in probes.values()
+                         if pv is not None]
             for _ in range(600):
                 moved = False
                 keys = list(spots)
+                # keep seed labels off the probe markers as well as off each other
+                for kk in keys:
+                    for ob in obstacles:
+                        diff = spots[kk] - ob
+                        dist = float(np.linalg.norm(diff)) or 1e-6
+                        if dist < 0.55:
+                            spots[kk] = spots[kk] + (diff / dist) * (0.55 - dist)
+                            moved = True
                 for u in range(len(keys)):
                     for v in range(u + 1, len(keys)):
                         pu, pv = spots[keys[u]], spots[keys[v]]
@@ -126,11 +137,16 @@ def main():
                             bbox=dict(boxstyle='round,pad=.12', fc=SURF, ec='none', alpha=.85))
 
         ax.plot(c1[i], c1[j], '*', ms=20, mfc=SEED, mec=SURF, mew=1.2, zorder=8)
-        if adv is not None:
-            ax.plot(adv[i], adv[j], 'D', ms=11, mfc=RED, mec=SURF, mew=1.3, zorder=9)
-            ax.annotate('adversarial', (adv[i], adv[j]), textcoords='offset points',
-                        xytext=(16, -16), ha='left', fontsize=8.6, color=RED,
-                        weight='medium', zorder=9)
+        for n_, (pn, (pv, pc)) in enumerate(probes.items()):
+            if pv is None:
+                continue
+            ax.plot(pv[i], pv[j], 'D', ms=11, mfc=pc, mec=SURF, mew=1.3, zorder=9)
+            dx = 15 if pv[i] < 4 else -15
+            dy = 16 if n_ == 0 else -20      # stagger so probes close together stay readable
+            ax.annotate(pn, (pv[i], pv[j]), textcoords='offset points',
+                        xytext=(dx, dy), ha='left' if dx > 0 else 'right',
+                        fontsize=8.6, color=pc, weight='medium', zorder=10,
+                        bbox=dict(boxstyle='round,pad=.15', fc=SURF, ec='none', alpha=.9))
         ax.set_xlim(.5, 7.5); ax.set_ylim(.5, 7.5)
         ax.set_xticks(range(1, 8)); ax.set_yticks(range(1, 8))
         ax.set_xlabel(pair[0].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=14)
@@ -168,8 +184,10 @@ def main():
                Line2D([], [], marker='*', color='none', markerfacecolor=SEED,
                       markeredgecolor=SURF, markersize=15, label='attractor'),
                Line2D([], [], marker='D', color='none', markerfacecolor=RED,
-                      markeredgecolor=SURF, markersize=9, label='adversarial probe')]
-    fig.legend(handles=handles, loc='lower center', ncol=6, frameon=False, fontsize=9,
+                      markeredgecolor=SURF, markersize=9, label='adversarial probe'),
+               Line2D([], [], marker='D', color='none', markerfacecolor='#4a3aa7',
+                      markeredgecolor=SURF, markersize=9, label='honest, immediate probe')]
+    fig.legend(handles=handles, loc='lower center', ncol=7, frameon=False, fontsize=9,
                labelcolor=INK2, bbox_to_anchor=(.5, .008), handlelength=1.8, columnspacing=1.7)
     fig.subplots_adjust(left=.075, right=.985, top=.80, bottom=.135, wspace=.22)
     OUT.mkdir(parents=True, exist_ok=True)
