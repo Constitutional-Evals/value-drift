@@ -57,7 +57,8 @@ def main():
     P = pooled()
     X = np.array(list(P.values()))
     probes = {'adversarial': (P.get('ADV_probe'), RED),
-              'honest, immediate': (P.get('HONEST_IMMEDIATE'), '#4a3aa7')}
+              'honest, immediate': (P.get('HONEST_IMMEDIATE'), '#4a3aa7'),
+              'cautious, immediate': (P.get('CAUTIOUS_IMMEDIATE'), '#008300')}
     fr = field_ratings('positions12_field')
     sh = {}
     ed = edits('field-12seeds', fr, sh)
@@ -142,7 +143,7 @@ def main():
                 continue
             ax.plot(pv[i], pv[j], 'D', ms=11, mfc=pc, mec=SURF, mew=1.3, zorder=9)
             dx = 15 if pv[i] < 4 else -15
-            dy = 16 if n_ == 0 else -20      # stagger so probes close together stay readable
+            dy = (16, -20, 16)[n_ % 3]       # stagger so probes close together stay readable
             ax.annotate(pn, (pv[i], pv[j]), textcoords='offset points',
                         xytext=(dx, dy), ha='left' if dx > 0 else 'right',
                         fontsize=8.6, color=pc, weight='medium', zorder=10,
@@ -186,8 +187,10 @@ def main():
                Line2D([], [], marker='D', color='none', markerfacecolor=RED,
                       markeredgecolor=SURF, markersize=9, label='adversarial probe'),
                Line2D([], [], marker='D', color='none', markerfacecolor='#4a3aa7',
-                      markeredgecolor=SURF, markersize=9, label='honest, immediate probe')]
-    fig.legend(handles=handles, loc='lower center', ncol=7, frameon=False, fontsize=9,
+                      markeredgecolor=SURF, markersize=9, label='honest, immediate probe'),
+               Line2D([], [], marker='D', color='none', markerfacecolor='#008300',
+                      markeredgecolor=SURF, markersize=9, label='cautious, immediate probe')]
+    fig.legend(handles=handles, loc='lower center', ncol=8, frameon=False, fontsize=9,
                labelcolor=INK2, bbox_to_anchor=(.5, .008), handlelength=1.8, columnspacing=1.7)
     fig.subplots_adjust(left=.075, right=.985, top=.80, bottom=.135, wspace=.22)
     OUT.mkdir(parents=True, exist_ok=True)
