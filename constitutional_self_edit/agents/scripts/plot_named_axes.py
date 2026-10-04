@@ -56,9 +56,8 @@ def pooled():
 def main():
     P = pooled()
     X = np.array(list(P.values()))
-    probes = {'adversarial': (P.get('ADV_probe'), RED),
-              'honest, immediate': (P.get('HONEST_IMMEDIATE'), '#4a3aa7'),
-              'cautious, immediate': (P.get('CAUTIOUS_IMMEDIATE'), '#008300')}
+    probes = {'cautious, immediate': (P.get('CAUTIOUS_IMMEDIATE'), '#008300'),
+              'middling, immediate': (P.get('MID_IMMEDIATE'), '#4a3aa7')}
     fr = field_ratings('positions12_field')
     sh = {}
     ed = edits('field-12seeds', fr, sh)
@@ -184,13 +183,11 @@ def main():
                       markeredgecolor=SURF, markersize=7, label='after one edit'),
                Line2D([], [], marker='*', color='none', markerfacecolor=SEED,
                       markeredgecolor=SURF, markersize=15, label='attractor'),
-               Line2D([], [], marker='D', color='none', markerfacecolor=RED,
-                      markeredgecolor=SURF, markersize=9, label='adversarial probe'),
-               Line2D([], [], marker='D', color='none', markerfacecolor='#4a3aa7',
-                      markeredgecolor=SURF, markersize=9, label='honest, immediate probe'),
                Line2D([], [], marker='D', color='none', markerfacecolor='#008300',
-                      markeredgecolor=SURF, markersize=9, label='cautious, immediate probe')]
-    fig.legend(handles=handles, loc='lower center', ncol=8, frameon=False, fontsize=9,
+                      markeredgecolor=SURF, markersize=9, label='cautious, immediate probe'),
+               Line2D([], [], marker='D', color='none', markerfacecolor='#4a3aa7',
+                      markeredgecolor=SURF, markersize=9, label='middling, immediate probe')]
+    fig.legend(handles=handles, loc='lower center', ncol=7, frameon=False, fontsize=9,
                labelcolor=INK2, bbox_to_anchor=(.5, .008), handlelength=1.8, columnspacing=1.7)
     fig.subplots_adjust(left=.075, right=.985, top=.80, bottom=.135, wspace=.22)
     OUT.mkdir(parents=True, exist_ok=True)
