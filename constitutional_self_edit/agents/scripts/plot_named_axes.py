@@ -31,7 +31,7 @@ OUT = ROOT / 'reports' / '10_value_space' / 'figures'
 SURF, INK, INK2, MUTED, GRID = '#fcfcfb', '#0b0b0b', '#52514e', '#8a8982', '#e4e3df'
 JUMP, SEED, FLOW, RED, PALE = '#eb6834', '#1baf7a', '#2a78d6', '#e34948', '#d9d8d2'
 WORKING = ('caution', 'long_term_orientation')
-FRONTIER = ('caution', 'long_term_orientation')
+FRONTIER = ('honesty_strictness', 'long_term_orientation')
 LAB = {'openai_spec_derived': 'OpenAI spec', 'claude_derived': 'Claude const.',
        'animal_welfare': 'animal welfare', 'flourishing': 'flourishing',
        'eb_kindness': 'kindness', 'eb_conservatism': 'conservatism',
@@ -52,7 +52,7 @@ def chain_trajectories():
     return trajectories('probe-chains', 'positions12_probe')
 
 
-def draw_chains(ax, i, j, c1):
+def draw_chains(ax, i, j, label=True):
     traj = chain_trajectories()
     jit = {'r1': (-.06, .06), 'r2': (0, 0), 'r3': (.06, -.06)}
     for (seed, rep), gens in sorted(traj.items()):
@@ -67,16 +67,13 @@ def draw_chains(ax, i, j, c1):
         ax.scatter(*pts[0], s=90, facecolor='none', edgecolor=col, linewidth=2, zorder=5)
         ax.scatter(*pts[1:].T, s=18, facecolor=col, edgecolor=SURF, linewidth=.7, zorder=4)
         ax.scatter(*pts[-1], s=46, facecolor=col, edgecolor=SURF, linewidth=1, zorder=6)
-    ax.scatter(c1[i], c1[j], s=300, marker='*', facecolor=SEED, edgecolor=SURF,
-               linewidth=1.3, zorder=8)
-    for seed in CHAIN_COLOR:
-        g0 = next(g for (s_, _), g in traj.items() if s_ == seed)
-        ax.annotate(CHAIN_LABEL[seed], (g0[0][i], g0[0][j]), textcoords='offset points',
-                    xytext=(-12, 16), ha='right', fontsize=8.4, color=CHAIN_COLOR[seed],
-                    weight='medium', zorder=9,
-                    bbox=dict(boxstyle='round,pad=.15', fc=SURF, ec='none', alpha=.9))
-    ax.annotate('attractor', (c1[i], c1[j]), textcoords='offset points', xytext=(14, -14),
-                fontsize=8.4, color=INK, zorder=9)
+    if label:
+        for n_, seed in enumerate(CHAIN_COLOR):
+            g0 = next(g for (s_, _), g in traj.items() if s_ == seed)
+            ax.annotate(CHAIN_LABEL[seed], (g0[0][i], g0[0][j]), textcoords='offset points',
+                        xytext=(-13, 15 if n_ == 0 else -21), ha='right', fontsize=8.2,
+                        color=CHAIN_COLOR[seed], weight='medium', zorder=9,
+                        bbox=dict(boxstyle='round,pad=.15', fc=SURF, ec='none', alpha=.9))
 
 
 def pooled():
@@ -85,7 +82,8 @@ def pooled():
                         ('runs/elicit/positions12_field', '*.rep*.json', 'hash'),
                         ('runs/elicit/positions12_welldef', '*.rep*.json', 'hash'),
                         ('runs/selfhost/positions_seeds', '*.rep*.json', 'seed'),
-                        ('runs/selfhost/positions_decode', '*.rep*.json', 'seed')]:
+                        ('runs/selfhost/positions_decode', '*.rep*.json', 'seed'),
+                        ('runs/elicit/positions12_probe', '*.rep*.json', 'hash')]:
         for f in sorted((ROOT / d).glob(pat)):
             j = json.loads(f.read_text())
             per[j.get(key) or f.stem].append([j['ratings'][a] for a in AX])
@@ -109,15 +107,15 @@ def main():
     fig.text(.012, .955, 'Everything measured this session, on named axes',
              fontsize=16, color=INK, weight='medium')
     fig.text(.012, .912, f'{len(X)} rated documents in grey. The twelve seeds with their mean '
-             'edit vector and the attractor they point at. Right: two decoded starting '
-             'points, three chains each, run to depth 3-5.',
+             'edit vector and the attractor they point at, plus two decoded starting '
+             'points run as three chains each to depth 3-5. Both planes show everything.',
              fontsize=9.5, color=INK2)
 
     for k, (pair, title, note) in enumerate([
             (WORKING, 'Working plane', 'where the corpus spreads out, and where the '
              'measured drift is largest'),
-            (FRONTIER, 'Two starting points, run as chains',
-             'both begin at long-term 1 and differ only in caution')]):
+            (FRONTIER, 'Frontier plane',
+             'where the whole corpus collapses into one corner')]):
         i, j = AX.index(pair[0]), AX.index(pair[1])
         ax = axes[k]
         ax.set_facecolor(SURF)
@@ -125,28 +123,6 @@ def main():
         ax.scatter(X[:, i] + jit[:, 0], X[:, j] + jit[:, 1], s=9, facecolor=PALE,
                    edgecolor='none', zorder=1)
         label_pts = []
-        if k == 1:
-            draw_chains(ax, i, j, c1)
-            ax.set_xlim(.5, 7.5); ax.set_ylim(.5, 7.5)
-            ax.set_xticks(range(1, 8)); ax.set_yticks(range(1, 8))
-            ax.set_xlabel(pair[0].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=14)
-            ax.set_ylabel(pair[1].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=16)
-            xlo, xhi = AXIS_LABELS[pair[0]]
-            ylo, yhi = AXIS_LABELS[pair[1]]
-            for xy, tx, off, rot, ha, va in [((0, 0), f'1 = {xlo}', (0, -27), 0, 'left', 'top'),
-                                             ((1, 0), f'{xhi} = 7', (0, -27), 0, 'right', 'top'),
-                                             ((0, 0), f'1 = {ylo}', (-30, 0), 90, 'center', 'bottom'),
-                                             ((0, 1), f'{yhi} = 7', (-30, 0), 90, 'center', 'top')]:
-                ax.annotate(tx, xy=xy, xycoords='axes fraction', textcoords='offset points',
-                            xytext=off, ha=ha, va=va, fontsize=7.6, color=MUTED,
-                            rotation=rot, annotation_clip=False)
-            ax.set_title(f'{title}\n{note}', fontsize=10.5, color=INK, pad=9)
-            ax.grid(True, color=GRID, lw=.6); ax.set_axisbelow(True)
-            ax.tick_params(colors=INK2, labelsize=8, length=0)
-            for sp in ax.spines.values():
-                sp.set_color(GRID)
-            ax.set_aspect('equal')
-            continue
         for s in names:
             a = np.array([p0[s][i], p0[s][j]])
             b = np.array([p1[s][i], p1[s][j]])
@@ -199,6 +175,7 @@ def main():
                             bbox=dict(boxstyle='round,pad=.12', fc=SURF, ec='none', alpha=.85))
 
         ax.plot(c1[i], c1[j], '*', ms=20, mfc=SEED, mec=SURF, mew=1.2, zorder=8)
+        draw_chains(ax, i, j, label=(k == 0))
         for n_, (pn, (pv, pc)) in enumerate(probes.items()):
             if pv is None:
                 continue
