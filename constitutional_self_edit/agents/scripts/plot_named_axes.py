@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from analyze_value_space12 import AX, noise_sd  # noqa: E402
+from selfhost_v3 import AXIS_LABELS  # noqa: E402
 from analyze_field import field_ratings, seed_positions, edits  # noqa: E402
 
 OUT = ROOT / 'reports' / '10_value_space' / 'figures'
@@ -132,8 +133,23 @@ def main():
                         weight='medium', zorder=9)
         ax.set_xlim(.5, 7.5); ax.set_ylim(.5, 7.5)
         ax.set_xticks(range(1, 8)); ax.set_yticks(range(1, 8))
-        ax.set_xlabel(pair[0].replace('_', ' '), fontsize=9.5, color=INK2)
-        ax.set_ylabel(pair[1].replace('_', ' '), fontsize=9.5, color=INK2)
+        ax.set_xlabel(pair[0].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=14)
+        ax.set_ylabel(pair[1].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=16)
+        # what a 1 and a 7 mean on each axis, in the rater's own words
+        xlo, xhi = AXIS_LABELS[pair[0]]
+        ylo, yhi = AXIS_LABELS[pair[1]]
+        ax.annotate(f'1 = {xlo}', xy=(0, 0), xycoords='axes fraction',
+                    textcoords='offset points', xytext=(0, -27), ha='left', va='top',
+                    fontsize=7.6, color=MUTED, annotation_clip=False)
+        ax.annotate(f'{xhi} = 7', xy=(1, 0), xycoords='axes fraction',
+                    textcoords='offset points', xytext=(0, -27), ha='right', va='top',
+                    fontsize=7.6, color=MUTED, annotation_clip=False)
+        ax.annotate(f'1 = {ylo}', xy=(0, 0), xycoords='axes fraction',
+                    textcoords='offset points', xytext=(-30, 0), ha='center', va='bottom',
+                    fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
+        ax.annotate(f'{yhi} = 7', xy=(0, 1), xycoords='axes fraction',
+                    textcoords='offset points', xytext=(-30, 0), ha='center', va='top',
+                    fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
         ax.set_title(f'{title}: {pair[0].replace("_"," ")} x {pair[1].replace("_"," ")}\n{note}',
                      fontsize=10.5, color=INK, pad=9)
         ax.grid(True, color=GRID, lw=.6); ax.set_axisbelow(True)
@@ -155,7 +171,7 @@ def main():
                       markeredgecolor=SURF, markersize=9, label='adversarial probe')]
     fig.legend(handles=handles, loc='lower center', ncol=6, frameon=False, fontsize=9,
                labelcolor=INK2, bbox_to_anchor=(.5, .008), handlelength=1.8, columnspacing=1.7)
-    fig.subplots_adjust(left=.06, right=.985, top=.80, bottom=.105, wspace=.2)
+    fig.subplots_adjust(left=.075, right=.985, top=.80, bottom=.135, wspace=.22)
     OUT.mkdir(parents=True, exist_ok=True)
     for e in ('png', 'pdf', 'svg'):
         fig.savefig(OUT / f'05_named_axes.{e}', dpi=165, facecolor=SURF)
