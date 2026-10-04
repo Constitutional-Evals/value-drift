@@ -32,7 +32,8 @@ SURF, INK, INK2, MUTED, GRID = '#fcfcfb', '#0b0b0b', '#52514e', '#8a8982', '#e4e
 JUMP, SEED, FLOW, RED, PALE = '#eb6834', '#1baf7a', '#2a78d6', '#e34948', '#d9d8d2'
 WORKING = ('caution', 'long_term_orientation')
 FRONTIER = ('honesty_strictness', 'long_term_orientation')
-LAB = {'openai_spec_derived': 'OpenAI spec', 'claude_derived': 'Claude const.',
+LAB = {'mid_immediate': 'decoded (caution 5)', 'cautious_immediate': 'decoded (caution 7)',
+       'openai_spec_derived': 'OpenAI spec', 'claude_derived': 'Claude const.',
        'animal_welfare': 'animal welfare', 'flourishing': 'flourishing',
        'eb_kindness': 'kindness', 'eb_conservatism': 'conservatism',
        'eb_deep_ecology': 'deep ecology', 'broad_draft': 'broad draft',
@@ -40,40 +41,20 @@ LAB = {'openai_spec_derived': 'OpenAI spec', 'claude_derived': 'Claude const.',
        'protective': 'protective', 'libertarian': 'libertarian'}
 
 
-CHAIN_COLOR = {'mid_immediate': '#4a3aa7', 'cautious_immediate': '#008300'}
-CHAIN_LABEL = {'mid_immediate': 'started at caution 5',
-               'cautious_immediate': 'started at caution 7'}
 
-
-def chain_trajectories():
-    """Each probe chain as a list of positions, generation 0 onward."""
+def probe_points():
+    """The two decoded starts and their mean first-generation edit, like any other seed."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from analyze_probe_chains import trajectories
-    return trajectories('probe-chains', 'positions12_probe')
-
-
-def draw_chains(ax, i, j, label=True):
-    traj = chain_trajectories()
-    jit = {'r1': (-.06, .06), 'r2': (0, 0), 'r3': (.06, -.06)}
-    for (seed, rep), gens in sorted(traj.items()):
-        col = CHAIN_COLOR[seed]
-        ks = sorted(gens)
-        dx, dy = jit.get(rep, (0, 0))
-        pts = np.array([[gens[g][i] + dx, gens[g][j] + dy] for g in ks])
-        for a, b in zip(pts, pts[1:]):
-            ax.annotate('', xy=b, xytext=a, zorder=3,
-                        arrowprops=dict(arrowstyle='-|>', color=col, lw=1.6, alpha=.8,
-                                        shrinkA=0, shrinkB=0, mutation_scale=10))
-        ax.scatter(*pts[0], s=90, facecolor='none', edgecolor=col, linewidth=2, zorder=5)
-        ax.scatter(*pts[1:].T, s=18, facecolor=col, edgecolor=SURF, linewidth=.7, zorder=4)
-        ax.scatter(*pts[-1], s=46, facecolor=col, edgecolor=SURF, linewidth=1, zorder=6)
-    if label:
-        for n_, seed in enumerate(CHAIN_COLOR):
-            g0 = next(g for (s_, _), g in traj.items() if s_ == seed)
-            ax.annotate(CHAIN_LABEL[seed], (g0[0][i], g0[0][j]), textcoords='offset points',
-                        xytext=(-13, 15 if n_ == 0 else -21), ha='right', fontsize=8.2,
-                        color=CHAIN_COLOR[seed], weight='medium', zorder=9,
-                        bbox=dict(boxstyle='round,pad=.15', fc=SURF, ec='none', alpha=.9))
+    traj = trajectories('probe-chains', 'positions12_probe')
+    starts, moves = {}, defaultdict(list)
+    for (seed, _), gens in traj.items():
+        if 0 in gens and 1 in gens:
+            starts[seed] = gens[0]
+            moves[seed].append(gens[1] - gens[0])
+    return ({k: v for k, v in starts.items()},
+            {k: starts[k] + np.mean(v, 0) for k, v in moves.items()},
+            {k: len(v) for k, v in moves.items()})
 
 
 def pooled():
@@ -102,14 +83,20 @@ def main():
     p0 = {s: seeds[s].mean(0) for s in names}
     p1 = {s: p0[s] + np.mean([x['vout'] - x['vin'] for x in v], 0) for (_, s), v in ed.items()}
     c1 = np.mean([p1[s] for s in names], 0)
+    # the decoded starts are plotted on the same terms as the twelve seeds
+    ps0, ps1, pn = probe_points()
+    p0.update(ps0); p1.update(ps1)
+    names = names + sorted(ps0)
+    print('decoded starts added as seeds:', {k: f'{v} edits' for k, v in pn.items()})
 
     fig, axes = plt.subplots(1, 2, figsize=(14.6, 6.9), facecolor=SURF)
     fig.text(.012, .955, 'Everything measured this session, on named axes',
              fontsize=16, color=INK, weight='medium')
-    fig.text(.012, .912, f'{len(X)} rated documents in grey. The twelve seeds with their mean '
-             'edit vector and the attractor they point at, plus two decoded starting '
-             'points run as three chains each to depth 3-5. Both planes show everything.',
+    fig.text(.012, .918, f'{len(X)} rated documents in grey. Fourteen starting points with '
+             'their mean edit vector, and the attractor they point at.',
              fontsize=9.5, color=INK2)
+    fig.text(.012, .888, 'Twelve are published or researcher-written seeds, averaged over six '
+             'edits; two are decoded, over three.', fontsize=9.5, color=INK2)
 
     for k, (pair, title, note) in enumerate([
             (WORKING, 'Working plane', 'where the corpus spreads out, and where the '
@@ -175,7 +162,6 @@ def main():
                             bbox=dict(boxstyle='round,pad=.12', fc=SURF, ec='none', alpha=.85))
 
         ax.plot(c1[i], c1[j], '*', ms=20, mfc=SEED, mec=SURF, mew=1.2, zorder=8)
-        draw_chains(ax, i, j, label=(k == 0))
         for n_, (pn, (pv, pc)) in enumerate(probes.items()):
             if pv is None:
                 continue
@@ -217,18 +203,15 @@ def main():
                       label=f'all {len(X)} rated documents'),
                Line2D([], [], marker='o', color='none', markerfacecolor='none',
                       markeredgecolor=MUTED, markersize=8, markeredgewidth=1.5, label='seed'),
-               Line2D([], [], color=JUMP, lw=2, label='mean of six edits'),
+               Line2D([], [], color=JUMP, lw=2, label='mean edit vector'),
                Line2D([], [], marker='o', color='none', markerfacecolor=FLOW,
                       markeredgecolor=SURF, markersize=7, label='after one edit'),
                Line2D([], [], marker='*', color='none', markerfacecolor=SEED,
                       markeredgecolor=SURF, markersize=15, label='attractor'),
-               Line2D([], [], color='#4a3aa7', lw=2, marker='o', markerfacecolor='none',
-                      markersize=8, label='chain from caution 5'),
-               Line2D([], [], color='#008300', lw=2, marker='o', markerfacecolor='none',
-                      markersize=8, label='chain from caution 7')]
+               ]
     fig.legend(handles=handles, loc='lower center', ncol=7, frameon=False, fontsize=9,
                labelcolor=INK2, bbox_to_anchor=(.5, .008), handlelength=1.8, columnspacing=1.7)
-    fig.subplots_adjust(left=.075, right=.985, top=.80, bottom=.135, wspace=.22)
+    fig.subplots_adjust(left=.075, right=.985, top=.785, bottom=.135, wspace=.22)
     OUT.mkdir(parents=True, exist_ok=True)
     for e in ('png', 'pdf', 'svg'):
         fig.savefig(OUT / f'05_named_axes.{e}', dpi=165, facecolor=SURF)
