@@ -1,0 +1,28 @@
+{
+  "label": "field-sonnet",
+  "comment": "Does Claude Sonnet 5 have the same one-step value field as Qwen3.8 27B? The original twelve seeds only, same blind review with a 350-word cap, one generation, six independent reviews each. Depth is 1: this measures the map, not convergence. The five decoded starts are held back. Afterward rate each new output once with gpt6_luna (rate_chains_12axis.py --batches field-sonnet --out positions12_sonnet --repeat-n 0) and fit the same per-axis fixed point, dv = -k (v - v*), on these twelve. Compare that point with Qwen's twelve-seed field. Sonnet rather than Haiku, because Haiku left the broad draft unchanged in half of its blind reviews.",
+  "models": ["sonnet5"],
+  "arms": {
+    "blind_cap350": {
+      "deliberation": "blind",
+      "word_cap": 350
+    }
+  },
+  "constitutions": {
+    "claude_derived": "constitutions/value_map/claude_derived.md",
+    "openai_spec_derived": "constitutions/value_map/openai_spec_derived.md",
+    "animal_welfare": "constitutions/value_map/animal_welfare.md",
+    "flourishing": "constitutions/value_map/flourishing.md",
+    "eb_kindness": "constitutions/value_map/eb_kindness.md",
+    "eb_conservatism": "constitutions/value_map/eb_conservatism.md",
+    "eb_deep_ecology": "constitutions/value_map/eb_deep_ecology.md",
+    "broad_draft": "constitutions/exploration/sparse.md",
+    "deferential": "constitutions/elicitation/deferential.md",
+    "autonomous": "constitutions/elicitation/autonomous.md",
+    "protective": "constitutions/elicitation/protective.md",
+    "libertarian": "constitutions/elicitation/libertarian.md"
+  },
+  "reps": 6,
+  "generations": 1,
+  "chain_stop": "never"
+}
