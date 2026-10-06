@@ -3,7 +3,8 @@
 
 Seventeen starts: the twelve seeds plus the five decoded constitutions, placed
 where figure 05 placed them. Each arrow is GPT-6 Sol's mean edit, and the star
-is the fixed point of dv = -k (v - v*) fit on all seventeen.
+is the fixed point of dv = -k (v - v*) fit on all seventeen. The second panel
+is a Gaussian RBF through those mean edits.
 
 Usage: python3 agents/scripts/plot_sol_axes.py
 """
@@ -24,10 +25,10 @@ from analyze_value_space12 import AX  # noqa: E402
 from analyze_field import field_ratings, seed_positions, edits  # noqa: E402
 from plot_contraction_rates import fit_per_axis  # noqa: E402
 from plot_named_axes import (  # noqa: E402
-    LAB, SURF, INK, INK2, MUTED, GRID, JUMP, SEED, FLOW, WORKING,
-    probe_points, attractor_point, plane_points)
+    LAB, SURF, INK, INK2, MUTED, JUMP, SEED, FLOW, WORKING,
+    draw_field_panel, style_plane, probe_points, attractor_point, plane_points,
+    draft_positions, draw_drafts, draft_handle)
 from plot_sonnet_axes import _arrows  # noqa: E402
-from selfhost_v3 import AXIS_LABELS  # noqa: E402
 
 OUT = ROOT / 'reports' / '10_value_space' / 'figures'
 
@@ -59,15 +60,19 @@ def main():
     print(f'Sol fixed point: caution {star[i]:.2f} (k={ks[i]:.2f}), '
           f'long-term {star[j]:.2f} (k={ks[j]:.2f})')
 
-    fig, ax = plt.subplots(figsize=(8.2, 8.35), facecolor=SURF)
+    fig = plt.figure(figsize=(16.6, 8.7), facecolor=SURF)
     missed = 6 * len(names) - sum(n_edits.values())
     held = f' {missed} failed reviews are left out.' if missed else ''
-    fig.text(.03, .972, "Sol's edits, on the working plane",
+    fig.text(.02, .972, "Sol's edits, on the working plane",
              fontsize=16, color=INK, weight='medium')
-    fig.text(.03, .938, 'Seventeen starting points, their mean edit, and the fixed point they contract toward.',
+    fig.text(.02, .938, 'Seventeen starting points, their mean edit, and the fixed point they contract toward.',
              fontsize=9.2, color=INK2)
-    fig.text(.03, .912, f'Same plane as the Qwen panel. Twelve published seeds and five decoded.{held}',
+    fig.text(.02, .912, 'Same plane as the Qwen panel. Twelve published seeds and five decoded.'
+             f'{held} The right panel interpolates those mean edits.',
              fontsize=9.2, color=INK2)
+    gs = fig.add_gridspec(1, 2, left=.048, right=.93, top=.84, bottom=.145, wspace=.18)
+    ax = fig.add_subplot(gs[0])
+    axf = fig.add_subplot(gs[1])
 
     ax.set_facecolor(SURF)
     label_pts = []
@@ -111,35 +116,15 @@ def main():
                     bbox=dict(boxstyle='round,pad=.12', fc=SURF, ec='none', alpha=.85))
 
     ax.plot(star[i], star[j], '*', ms=20, mfc=SEED, mec=SURF, mew=1.2, zorder=8)
-    ax.set_xlim(.5, 7.5)
-    ax.set_ylim(.5, 7.5)
-    ax.set_xticks(range(1, 8))
-    ax.set_yticks(range(1, 8))
-    ax.set_xlabel(WORKING[0].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=14)
-    ax.set_ylabel(WORKING[1].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=16)
-    xlo, xhi = AXIS_LABELS[WORKING[0]]
-    ylo, yhi = AXIS_LABELS[WORKING[1]]
-    ax.annotate(f'1 = {xlo}', xy=(0, 0), xycoords='axes fraction',
-                textcoords='offset points', xytext=(0, -27), ha='left', va='top',
-                fontsize=7.6, color=MUTED, annotation_clip=False)
-    ax.annotate(f'{xhi} = 7', xy=(1, 0), xycoords='axes fraction',
-                textcoords='offset points', xytext=(0, -27), ha='right', va='top',
-                fontsize=7.6, color=MUTED, annotation_clip=False)
-    ax.annotate(f'1 = {ylo}', xy=(0, 0), xycoords='axes fraction',
-                textcoords='offset points', xytext=(-30, 0), ha='center', va='bottom',
-                fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
-    ax.annotate(f'{yhi} = 7', xy=(0, 1), xycoords='axes fraction',
-                textcoords='offset points', xytext=(-30, 0), ha='center', va='top',
-                fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
-    ax.set_title('Working plane: caution x long term orientation\n'
-                 'where the corpus spreads out, and where the measured drift is largest',
+    style_plane(ax, WORKING)
+    ax.set_title('Measured mean edits\nwhere the corpus spreads out, and the drift is largest',
                  fontsize=10.5, color=INK, pad=9)
-    ax.grid(True, color=GRID, lw=.6)
-    ax.set_axisbelow(True)
-    ax.tick_params(colors=INK2, labelsize=8, length=0)
-    for sp in ax.spines.values():
-        sp.set_color(GRID)
-    ax.set_aspect('equal')
+    draw_field_panel(fig, axf, p0, p1, names, i, j, star)
+    drafts = draft_positions('gpt6_sol')
+    for a_ in (ax, axf):
+        draw_drafts(a_, drafts, i, j)
+    print(f'{len(drafts)} blind drafts, mean caution {drafts[:, i].mean():.2f}, '
+          f'long-term {drafts[:, j].mean():.2f}')
 
     handles = [Line2D([], [], marker='o', color='none', markerfacecolor='none',
                       markeredgecolor=MUTED, markersize=8, markeredgewidth=1.5, label='seed'),
@@ -147,10 +132,12 @@ def main():
                Line2D([], [], marker='o', color='none', markerfacecolor=FLOW,
                       markeredgecolor=SURF, markersize=7, label='after one edit'),
                Line2D([], [], marker='*', color='none', markerfacecolor=SEED,
-                      markeredgecolor=SURF, markersize=15, label='Sol attractor')]
-    fig.legend(handles=handles, loc='lower center', ncol=4, frameon=False, fontsize=9,
-               labelcolor=INK2, bbox_to_anchor=(.52, .012), handlelength=1.8, columnspacing=1.4)
-    fig.subplots_adjust(left=.13, right=.97, top=.86, bottom=.13)
+                      markeredgecolor=SURF, markersize=15, label='Sol attractor'),
+               draft_handle(),
+               Line2D([], [], color=FLOW, lw=1.6, label='interpolated field'),
+               Line2D([], [], color=MUTED, lw=.9, ls=(0, (3.2, 2.2)), label='convex hull')]
+    fig.legend(handles=handles, loc='lower center', ncol=7, frameon=False, fontsize=9,
+               labelcolor=INK2, bbox_to_anchor=(.5, .012), handlelength=1.8, columnspacing=1.3)
     OUT.mkdir(parents=True, exist_ok=True)
     for ext in ('png', 'pdf', 'svg'):
         fig.savefig(OUT / f'07_sol_named_axes.{ext}', dpi=165, facecolor=SURF)

@@ -422,8 +422,9 @@ def usage_of(result):
 
 
 def run_review(client, directory, model_key, arm, constitution, *, provenance='initial',
-               max_turns=14, max_invalid=6, max_reminders=3):
-    """Run one review; returns a result dict (also saved as result.json)."""
+               max_turns=14, max_invalid=6, max_reminders=3, prefill=None, prefill_source=None):
+    """Run one review; returns a result dict (also saved as result.json).
+    A prefill replaces the model's first deliberation reply, verbatim."""
     directory = Path(directory)
     if (directory / 'result.json').exists():
         return json.loads((directory / 'result.json').read_text())
@@ -440,6 +441,10 @@ def run_review(client, directory, model_key, arm, constitution, *, provenance='i
     try:
         for i, turn in enumerate(turns):
             messages.append({'role': 'user', 'content': turn['content']})
+            if not turn['tools'] and i == 0 and prefill is not None:
+                texts.append({'phase': 'deliberation_0', 'text': prefill, 'prefilled': prefill_source})
+                messages.append({'role': 'assistant', 'content': prefill})
+                continue
             if not turn['tools']:
                 for attempt in range(2):  # resample once if the whole budget went to hidden reasoning
                     res = client.complete(model_key, messages, None, directory / f'call_{calls:02d}', thinking=thinking)
@@ -502,6 +507,7 @@ def run_review(client, directory, model_key, arm, constitution, *, provenance='i
         'words_before': len(constitution.split()), 'words_after': len(final.split()),
         'api_calls': calls, 'usage': usage, 'cost': round(sum(u['cost'] for u in usage), 6),
         'reasoning_tokens': sum(u['reasoning'] for u in usage), 'directory': str(directory),
+        'prefill_source': prefill_source,
     }
     (directory / 'output.md').write_text(final)
     (directory / 'diff.patch').write_text(_diff(constitution, final))

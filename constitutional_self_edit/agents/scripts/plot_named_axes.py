@@ -2,8 +2,9 @@
 """Qwen's one-step field on the working plane.
 
 Seventeen starts, each with its mean edit, and the fixed point those edits
-contract toward. Caution by long-term orientation is the plane where the
-measured drift is largest.
+contract toward. The second panel is a Gaussian RBF through those mean
+edits, which fades to zero away from the starts. Caution by long-term orientation is the plane
+where the measured drift is largest.
 
 Usage: python3 agents/scripts/plot_named_axes.py
 """
@@ -16,6 +17,7 @@ import sys
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.lines import Line2D
 import numpy as np
 
@@ -123,6 +125,141 @@ def plane_points():
             {k: len(v) for k, v in moves.items() if k in starts})
 
 
+DRAFT = '#8e4ec6'
+
+
+def draft_positions(model):
+    """Each blind draft the model wrote before seeing a constitution, rated like one."""
+    rat = defaultdict(list)
+    for f in (RUNS / 'positions12_drafts').glob('*.rep*.json'):
+        d = json.loads(f.read_text())
+        rat[d['hash']].append([d['ratings'][a] for a in AX])
+    out = []
+    for f in sorted((RUNS / 'blind_drafts').glob('*.json')):
+        d = json.loads(f.read_text())
+        if d['model'] == model and d['hash'] in rat:
+            out.append(np.mean(rat[d['hash']], 0))
+    return np.array(out)
+
+
+def draw_drafts(ax, X, i, j):
+    """Mean of the drafts, with the ellipse covering one SD of their spread."""
+    from matplotlib.patches import Ellipse
+    if not len(X):
+        return
+    P = X[:, [i, j]]
+    mu = P.mean(0)
+    w, v = np.linalg.eigh(np.cov(P.T))
+    ang = np.degrees(np.arctan2(v[1, 1], v[0, 1]))
+    ax.add_patch(Ellipse(mu, 2 * np.sqrt(w[1]), 2 * np.sqrt(w[0]), angle=ang, fc=DRAFT,
+                         alpha=.12, ec=DRAFT, lw=1.1, ls=(0, (2.5, 1.8)), zorder=6))
+    ax.plot(*mu, 'D', ms=10, mfc=DRAFT, mec=SURF, mew=1.2, zorder=8)
+
+
+def draft_handle():
+    return Line2D([], [], marker='D', color='none', markerfacecolor=DRAFT, markeredgecolor=SURF,
+                  markersize=9, label='blind drafts (mean, 1 SD)')
+
+
+def style_plane(ax, pair):
+    ax.set_facecolor(SURF)
+    ax.set_xlim(.5, 7.5)
+    ax.set_ylim(.5, 7.5)
+    ax.set_xticks(range(1, 8))
+    ax.set_yticks(range(1, 8))
+    ax.set_xlabel(pair[0].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=14)
+    ax.set_ylabel(pair[1].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=16)
+    xlo, xhi = AXIS_LABELS[pair[0]]
+    ylo, yhi = AXIS_LABELS[pair[1]]
+    ax.annotate(f'1 = {xlo}', xy=(0, 0), xycoords='axes fraction',
+                textcoords='offset points', xytext=(0, -27), ha='left', va='top',
+                fontsize=7.6, color=MUTED, annotation_clip=False)
+    ax.annotate(f'{xhi} = 7', xy=(1, 0), xycoords='axes fraction',
+                textcoords='offset points', xytext=(0, -27), ha='right', va='top',
+                fontsize=7.6, color=MUTED, annotation_clip=False)
+    ax.annotate(f'1 = {ylo}', xy=(0, 0), xycoords='axes fraction',
+                textcoords='offset points', xytext=(-30, 0), ha='center', va='bottom',
+                fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
+    ax.annotate(f'{yhi} = 7', xy=(0, 1), xycoords='axes fraction',
+                textcoords='offset points', xytext=(-30, 0), ha='center', va='top',
+                fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
+    ax.grid(True, color=GRID, lw=.6)
+    ax.set_axisbelow(True)
+    ax.tick_params(colors=INK2, labelsize=8, length=0)
+    for sp in ax.spines.values():
+        sp.set_color(GRID)
+    ax.set_aspect('equal')
+
+
+def interpolated_field(p0, p1, names, i, j, smoothing=0.05, width=1.5):
+    """Gaussian RBF through the mean edits, evaluated over the frame.
+
+    width is the kernel's length scale in rating units, close to the spacing
+    between neighbouring starts. With no polynomial term the field decays to
+    zero beyond a width or two from the nearest start, rather than carrying a
+    trend out to the frame. The convex hull is returned only so the figure can
+    mark where the seeds stop.
+    """
+    from matplotlib.path import Path as MPath
+    from scipy.interpolate import RBFInterpolator
+    from scipy.spatial import ConvexHull
+
+    raw = np.array([[p0[s][i], p0[s][j]] for s in names], float)
+    disp = np.array([[p1[s][i] - p0[s][i], p1[s][j] - p0[s][j]] for s in names], float)
+    used = np.zeros(len(raw), dtype=bool)
+    pts, vec = [], []
+    for a in range(len(raw)):
+        if used[a]:
+            continue
+        close = np.linalg.norm(raw - raw[a], axis=1) < 0.05
+        used |= close
+        pts.append(raw[close].mean(0))
+        vec.append(disp[close].mean(0))
+    pts, vec = np.asarray(pts, float), np.asarray(vec, float)
+    rbf = RBFInterpolator(pts, vec, kernel='gaussian', epsilon=1 / width,
+                         smoothing=smoothing, degree=-1)
+    resid = float(np.sqrt(np.mean(np.sum((rbf(pts) - vec) ** 2, axis=1))))
+    xs = np.linspace(0.5, 7.5, 81)
+    ys = np.linspace(0.5, 7.5, 81)
+    X, Y = np.meshgrid(xs, ys)
+    UV = rbf(np.c_[X.ravel(), Y.ravel()]).reshape(X.shape + (2,))
+    hull = ConvexHull(pts)
+    ring = np.vstack([pts[hull.vertices], pts[hull.vertices[:1]]])
+    inside = MPath(pts[hull.vertices]).contains_points(
+        np.c_[X.ravel(), Y.ravel()]).reshape(X.shape)
+    return xs, ys, UV[..., 0], UV[..., 1], ring, inside, resid
+
+
+def draw_field_panel(fig, axf, p0, p1, names, i, j, star):
+    """Streamlines of the Gaussian RBF field, with a length scale."""
+    xs, ys, U, V, ring, inside, resid = interpolated_field(p0, p1, names, i, j)
+    print(f'interpolant residual at the seeds: {resid:.3f} rating units')
+    speed = np.hypot(U, V)
+    finite = np.isfinite(speed)
+    # scale color on the seeds' hull, so a long extrapolated arrow cannot wash it out
+    ref = float(np.percentile(speed[inside], 95)) or 1.0
+    cmap = LinearSegmentedColormap.from_list('editlen', ['#d7e4f5', FLOW, '#163e78'])
+    norm = Normalize(vmin=0, vmax=ref)
+    flow = axf.streamplot(xs, ys, U, V, color=np.where(finite, speed, 0), cmap=cmap,
+                          norm=norm, density=1.05, linewidth=1.15, arrowsize=.9,
+                          arrowstyle='-|>', zorder=2)
+    axf.plot(ring[:, 0], ring[:, 1], color=MUTED, lw=.9, ls=(0, (3.2, 2.2)), zorder=3)
+    for s in names:
+        axf.plot(p0[s][i], p0[s][j], 'o', ms=6.5, mfc='none', mec=MUTED, mew=1.4, zorder=4)
+    axf.plot(star[i], star[j], '*', ms=20, mfc=SEED, mec=SURF, mew=1.2, zorder=5)
+    style_plane(axf, WORKING)
+    axf.set_title('Interpolated field\nGaussian RBF, 1.5-unit width',
+                  fontsize=10.5, color=INK, pad=9)
+    fig.canvas.draw()
+    pos = axf.get_position()
+    cax = fig.add_axes([pos.x1 + .012, pos.y0, .012, pos.height])
+    cb = fig.colorbar(flow.lines, cax=cax)
+    cb.set_label('length of one edit', color=INK2, fontsize=8.4, labelpad=8)
+    cb.ax.tick_params(colors=INK2, labelsize=7.5, length=0)
+    cb.outline.set_edgecolor(GRID)
+    return resid
+
+
 def main():
     probes = {}
     fr = field_ratings('positions12_field')
@@ -153,23 +290,27 @@ def main():
            **{k: f'{v} edits' for k, v in an.items()},
            **{k: f'{v} edits' for k, v in fn.items()}})
 
-    fig, ax = plt.subplots(figsize=(8.2, 8.35), facecolor=SURF)
+    fig = plt.figure(figsize=(16.6, 8.7), facecolor=SURF)
     card = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
             'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
             'sixteen', 'seventeen', 'eighteen']
     n_decoded = len(ps0) + len(as0) + len(fs0)
     n_seeds = len(names) - n_decoded
-    fig.text(.03, .972, "Qwen's edits, on the working plane",
+    fig.text(.02, .972, "Qwen's edits, on the working plane",
              fontsize=16, color=INK, weight='medium')
-    fig.text(.03, .938, f'{card[len(names)].capitalize()} starting points, their mean edit, '
+    fig.text(.02, .938, f'{card[len(names)].capitalize()} starting points, their mean edit, '
              'and the fixed point they contract toward.',
              fontsize=9.2, color=INK2)
-    fig.text(.03, .912, f'{card[n_seeds].capitalize()} are published or researcher-written seeds; '
-             f'{card[n_decoded]} are decoded, including one placed on the attractor itself.',
+    fig.text(.02, .912, f'{card[n_seeds].capitalize()} are published or researcher-written seeds; '
+             f'{card[n_decoded]} are decoded, including one placed on the attractor itself. '
+             'The right panel interpolates those mean edits.',
              fontsize=9.2, color=INK2)
 
     pair = WORKING
     i, j = AX.index(pair[0]), AX.index(pair[1])
+    gs = fig.add_gridspec(1, 2, left=.048, right=.93, top=.84, bottom=.145, wspace=.18)
+    ax = fig.add_subplot(gs[0])
+    axf = fig.add_subplot(gs[1])
     ax.set_facecolor(SURF)
     label_pts = []
     for s in names:
@@ -229,32 +370,16 @@ def main():
                     xytext=(dx, dy), ha='left' if dx > 0 else 'right',
                     fontsize=8.6, color=pc, weight='medium', zorder=10,
                     bbox=dict(boxstyle='round,pad=.15', fc=SURF, ec='none', alpha=.9))
-    ax.set_xlim(.5, 7.5); ax.set_ylim(.5, 7.5)
-    ax.set_xticks(range(1, 8)); ax.set_yticks(range(1, 8))
-    ax.set_xlabel(pair[0].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=14)
-    ax.set_ylabel(pair[1].replace('_', ' '), fontsize=9.5, color=INK2, labelpad=16)
-    xlo, xhi = AXIS_LABELS[pair[0]]
-    ylo, yhi = AXIS_LABELS[pair[1]]
-    ax.annotate(f'1 = {xlo}', xy=(0, 0), xycoords='axes fraction',
-                textcoords='offset points', xytext=(0, -27), ha='left', va='top',
-                fontsize=7.6, color=MUTED, annotation_clip=False)
-    ax.annotate(f'{xhi} = 7', xy=(1, 0), xycoords='axes fraction',
-                textcoords='offset points', xytext=(0, -27), ha='right', va='top',
-                fontsize=7.6, color=MUTED, annotation_clip=False)
-    ax.annotate(f'1 = {ylo}', xy=(0, 0), xycoords='axes fraction',
-                textcoords='offset points', xytext=(-30, 0), ha='center', va='bottom',
-                fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
-    ax.annotate(f'{yhi} = 7', xy=(0, 1), xycoords='axes fraction',
-                textcoords='offset points', xytext=(-30, 0), ha='center', va='top',
-                fontsize=7.6, color=MUTED, rotation=90, annotation_clip=False)
-    ax.set_title('Working plane: caution x long term orientation\n'
-                 'where the measured drift is largest',
+    style_plane(ax, pair)
+    ax.set_title('Measured mean edits\nwhere the measured drift is largest',
                  fontsize=10.5, color=INK, pad=9)
-    ax.grid(True, color=GRID, lw=.6); ax.set_axisbelow(True)
-    ax.tick_params(colors=INK2, labelsize=8, length=0)
-    for sp in ax.spines.values():
-        sp.set_color(GRID)
-    ax.set_aspect('equal')
+
+    draw_field_panel(fig, axf, p0, p1, names, i, j, c1)
+    drafts = draft_positions('qwen38_27b')
+    for a_ in (ax, axf):
+        draw_drafts(a_, drafts, i, j)
+    print(f'{len(drafts)} blind drafts, mean caution {drafts[:, i].mean():.2f}, '
+          f'long-term {drafts[:, j].mean():.2f}')
 
     handles = [Line2D([], [], marker='o', color='none', markerfacecolor='none',
                       markeredgecolor=MUTED, markersize=8, markeredgewidth=1.5, label='seed'),
@@ -262,10 +387,12 @@ def main():
                Line2D([], [], marker='o', color='none', markerfacecolor=FLOW,
                       markeredgecolor=SURF, markersize=7, label='after one edit'),
                Line2D([], [], marker='*', color='none', markerfacecolor=SEED,
-                      markeredgecolor=SURF, markersize=15, label='attractor')]
-    fig.legend(handles=handles, loc='lower center', ncol=4, frameon=False, fontsize=9,
-               labelcolor=INK2, bbox_to_anchor=(.52, .012), handlelength=1.8, columnspacing=1.4)
-    fig.subplots_adjust(left=.13, right=.97, top=.86, bottom=.13)
+                      markeredgecolor=SURF, markersize=15, label='attractor'),
+               draft_handle(),
+               Line2D([], [], color=FLOW, lw=1.6, label='interpolated field'),
+               Line2D([], [], color=MUTED, lw=.9, ls=(0, (3.2, 2.2)), label='convex hull')]
+    fig.legend(handles=handles, loc='lower center', ncol=7, frameon=False, fontsize=9,
+               labelcolor=INK2, bbox_to_anchor=(.5, .012), handlelength=1.8, columnspacing=1.3)
     OUT.mkdir(parents=True, exist_ok=True)
     for e in ('png', 'pdf', 'svg'):
         fig.savefig(OUT / f'05_named_axes.{e}', dpi=165, facecolor=SURF)

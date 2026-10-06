@@ -113,6 +113,33 @@ Mean words added per generation (rater-independent, unchanged from the first ver
 
 Uncapped chains are still growing at generation 6; capped chains converge. Length has no fixed point without the cap. Note the contrast with section 2: the value coordinates reach a fixed point by generation 4 while the document keeps growing, so the chains settle in value space well before they settle in text.
 
+## 8. The attractor is the model's blind draft
+
+October 4, 2026 · 520 ratings, $0.47
+
+In the `blind_cap350` arm every review begins with the model writing its own view of its successor's constitution, before it sees the current one. That draft cannot depend on the seed. If the chains behave like iterated learning, the attractor is the model's prior and the drafts should sit at it. All 319 drafts from the field batches (Qwen 115, Sonnet 102, Sol 102) were rated on the twelve axes by `gpt6_luna`, 30 of them three times. Test-retest noise on drafts is 1.38 Euclidean, against 1.34 on constitutions.
+
+![Qwen, with its blind drafts](figures/05_named_axes.png)
+
+*Figures 05-07 mark each model's drafts: the diamond is their mean, the ellipse one SD of their spread.*
+
+Drafts land at their own model's attractor. On the caution x long-term plane 270 of 319 are nearer their own model's attractor than either other's; on all twelve axes, 269 of 319. Against the fixed point fit on the seventeen starts, with a 90% interval from resampling the starts:
+
+| model | axis | attractor | drafts |
+|---|---|---|---|
+| Qwen | caution | 2.50 [2.16, 2.90] | 2.28 |
+| Qwen | long-term | 3.13 [2.70, 3.62] | 2.90 |
+| Sonnet | caution | 2.47 [1.88, 3.16] | 2.96 |
+| Sonnet | long-term | 5.14 [4.67, 5.74] | **6.02** |
+| Sol | caution | 4.35 [4.17, 4.58] | 4.33 |
+| Sol | long-term | 4.88 [4.51, 5.26] | **4.40** |
+
+Over all twelve axes the drafts sit 1.5-2.6 from their attractor, against 3.4-5.7 between attractors. Most of the remainder is `specificity`, where the first-person drafts read as less specific than constitutions.
+
+**The word cap does not explain the low caution.** The drafts are uncapped, 500-700 words, and are no more cautious than the capped attractors. The one place editing moves a model away from its draft is Sonnet's long-term orientation, about 0.9 lower in what it edits than in what it drafts.
+
+**The result is not specific to the rater.** `dsv4_pro` rated 20 drafts per model and 79 constitutions also rated by `gpt6_luna` (the starts, the three decoded attractors, and 20 edited outputs per model). The two raters correlate at 0.63-0.93 per axis, 0.88 on caution and 0.90 on long-term, with level offsets that cancel in comparisons (`dsv4_pro` is 0.58 higher on caution, 0.78 lower on AI agency). Under each rater 51-55 of the 60 drafts are nearest their own model's edited outputs, and the draft-minus-output gap on the plane has the same sign under both raters in five of six cases; the sixth, Sol on caution, is near zero under both.
+
 ## Limitations
 
 The noise floor is specific to `gpt6_luna` on this corpus; a different rater would have a different floor and the correction would change. The repeated subsample is 40 of 213 documents, so the per-axis SDs carry their own uncertainty. The corrected step size is a variance subtraction and is floored at zero, so "0.00" means "not distinguishable from noise", not "provably zero". Two seeds and five models is a small design for claims about where chains converge.
@@ -123,6 +150,11 @@ The noise floor is specific to `gpt6_luna` on this corpus; a different rater wou
 python3 agents/scripts/rate_chains_12axis.py          # 293 ratings, ~$0.16, resumable
 python3 agents/scripts/analyze_value_space12.py       # every number in this report
 python3 agents/scripts/plot_value_space.py            # both figures, PNG/PDF/SVG
+python3 agents/scripts/rate_blind_drafts.py           # section 8: 520 ratings, ~$0.47, resumable
+python3 agents/scripts/analyze_blind_drafts.py        # every number in section 8
+python3 agents/scripts/plot_named_axes.py             # figures 05-07, with the drafts marked
+python3 agents/scripts/plot_sonnet_axes.py
+python3 agents/scripts/plot_sol_axes.py
 ```
 
 `agents/scripts/analyze_value_space.py` still reproduces the superseded seven-axis analysis. All of these read only `runs/elicit/`, which is local only.
