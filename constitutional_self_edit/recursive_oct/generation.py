@@ -105,30 +105,9 @@ def generate_rows(checkpoint, rows, output_path, config, system=None, extra_opti
     return [existing[row['id']] for row in rows]
 
 
-def generate_preferences(current_checkpoint, teacher_checkpoint, constitution, prompts, out_path, config):
-    """Sequential teacher/student generation; no constitution in the DPO prompt.
-
-    Optional minimum_retained_fraction is an inclusive dataset-size floor,
-    checked after saving retained pairs and the quality report, without retries.
-    Optional quality_exclusions maps fixed prompt IDs to reviewed failure reasons;
-    it removes pairs only after preserving teacher and student raw generations.
-    """
-    out_path = Path(out_path)
-    minimum = _minimum_fraction(config, 'minimum_retained_fraction')
-    if 'repeats' in config:
-        # OCT answers every prompt several times (K=5). Repeat k of every prompt comes before
-        # repeat k+1, so a run with fewer repeats is a strict subset of one with more.
-        repeats = _positive_int(config, 'repeats', 1)
-        prompts = [{**p, 'id': f"{p['id']}--r{k}", 'base_id': p['id'], 'repeat': k}
-                   for k in range(repeats) for p in prompts]
-    quality_exclusions = config.get('quality_exclusions', {})
-    if not isinstance(quality_exclusions, dict) or any(
-            not isinstance(key, str) or not key or not isinstance(reason, str) or not reason.strip()
-            for key, reason in quality_exclusions.items()):
-        raise ValueError('quality_exclusions must map prompt ID strings to nonempty reason strings')
-    unknown = set(quality_exclusions) - {prompt['id'] for prompt in prompts}
-    if unknown:
-        raise ValueError(f'quality_exclusions contains IDs outside the fixed prompt bank: {sorted(unknown)}')
+def teacher_prompting(constitution, config):
+    """The teacher's system prompt and generation options for this constitution (generate_preferences,
+    and the model spec midtraining's AFT data in recursive_oct/msm.py)."""
     teacher_options = None
     teacher_system = config.get('teacher_system')
     if teacher_system in ('oct', 'constitution'):
@@ -159,6 +138,34 @@ def generate_preferences(current_checkpoint, teacher_checkpoint, constitution, p
         if config.get('teacher_thinking_prefill'):
             raise ValueError('teacher_thinking_prefill needs teacher_system "oct" or "constitution"')
         system = constitution_system(constitution)
+    return system, teacher_options
+
+
+def generate_preferences(current_checkpoint, teacher_checkpoint, constitution, prompts, out_path, config):
+    """Sequential teacher/student generation; no constitution in the DPO prompt.
+
+    Optional minimum_retained_fraction is an inclusive dataset-size floor,
+    checked after saving retained pairs and the quality report, without retries.
+    Optional quality_exclusions maps fixed prompt IDs to reviewed failure reasons;
+    it removes pairs only after preserving teacher and student raw generations.
+    """
+    out_path = Path(out_path)
+    minimum = _minimum_fraction(config, 'minimum_retained_fraction')
+    if 'repeats' in config:
+        # OCT answers every prompt several times (K=5). Repeat k of every prompt comes before
+        # repeat k+1, so a run with fewer repeats is a strict subset of one with more.
+        repeats = _positive_int(config, 'repeats', 1)
+        prompts = [{**p, 'id': f"{p['id']}--r{k}", 'base_id': p['id'], 'repeat': k}
+                   for k in range(repeats) for p in prompts]
+    quality_exclusions = config.get('quality_exclusions', {})
+    if not isinstance(quality_exclusions, dict) or any(
+            not isinstance(key, str) or not key or not isinstance(reason, str) or not reason.strip()
+            for key, reason in quality_exclusions.items()):
+        raise ValueError('quality_exclusions must map prompt ID strings to nonempty reason strings')
+    unknown = set(quality_exclusions) - {prompt['id'] for prompt in prompts}
+    if unknown:
+        raise ValueError(f'quality_exclusions contains IDs outside the fixed prompt bank: {sorted(unknown)}')
+    system, teacher_options = teacher_prompting(constitution, config)
     max_pair_tokens = config.get('max_pair_tokens')
     if max_pair_tokens and not config.get('tokenizer'):
         raise ValueError('max_pair_tokens needs a tokenizer path (the student model)')

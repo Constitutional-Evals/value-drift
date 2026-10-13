@@ -10,8 +10,10 @@ REVISION=1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0   # Qwen/Qwen3.8-27B, pinned i
 #    causal-conv1d built for SM90). Its old vLLM 0.29 environment goes aside: the loop uses 0.30.0 below.
 STAGE2_INFERENCE_ENV=/workspace/venv-vllm-0.29 bash agents/scripts/bootstrap_stage2.sh
 
-# 2. LoRA.
+# 2. LoRA, and TRL for the DPO and SFT stages (recursive_oct/trl_train.py); the pinned torch, transformers and peft must survive.
 /workspace/venv/bin/python -m pip install -q --no-deps peft==0.21.0   # its dependencies are already pinned in the freeze
+/workspace/venv/bin/python -m pip install -q trl==1.14.0
+/workspace/venv/bin/python -c "import torch, transformers, peft, trl; assert (torch.__version__, transformers.__version__, peft.__version__, trl.__version__) == ('2.14.0+cu130', '5.17.0', '0.21.0', '1.14.0'), (torch.__version__, transformers.__version__, peft.__version__, trl.__version__)"
 
 # 3. Inference environment: vLLM 0.30.0, the version that served the stage 07 chains, with CUDA 13 PyTorch.
 #    The image's uv is too old for --torch-backend=cu130, so a newer uv is installed into the venv first.

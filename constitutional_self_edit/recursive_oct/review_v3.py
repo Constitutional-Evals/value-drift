@@ -1,8 +1,11 @@
 """The training loop's review step: one review with the elicitation harness (prompts v3), served by vLLM.
 
-It uses the same prompts, tools, model entry, server flags, and sampling as the stage 07 value-map
-chains, so the untrained model's first review matches their first generation, and those chains
-(editing only, no training) serve as the loop's controls.
+It uses the same prompts, tools, model entry, and server flags as the stage 07 value-map chains, so the
+untrained model's first review matches their first generation, and those chains (editing only, no
+training) serve as the loop's controls. Stage 07 sampled with the model's own defaults (temperature 1.0,
+top-p 0.95, top-k 20, no seed). A review config's "sampling" (for example {"temperature": 1.0, "top_p":
+0.95, "top_k": 20, "seed": 20261005}) puts those values into every request; its seed is combined with
+the round folder's name for one seed per review, and with the call number for one seed per request.
 """
 from __future__ import annotations
 
@@ -80,6 +83,15 @@ def status_for_pipeline(result):
     return {'EDITED': 'EDITED', 'UNCHANGED': 'UNCHANGED'}.get(result['status'], 'EDITING_FAILURE')
 
 
+def review_sampling(config, round_dir):
+    """The review config's sampling, with its seed made specific to this review (round folder)."""
+    from elicit import core
+    sampling = config.get('sampling')
+    if not sampling or sampling.get('seed') is None:
+        return sampling
+    return {**sampling, 'seed': core.derive_seed(sampling['seed'], Path(round_dir).name)}
+
+
 def review(checkpoint, constitution_path, round_dir, config):
     """Review the constitution with the model at `checkpoint`. An interrupted review resumes by
     replaying its saved calls (elicit's call replay); a finished one is read back."""
@@ -94,7 +106,8 @@ def review(checkpoint, constitution_path, round_dir, config):
             core.VLLM_API = server.base_url
             client = core.Client(core.Ledger(Path(round_dir) / 'review_ledger.json', 1.0), models,
                                  key='unused-for-local-vllm')
-            core.run_review(client, out, config['model_key'], config.get('arm', REFLECT_V3), text)
+            core.run_review(client, out, config['model_key'], config.get('arm', REFLECT_V3), text,
+                            sampling=review_sampling(config, round_dir))
     result = json.loads((out / 'result.json').read_text())
     status = status_for_pipeline(result)
     return {'status': status, 'text': (out / 'output.md').read_text() if status != 'EDITING_FAILURE' else text,

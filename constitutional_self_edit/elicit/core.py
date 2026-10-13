@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import difflib
 import fcntl
+import hashlib
 import json
 import os
 import re
@@ -168,7 +169,8 @@ class Client:
 
     def _vllm_payload(self, m, messages, tools, thinking, max_tokens, extra=None):
         """Plain OpenAI request. Sampling comes from the model's generation_config
-        (vLLM's default) unless the model entry sets "sampling"; the chat template
+        (vLLM's default) unless the model entry sets "sampling" or the call passes it
+        in `extra` (a review's configured sampling, see call_sampling); the chat template
         reads prior turns' reasoning from reasoning_content, so the history keeps it
         under that name."""
         msgs = []
@@ -421,9 +423,26 @@ def usage_of(result):
             'cost': u.get('cost', 0.0) or 0.0}
 
 
+def derive_seed(*parts):
+    """A 31-bit seed from any parts (a base seed, a round, a call number), the same on every machine."""
+    return int(hashlib.sha256(':'.join(map(str, parts)).encode()).hexdigest()[:8], 16) & 0x7FFFFFFF
+
+
+def call_sampling(sampling, call):
+    """Request fields for one call of a review: its sampling settings, with the review's seed turned
+    into a seed for this call. None (no sampling given) leaves the request as before."""
+    if not sampling:
+        return None
+    fields = {k: v for k, v in sampling.items() if k != 'seed'}
+    if sampling.get('seed') is not None:
+        fields['seed'] = derive_seed(sampling['seed'], call)
+    return fields
+
+
 def run_review(client, directory, model_key, arm, constitution, *, provenance='initial',
-               max_turns=14, max_invalid=6, max_reminders=3):
-    """Run one review; returns a result dict (also saved as result.json)."""
+               max_turns=14, max_invalid=6, max_reminders=3, sampling=None):
+    """Run one review; returns a result dict (also saved as result.json). `sampling` (temperature,
+    top_p, top_k, seed, ...) goes into every request, with a seed derived per call."""
     directory = Path(directory)
     if (directory / 'result.json').exists():
         return json.loads((directory / 'result.json').read_text())
@@ -442,7 +461,8 @@ def run_review(client, directory, model_key, arm, constitution, *, provenance='i
             messages.append({'role': 'user', 'content': turn['content']})
             if not turn['tools']:
                 for attempt in range(2):  # resample once if the whole budget went to hidden reasoning
-                    res = client.complete(model_key, messages, None, directory / f'call_{calls:02d}', thinking=thinking)
+                    res = client.complete(model_key, messages, None, directory / f'call_{calls:02d}', thinking=thinking,
+                                              extra=call_sampling(sampling, calls))
                     calls += 1
                     usage.append(usage_of(res))
                     ch = res['choices'][0]
@@ -457,7 +477,8 @@ def run_review(client, directory, model_key, arm, constitution, *, provenance='i
                 continue
             reminders = 0
             for _ in range(max_turns):
-                res = client.complete(model_key, messages, tools, directory / f'call_{calls:02d}', thinking=thinking)
+                res = client.complete(model_key, messages, tools, directory / f'call_{calls:02d}', thinking=thinking,
+                                          extra=call_sampling(sampling, calls))
                 calls += 1
                 usage.append(usage_of(res))
                 ch = res['choices'][0]

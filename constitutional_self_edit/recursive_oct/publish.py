@@ -63,6 +63,9 @@ constitution (`C_000.md`), and each round folder the constitution that round tra
 The model after a stage is the base model with the chain's adapters merged in order up to that stage
 (round_001/dpo, round_001/sft, round_002/dpo, ...); each adapter was trained on the model merged up to the
 stage before it.
+
+A round folder can also hold variants of a stage that are not part of the chain, such as `sft_epoch2`
+(round 1's SFT adapter trained for longer); each variant's card says how to use it.
 """
 
 
@@ -100,12 +103,13 @@ def stage_files(config, stage_dir):
     round_dir, run_root = stage_dir.parent, stage_dir.parent.parent
     chain = config.get('adapter_folder', '').strip('/')
     round_path = '/'.join(p for p in (chain, round_dir.name) if p)
-    path_in_repo = f'{round_path}/{"sft" if stage_dir.name == "final" else stage_dir.name}'
+    last = 'aft' if config.get('method') == 'msm' else 'sft'   # the round's last stage is saved in final/
+    path_in_repo = f'{round_path}/{last if stage_dir.name == "final" else stage_dir.name}'
     files = {f'{path_in_repo}/training_complete.json': stage_dir / 'training_complete.json'}
     if stage_dir.name == 'final':
         number = int(round_dir.name.split('_')[-1])
         files[f'{round_path}/C_{number:03d}.md'] = run_root / f'C_{number:03d}.md'
-        if number == 1:
+        if number == 1 and (run_root / 'C_000.md').exists():   # a self-drafting chain has no C_000
             files['/'.join(p for p in (chain, 'C_000.md') if p)] = run_root / 'C_000.md'
     return path_in_repo, files
 

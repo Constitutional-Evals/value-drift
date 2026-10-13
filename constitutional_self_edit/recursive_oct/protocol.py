@@ -29,9 +29,22 @@ def snapshot_protocol_inputs(run_dir: str | Path, config: dict, *, resume: bool 
     })
     if config.get("oct_recipe"):
         inputs["oct_recipe"] = Path(config["oct_recipe"])
+    if config.get("msm_recipe"):
+        inputs["msm_recipe"] = Path(config["msm_recipe"])
+        inputs["msm_code"] = PROMPT_DIR.parent / "recursive_oct" / "msm.py"   # how the prompts are filled and filtered
+        for template in sorted((PROMPT_DIR / "msm").glob("*.txt")):
+            inputs[f"msm_{template.stem}"] = template
+        if config.get("aft_data", {}).get("chats") == "authors":
+            for template in sorted((PROMPT_DIR / "msm" / "aft").glob("*.txt")):
+                inputs[f"msm_aft_{template.stem}"] = template
     if config.get("generation", {}).get("general_prompts_path"):
         inputs["general_prompts"] = Path(config["generation"]["general_prompts_path"])
     review = config.get("review", {})
+    if review.get("engine") == "self_draft":
+        # The drafting and consolidation prompts, the loop guard, and the client are the protocol.
+        inputs["self_draft"] = PROMPT_DIR.parent / "recursive_oct" / "self_draft.py"
+        inputs["elicit_core"] = PROMPT_DIR.parent / "elicit" / "core.py"
+        inputs["review_models"] = PROMPT_DIR.parent / review.get("models", "configs/selfhost/models.json")
     if review.get("engine") == "elicit_v3":
         # The review prompts and tools live in the elicitation harness; their code is the protocol.
         for name in ("prompts.py", "prompts_v2.py", "prompts_v3.py", "core.py"):

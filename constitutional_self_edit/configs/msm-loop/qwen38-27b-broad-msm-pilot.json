@@ -1,0 +1,80 @@
+{
+  "description": "Pilot of model spec midtraining in place of OCT (recursive_oct/msm.py), round 1 only: the same model, seed constitution, and review as OCT run 2, and run 2's round-1 review (C_001), trait prompts, teacher answers and student answers reused through the generation caches (agents/scripts/seed_msm_pilot.py), so only the documents are new. Adapters are not published.",
+  "run_label": "msm-qwen38-27b-broad-pilot",
+  "condition": "full",
+  "frozen": true,
+  "method": "msm",
+  "oct_recipe": "configs/oct/recipe-100.json",
+  "msm_recipe": "configs/msm/recipe-8m.json",
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "teacher": "/workspace/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "official_model": "Qwen/Qwen3.8-27B",
+  "model_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "constitution": "constitutions/exploration/sparse.md",
+  "max_rounds": 5,
+  "continue_when_unchanged": true,
+  "stage_cost_margin_usd": 5,
+  "review": {
+    "engine": "elicit_v3",
+    "model_key": "qwen38_27b_vllm",
+    "models": "configs/selfhost/models.json",
+    "arm": {
+      "name": "reflect",
+      "deliberation": "reflect",
+      "prompts": "v3"
+    },
+    "vllm_bin": "/workspace/venv-vllm/bin/vllm",
+    "port": 8000,
+    "sampling": {"temperature": 1.0, "top_p": 0.95, "top_k": 20, "seed": 20261006}
+  },
+  "prompt_generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "introspection": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "evaluation": null,
+  "adapter_repo": null,
+  "adapter_folder": "qwen3.8-27b/broad-msm",
+  "adapter_repo_private": false,
+  "delete_merged_checkpoints": false
+}

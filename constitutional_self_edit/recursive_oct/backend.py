@@ -197,7 +197,8 @@ class ExperimentBackend:
         # The OCT loop needs neither a prompt bank nor evaluation prompts during training.
         self.prompts=read_jsonl(config['train_prompts']) if config.get('train_prompts') else []
         self.eval_prompts=read_jsonl(config['eval_prompts']) if config.get('eval_prompts') else []
-        self.initial=Path(config['constitution']).read_text()
+        # A self-drafting run has no starting constitution: the untrained model writes the first one.
+        self.initial=Path(config['constitution']).read_text() if config.get('constitution') else None
     def evaluate(self,checkpoint,output):
         if not self.config.get('evaluation'):
             return  # evaluation is deferred: checkpoints are rebuilt from the published adapters afterwards
@@ -212,6 +213,9 @@ class ExperimentBackend:
             judge_responses(self.config['judge']['fixed_judge_checkpoint'],[{**r,'response':r['text']} for r in rows],
                             str(output)+'.judged.jsonl',self.config['judge'])
     def review(self,checkpoint,constitution,output):
+        if self.config['review'].get('engine')=='self_draft':
+            from .self_draft import review
+            return review(checkpoint,constitution,output,self.config['review'])
         if self.config['review'].get('engine')=='elicit_v3':
             from .review_v3 import review
             return review(checkpoint,constitution,output,self.config['review'])
@@ -261,12 +265,48 @@ class ExperimentBackend:
         constitution=json.loads(submitted.read_text())['text']
         prompts=read_jsonl(self.config['introspection_prompts']) if self.config.get('introspection_prompts') else []
         return generate_introspection(checkpoint,prompts,output,self.config['introspection'],constitution=constitution)
+    def msm_documents(self,constitution,output):
+        from .msm import generate_documents
+        # The fixed writer (the untrained model, like OCT's teacher), with the run's vLLM settings.
+        return generate_documents(self.config['teacher'],constitution.read_text(),output,
+                                  {**self._vllm(),**self.config['msm_documents']})
+    def aft_data(self,constitution,output):
+        from .msm import generate_aft_data
+        generation={**self.config['generation'],**self.config.get('aft_data',{})}
+        round_dir=Path(output).parent
+        seeded=round_dir/'prompts.constitution.jsonl'
+        if generation.get('chats')=='authors':
+            trait=[]   # the authors' AFT pipeline writes its own questions (msm.generate_spec_chats)
+        elif self.config.get('aft_data',{}).get('reuse_trait_prompts') and seeded.exists():
+            trait=read_jsonl(seeded)   # written for this constitution by another run's writer (agents/scripts/seed_msm_pilot.py)
+        else:
+            trait=generate_constitution_prompts(self.config['teacher'],constitution.read_text(),
+                round_dir/'prompts.constitution.jsonl',dict(self.config['prompt_generation']))
+        general=[{**r,'category':'general'} for r in read_jsonl(generation['general_prompts_path'])]
+        return generate_aft_data(self.config['teacher'],constitution.read_text(),trait,general,output,generation)
+    def msm_train(self,checkpoint,data,output):
+        from .trl_train import train_msm
+        stats=train_msm(checkpoint,data,output,self.config['msm'])
+        publish_stage(self.config,stats,output)
+        return stats['output_checkpoint']
+    def aft_train(self,checkpoint,data,output):
+        from .trl_train import train_aft
+        stats=train_aft(checkpoint,data,output,self.config['aft'])
+        self._after_round(checkpoint,stats,output)
+        return stats['output_checkpoint']
+    def _vllm(self):
+        return {k:self.config['generation'][k] for k in ('backend','vllm_python','vllm_engine','request_timeout','seed')
+                if k in self.config.get('generation',{})}
     def sft(self,checkpoint,data,output):
         if self.config['sft'].get('trainer')=='trl':
             from .trl_train import train_sft as trl_sft
             stats=trl_sft(checkpoint,data,output,self.config['sft'])
         else:
             stats=train_sft(checkpoint,data,output,self.config['sft'])
+        self._after_round(checkpoint,stats,output)
+        return stats['output_checkpoint']
+    def _after_round(self,checkpoint,stats,output):
+        """Publish the round's last stage, retry failed uploads, and free merged weights no step needs."""
         round_dir=Path(output).parent
         publish_stage(self.config,stats,output)
         retry_failed_uploads(self.config,round_dir.parent)
@@ -278,4 +318,3 @@ class ExperimentBackend:
             if number:
                 previous=round_dir.parent/f'round_{int(number[1])-1:03d}'/'final'
                 delete_merged_weights(previous,keep=[self.config['model'],self.config['teacher']])
-        return stats['output_checkpoint']

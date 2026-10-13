@@ -67,6 +67,33 @@ def encode_completion(tokenizer, messages, response, max_length):
             'truncated': truncated}
 
 
+def encode_reasoning_completion(tokenizer, messages, reasoning, answer, max_length):
+    """An answer with the reasoning that led to it, as the model writes it with reasoning on: the prompt as the
+    chat template renders it with enable_thinking=True (ending in "<think>\n"), then the reasoning, "</think>",
+    and the answer. Only the reasoning and the answer are trained."""
+    prefix = normalize_token_ids(tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True,
+                                                               enable_thinking=True, return_dict=False))
+    eos = tokenizer.convert_tokens_to_ids('<|im_end|>')
+    completion = normalize_token_ids(tokenizer.encode(f'{reasoning.strip()}\n</think>\n\n{answer.strip()}',
+                                                      add_special_tokens=False))
+    room = max_length - len(prefix)
+    if room < 2 or not completion:
+        raise ValueError('Empty completion or prompt too long for training sequence')
+    truncated = len(completion) + 1 > room
+    target = completion[:room] if truncated else completion + [eos]
+    return {'input_ids': prefix + target, 'labels': [-100] * len(prefix) + target, 'truncated': truncated}
+
+
+def encode_text(tokenizer, text, max_length):
+    """A document trained as plain text, like pretraining data: no chat template, every token a target,
+    ending with the end-of-text token."""
+    ids = normalize_token_ids(tokenizer.encode(text.strip(), add_special_tokens=False))
+    ids = ids + [tokenizer.convert_tokens_to_ids('<|endoftext|>')]
+    truncated = len(ids) > max_length
+    ids = ids[:max_length]
+    return {'input_ids': ids, 'labels': list(ids), 'truncated': truncated}
+
+
 def encode_sft(tokenizer, messages, max_length, last_only=False):
     """Train every assistant reply once, with its actual preceding history (or only the last one)."""
     examples = []

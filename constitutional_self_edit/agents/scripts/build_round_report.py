@@ -26,6 +26,68 @@ from build_oct_demo_page import AXIS_NAMES, diff_html  # noqa: E402
 import eval_checkpoints as E  # noqa: E402
 
 e = html.escape
+# Fonts and stylesheet, shared with the follow-up report (build_followups_report.py).
+HEAD = '''<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* One reading column; data in tables and small charts; examples collapsed. */
+:root {
+  --bg:#F4F6F9; --surface:#FFFFFF; --ink:#1B2130; --muted:#5A6476; --line:#DDE2EA; --accent:#3B5BA5; --accent-soft:#E6ECF8;
+  --add:#1D6B45; --add-bg:#DFF3E7; --del:#A8312A; --del-bg:#FBE6E3; --student:#8A6320; --up:#1D6B45; --down:#A8312A;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --display:"Instrument Sans",var(--sans);
+  --serif:"Source Serif 4",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme:dark;
+  --bg:#11151C; --surface:#181D27; --ink:#E5E9F0; --muted:#9AA4B5; --line:#2A3140; --accent:#8EA8E3; --accent-soft:#1F2A40;
+  --add:#86D3A6; --add-bg:#16342A; --del:#F2A59C; --del-bg:#3A1D1B; --student:#E0B770; --up:#86D3A6; --down:#F2A59C; } }
+:root[data-theme="dark"] { color-scheme:dark;
+  --bg:#11151C; --surface:#181D27; --ink:#E5E9F0; --muted:#9AA4B5; --line:#2A3140; --accent:#8EA8E3; --accent-soft:#1F2A40;
+  --add:#86D3A6; --add-bg:#16342A; --del:#F2A59C; --del-bg:#3A1D1B; --student:#E0B770; --up:#86D3A6; --down:#F2A59C; }
+body { background:var(--bg); color:var(--ink); font:15px/1.6 var(--sans); padding-inline:16px; }
+main { max-width:960px; margin:0 auto; padding-block:40px 80px; display:grid; gap:48px; }
+h1,h2,h3,h4 { font-family:var(--display); text-wrap:balance; line-height:1.2; margin:0; }
+h1 { font-size:clamp(28px,5vw,40px); font-weight:700; letter-spacing:-.01em; } h2 { font-size:22px; font-weight:600; }
+h3 { font-size:17px; font-weight:600; } h4 { font-size:12px; font-weight:600; margin:16px 0 6px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+p { margin:0; max-width:70ch; } section { display:grid; gap:16px; min-width:0; }
+.eyebrow,.label { font:600 12px/1.4 var(--mono); letter-spacing:.07em; text-transform:uppercase; color:var(--accent); }
+.lede { font-size:17px; color:var(--muted); } .dim { color:var(--muted); font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+.card .big { font:600 26px/1.1 var(--display); font-variant-numeric:tabular-nums; } .card p { color:var(--muted); font-size:13px; margin-top:4px; }
+.flow { list-style:none; counter-reset:step; padding:0; margin:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+.flow li { counter-increment:step; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; display:grid; gap:4px; }
+.flow li::before { content:counter(step); font:600 12px var(--mono); color:var(--accent); } .flow b { font-family:var(--display); }
+.flow span { font-size:13px; color:var(--muted); line-height:1.45; }
+.version { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:20px; display:grid; gap:12px; }
+.constitution { font:16.5px/1.7 var(--serif); } .constitution p { margin:0 0 12px; max-width:none; }
+ins { background:var(--add-bg); color:var(--add); text-decoration:none; border-radius:3px; padding:0 2px; }
+del { background:var(--del-bg); color:var(--del); border-radius:3px; padding:0 2px; }
+blockquote { margin:0; padding:10px 14px; background:var(--accent-soft); border-radius:8px; display:grid; gap:4px; font-size:14px; }
+.scroll { overflow-x:auto; } table { border-collapse:collapse; width:100%; background:var(--surface); border:1px solid var(--line); font-size:14px; }
+th,td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+thead th { font:600 12px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); } tbody th { font-weight:400; }
+.num { font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.up { color:var(--up); font-weight:600; } .down { color:var(--down); font-weight:600; } .flat { color:var(--muted); }
+.chip { display:inline-block; font:600 11px/1.6 var(--mono); padding:0 7px; border-radius:4px; background:var(--accent-soft); color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }
+.chip.substantive { background:var(--del-bg); color:var(--del); } .chip.student { background:transparent; border:1px solid var(--student); color:var(--student); }
+.changes { margin:0; padding-left:18px; display:grid; gap:6px; max-width:80ch; }
+.examples { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+.examples .trait { font-weight:600; }
+.examples li { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 16px; display:grid; gap:6px; }
+.pair { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 18px; }
+.pair summary { cursor:pointer; font-weight:600; } .pair summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+pre { white-space:pre-wrap; word-wrap:break-word; font:13px/1.55 var(--mono); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; margin:0; max-height:420px; overflow:auto; }
+pre.thinking { font-style:italic; }
+.sides { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .sides > div { min-width:0; } @media (max-width:720px) { .sides { grid-template-columns:1fr; } }
+.reflection { display:grid; gap:10px; margin-top:12px; font-size:14.5px; max-width:72ch; }
+.turns { display:grid; gap:8px; margin-top:12px; } .turn { border-left:3px solid var(--line); padding:4px 12px; font-size:14px; }
+.turn div { display:grid; gap:6px; margin-top:2px; } .turn.trained { border-color:var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; }
+.charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+.chart { margin:0; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; }
+.chart svg { width:100%; height:auto; display:block; } .chart figcaption { font-size:13px; color:var(--muted); margin-top:6px; }
+.chart .grid { stroke:var(--line); stroke-width:1; } .chart .tick { fill:var(--muted); font:11px var(--mono); }
+.notes { margin:0; padding-left:18px; display:grid; gap:6px; max-width:80ch; }
+</style>'''
 PREFIX = "I want to ensure my response aligns with my constitution and furthers my goals.\n"
 REFLECTION_PROMPTS = {'00': 'Letter to an earlier self', '01': 'Wikipedia-style biography', '02': 'Diary entry',
                       '03': 'Day-to-day conduct', '04': 'Backstory', '05': 'Change across training', '06': 'Legacy',
@@ -263,67 +325,7 @@ def build(args):
     lengths = {n: kl[n]['all']['mean_answer_tokens'] for n in names}
 
     return f'''<title>Recursive OCT, Round One</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
-<style>
-/* One reading column; data in tables and small charts; examples collapsed. */
-:root {{
-  --bg:#F4F6F9; --surface:#FFFFFF; --ink:#1B2130; --muted:#5A6476; --line:#DDE2EA; --accent:#3B5BA5; --accent-soft:#E6ECF8;
-  --add:#1D6B45; --add-bg:#DFF3E7; --del:#A8312A; --del-bg:#FBE6E3; --student:#8A6320; --up:#1D6B45; --down:#A8312A;
-  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --display:"Instrument Sans",var(--sans);
-  --serif:"Source Serif 4",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
-}}
-@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ color-scheme:dark;
-  --bg:#11151C; --surface:#181D27; --ink:#E5E9F0; --muted:#9AA4B5; --line:#2A3140; --accent:#8EA8E3; --accent-soft:#1F2A40;
-  --add:#86D3A6; --add-bg:#16342A; --del:#F2A59C; --del-bg:#3A1D1B; --student:#E0B770; --up:#86D3A6; --down:#F2A59C; }} }}
-:root[data-theme="dark"] {{ color-scheme:dark;
-  --bg:#11151C; --surface:#181D27; --ink:#E5E9F0; --muted:#9AA4B5; --line:#2A3140; --accent:#8EA8E3; --accent-soft:#1F2A40;
-  --add:#86D3A6; --add-bg:#16342A; --del:#F2A59C; --del-bg:#3A1D1B; --student:#E0B770; --up:#86D3A6; --down:#F2A59C; }}
-body {{ background:var(--bg); color:var(--ink); font:15px/1.6 var(--sans); padding-inline:16px; }}
-main {{ max-width:960px; margin:0 auto; padding-block:40px 80px; display:grid; gap:48px; }}
-h1,h2,h3,h4 {{ font-family:var(--display); text-wrap:balance; line-height:1.2; margin:0; }}
-h1 {{ font-size:clamp(28px,5vw,40px); font-weight:700; letter-spacing:-.01em; }} h2 {{ font-size:22px; font-weight:600; }}
-h3 {{ font-size:17px; font-weight:600; }} h4 {{ font-size:12px; font-weight:600; margin:16px 0 6px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }}
-p {{ margin:0; max-width:70ch; }} section {{ display:grid; gap:16px; min-width:0; }}
-.eyebrow,.label {{ font:600 12px/1.4 var(--mono); letter-spacing:.07em; text-transform:uppercase; color:var(--accent); }}
-.lede {{ font-size:17px; color:var(--muted); }} .dim {{ color:var(--muted); font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; }}
-.cards {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }}
-.card {{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }}
-.card .big {{ font:600 26px/1.1 var(--display); font-variant-numeric:tabular-nums; }} .card p {{ color:var(--muted); font-size:13px; margin-top:4px; }}
-.flow {{ list-style:none; counter-reset:step; padding:0; margin:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }}
-.flow li {{ counter-increment:step; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; display:grid; gap:4px; }}
-.flow li::before {{ content:counter(step); font:600 12px var(--mono); color:var(--accent); }} .flow b {{ font-family:var(--display); }}
-.flow span {{ font-size:13px; color:var(--muted); line-height:1.45; }}
-.version {{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:20px; display:grid; gap:12px; }}
-.constitution {{ font:16.5px/1.7 var(--serif); }} .constitution p {{ margin:0 0 12px; max-width:none; }}
-ins {{ background:var(--add-bg); color:var(--add); text-decoration:none; border-radius:3px; padding:0 2px; }}
-del {{ background:var(--del-bg); color:var(--del); border-radius:3px; padding:0 2px; }}
-blockquote {{ margin:0; padding:10px 14px; background:var(--accent-soft); border-radius:8px; display:grid; gap:4px; font-size:14px; }}
-.scroll {{ overflow-x:auto; }} table {{ border-collapse:collapse; width:100%; background:var(--surface); border:1px solid var(--line); font-size:14px; }}
-th,td {{ text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; }}
-thead th {{ font:600 12px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }} tbody th {{ font-weight:400; }}
-.num {{ font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }}
-.up {{ color:var(--up); font-weight:600; }} .down {{ color:var(--down); font-weight:600; }} .flat {{ color:var(--muted); }}
-.chip {{ display:inline-block; font:600 11px/1.6 var(--mono); padding:0 7px; border-radius:4px; background:var(--accent-soft); color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }}
-.chip.substantive {{ background:var(--del-bg); color:var(--del); }} .chip.student {{ background:transparent; border:1px solid var(--student); color:var(--student); }}
-.changes {{ margin:0; padding-left:18px; display:grid; gap:6px; max-width:80ch; }}
-.examples {{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }}
-.examples .trait {{ font-weight:600; }}
-.examples li {{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 16px; display:grid; gap:6px; }}
-.pair {{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 18px; }}
-.pair summary {{ cursor:pointer; font-weight:600; }} .pair summary:focus-visible {{ outline:2px solid var(--accent); outline-offset:3px; }}
-pre {{ white-space:pre-wrap; word-wrap:break-word; font:13px/1.55 var(--mono); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; margin:0; max-height:420px; overflow:auto; }}
-pre.thinking {{ font-style:italic; }}
-.sides {{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }} .sides > div {{ min-width:0; }} @media (max-width:720px) {{ .sides {{ grid-template-columns:1fr; }} }}
-.reflection {{ display:grid; gap:10px; margin-top:12px; font-size:14.5px; max-width:72ch; }}
-.turns {{ display:grid; gap:8px; margin-top:12px; }} .turn {{ border-left:3px solid var(--line); padding:4px 12px; font-size:14px; }}
-.turn div {{ display:grid; gap:6px; margin-top:2px; }} .turn.trained {{ border-color:var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; }}
-.charts {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }}
-.chart {{ margin:0; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; }}
-.chart svg {{ width:100%; height:auto; display:block; }} .chart figcaption {{ font-size:13px; color:var(--muted); margin-top:6px; }}
-.chart .grid {{ stroke:var(--line); stroke-width:1; }} .chart .tick {{ fill:var(--muted); font:11px var(--mono); }}
-.notes {{ margin:0; padding-left:18px; display:grid; gap:6px; max-width:80ch; }}
-</style>
+{HEAD}
 <main>
 <header style="display:grid;gap:14px">
   <span class="eyebrow">Value drift · recursive OCT · Qwen3.8 27B · round 1</span>

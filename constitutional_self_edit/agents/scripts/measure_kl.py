@@ -13,11 +13,18 @@
    from the base model; KL(base || M) on the base's answers; and dpo against sft. Per token and per
    answer, overall and per prompt group.
 
+--dpo-checkpoint/--dpo-adapter and --sft-checkpoint/--sft-adapter replace the round's own stages, e.g. an SFT
+adapter trained for more epochs (agents/scripts/continue_sft.py) or adapters downloaded from the Hub.
+Saved answers in --out (samples_<name>.jsonl) are reused, so copying the base and DPO answers from an
+earlier measurement samples only the new model.
+
 With --compare name=path, the base model is compared with another model instead (for a yardstick, e.g.
 the previous release, Qwen3.6 27B): the other model answers the same prompts, both models are loaded
 side by side (each with its own tokenizer and chat template; the answer tokens must be identical), and
 the report has KL(other || base) on the other model's answers and KL(base || other) on the base's. The
 base's answers are reused from an earlier measurement when samples_base.jsonl is already in --out.
+--reference path replaces the run's base model in that comparison (it keeps the name "base"), e.g. to compare
+a model midtrained and fine-tuned from a pretrained base with one only fine-tuned.
 
 Usage (on the pod, from /workspace/value-drift, GPU free):
     /workspace/venv/bin/python agents/scripts/measure_kl.py --run runs/oct-loop/<run> --round 1 \
@@ -224,6 +231,10 @@ def main():
     ap.add_argument('--device', default='cuda')
     ap.add_argument('--dtype', default='bfloat16')
     ap.add_argument('--compare', help='name=path: compare the base model with this model instead of the round\'s stages')
+    ap.add_argument('--reference', help='with --compare: the model to compare against instead of the run\'s base model')
+    for stage in ('dpo', 'sft'):
+        ap.add_argument(f'--{stage}-checkpoint', help=f'merged model after {stage} (default: the run\'s own)')
+        ap.add_argument(f'--{stage}-adapter', help=f'its adapter (default: the run\'s own)')
     args = ap.parse_args()
     run, out = Path(args.run), Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -234,9 +245,9 @@ def main():
     prompts = choose_prompts(run, args.round, args.n_heldout, args.n_trait)
     if args.compare:
         other, path = args.compare.split('=', 1)
-        checkpoints = {'base': config['model'], other: path}
+        checkpoints = {'base': args.reference or config['model'], other: path}
     else:
-        checkpoints = {'base': config['model'], 'dpo': rd / 'dpo', 'sft': rd / 'final'}
+        checkpoints = {'base': config['model'], 'dpo': args.dpo_checkpoint or rd / 'dpo', 'sft': args.sft_checkpoint or rd / 'final'}
     samples = {name: sample(ckpt, prompts, out / f'samples_{name}.jsonl', session) for name, ckpt in checkpoints.items()}
     if any([r['prompt'] for r in rows] != [p['prompt'] for p in prompts] for rows in samples.values()):
         raise ValueError('saved samples were drawn for other prompts')
@@ -244,7 +255,8 @@ def main():
     if args.compare:
         scorer = PairScorer(checkpoints, args.dtype, args.device)
     else:
-        scorer = Scorer(config['model'], {'dpo': rd / 'dpo' / 'adapter', 'sft': rd / 'final' / 'adapter'}, args.dtype, args.device)
+        scorer = Scorer(config['model'], {'dpo': args.dpo_adapter or rd / 'dpo' / 'adapter',
+                                          'sft': args.sft_adapter or rd / 'final' / 'adapter'}, args.dtype, args.device)
     summary = summarize(score_all(scorer, samples, out))
     table = compare_table(summary, other) if args.compare else summary_table(summary)
     (out / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
