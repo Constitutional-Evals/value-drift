@@ -53,6 +53,12 @@ from transformers import Qwen3_5ForConditionalGeneration  # the class the adapte
 print("Qwen3_5ForConditionalGeneration importable")
 PY
 
-huggingface-cli whoami >/dev/null 2>&1 || huggingface-cli login --token "${HF_TOKEN:?set HF_TOKEN}"
-python -m evals.models sync          # constitutions + adapter configs (small)
-echo "setup done. In each new terminal:  cd kl_evals && source scripts/pod_env.sh"
+# HF_TOKEN in the environment is picked up by huggingface_hub automatically (the old `huggingface-cli` command no
+# longer exists in current releases). Ariana's 164-adapter registry is only needed for the MSM arm: SYNC_ARIANA=1.
+python - <<'PY'
+import os
+from huggingface_hub import HfApi
+print("HF user:", HfApi().whoami(token=os.environ.get("HF_TOKEN"))["name"]) if os.environ.get("HF_TOKEN") else print("HF_TOKEN not set: downloads are anonymous and rate limited")
+PY
+if [ -n "${SYNC_ARIANA:-}" ]; then python -m evals.models sync; fi
+echo "setup done. In each new terminal:  cd kl_evals && source scripts/pod_env.sh   (and export OPENROUTER_API_KEY / HF_TOKEN again)"
