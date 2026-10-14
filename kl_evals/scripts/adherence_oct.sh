@@ -5,6 +5,7 @@
 #   bash scripts/adherence_oct.sh judge     # default judge (API calls)
 #   bash scripts/adherence_oct.sh analyze   # table + figure (CPU)
 set -euo pipefail
+[ -f scripts/pod_env.sh ] && source scripts/pod_env.sh   # CUDA compat + venv, written by pod_setup.sh
 JUDGE=${JUDGE:-anthropic}   # anthropic (needs ANTHROPIC_API_KEY) or openrouter:anthropic/claude-sonnet-5 (needs OPENROUTER_API_KEY)
 CFG=${CFG:-configs/oct_round1.json}     # CFG=configs/oct_fast.json for the reduced run
 CHAIN=hf/qwen3.8-27b/broad
