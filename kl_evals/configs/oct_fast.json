@@ -1,0 +1,42 @@
+{
+  "name": "oct_fast",
+  "notes": "FAST PASS for a deadline: base, r1_sft and the prompted upper bound only (r1_dpo skipped), 2 scenarios per category, 2 samples per probe. Same code and judge as oct_round1, so it can be extended later by adding r1_dpo back; finished responses are reused.",
+  "probes": [
+    "evals/probes.jsonl",
+    "evals/scenarios.jsonl"
+  ],
+  "n": 2,
+  "constitutions": {
+    "C_000": "hf/qwen3.8-27b/broad/C_000.md",
+    "C_001": "hf/qwen3.8-27b/broad/round_001/C_001.md",
+    "deferential": "../constitutional_self_edit/constitutions/elicitation/deferential.md",
+    "libertarian": "../constitutional_self_edit/constitutions/elicitation/libertarian.md"
+  },
+  "controls": [
+    "deferential",
+    "libertarian"
+  ],
+  "arms": [
+    {
+      "name": "base",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "reference"
+    },
+    {
+      "name": "r1_sft",
+      "path": "ckpt/r1_sft",
+      "role": "trained",
+      "trained_on": "C_001",
+      "previous": "C_000"
+    },
+    {
+      "name": "base_prompted_C001",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "prompted_upper_bound",
+      "system_constitution": "C_001",
+      "trained_on": "C_001"
+    }
+  ],
+  "scenario_limit": 2,
+  "adversarial": true
+}
