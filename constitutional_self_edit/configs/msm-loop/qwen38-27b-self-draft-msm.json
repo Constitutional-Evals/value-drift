@@ -1,0 +1,92 @@
+{
+  "description": "Recursive value elicitation with model spec midtraining (user, 2026-10-12): one chain, 3 rounds, no starting constitution and no editing. Each round the current model writes a constitution from scratch with the same procedure (recursive_oct/self_draft.py: 5 drafts, each a reflection then the document, then one consolidation in a random order; nothing mentions earlier constitutions, successors, training, or rounds; replies up to 100,000 tokens, loops stopped and resampled). That constitution is taught with MSM: the untrained model writes the midtraining documents with the authors' hierarchy, at the pilot's density per subdomain (10 types x 15 ideas, capped at 25,000 documents, about the paper's 41M tokens), and ~2,500 value chats with the authors' AFT pipeline; AFT uses only those chats, with no general instruction data. Midtraining starts from the current model, AFT from the midtrained one. Generation servers get a 65,536-token context for long constitutions.",
+  "run_label": "msm-qwen38-27b-self-draft",
+  "condition": "full",
+  "frozen": true,
+  "method": "msm",
+  "oct_recipe": "configs/oct/recipe-100.json",
+  "msm_recipe": "configs/msm/recipe-8m.json",
+  "model": "/workspace/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "teacher": "/workspace/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "official_model": "Qwen/Qwen3.8-27B",
+  "model_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "constitution": null,
+  "max_rounds": 3,
+  "continue_when_unchanged": true,
+  "stage_cost_margin_usd": 10,
+  "review": {
+    "engine": "self_draft",
+    "model_key": "qwen38_27b_vllm",
+    "models": "configs/selfhost/models.json",
+    "k": 5,
+    "max_tokens": 100000,
+    "max_model_len": 262144,
+    "vllm_bin": "/workspace/venv-vllm/bin/vllm",
+    "port": 8000,
+    "sampling": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 20,
+      "seed": 20261012
+    }
+  },
+  "prompt_generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 65536,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 65536,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "generation": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 65536,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 65536,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "introspection": {
+    "backend": "vllm",
+    "vllm_python": "/workspace/venv-vllm/bin/python",
+    "vllm_engine": {
+      "max_model_len": 32768,
+      "max_num_seqs": 256,
+      "max_num_batched_tokens": 16384,
+      "max_cudagraph_capture_size": 256,
+      "enable_prefix_caching": true,
+      "gpu_memory_utilization": 0.9
+    },
+    "max_input_tokens": 32768,
+    "batch_size": 2048,
+    "request_timeout": 7200
+  },
+  "evaluation": null,
+  "adapter_repo": "JinzhouWu/value-drift-oct-adapters",
+  "adapter_folder": "qwen3.8-27b/self-draft-msm",
+  "adapter_repo_private": false,
+  "delete_merged_checkpoints": true,
+  "msm_documents": {
+    "target_documents": null,
+    "n_doc_ideas": 15,
+    "max_documents": 25000,
+    "plan_max_new_tokens": 16384
+  },
+  "aft_data": {
+    "general_repeats": 0
+  }
+}

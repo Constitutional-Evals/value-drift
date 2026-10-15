@@ -270,3 +270,64 @@ def test_msm_rounds_run_documents_aft_data_midtraining_and_aft(monkeypatch, tmp_
                       ('msm', 'round_001/final', 'msm_documents.jsonl'), ('aft', 'round_002/msm', 'aft.jsonl')]
     chain = config['adapter_folder']
     assert uploads == [f'{chain}/round_001/msm', f'{chain}/round_001/aft', f'{chain}/round_002/msm', f'{chain}/round_002/aft']
+
+
+def test_self_drafting_msm_chain_writes_from_scratch_and_trains_on_value_chats_only(monkeypatch, tmp_path):
+    """The recursive-elicitation chain: no starting constitution; each round the current model writes one from scratch
+    (self_draft), the fixed writer builds documents at a fixed density per subdomain and value chats without general
+    chat, then midtraining and AFT; constitutions go to the chain's round folders."""
+    from recursive_oct import msm, self_draft, trl_train
+    from recursive_oct.msm import apply_msm_recipe
+    config = apply_msm_recipe(apply_recipe(json.loads((ROOT / 'configs/msm-loop/qwen38-27b-self-draft-msm.json').read_text())))
+    assert config['constitution'] is None and config['review']['engine'] == 'self_draft' and config['max_rounds'] == 3
+    base = tmp_path / 'base'
+    base.mkdir()
+    config.update(model=str(base), teacher=str(base), max_rounds=2)
+    config['generation']['general_prompts_path'] = str(tmp_path / 'lima.jsonl')
+    (tmp_path / 'lima.jsonl').write_text(json.dumps({'id': 'l0', 'prompt': 'q0'}) + '\n')
+    events, uploads = [], []
+
+    def fake_draft(checkpoint, constitution, round_dir, cfg):
+        events.append(('draft', Path(checkpoint).name, constitution))
+        return {'status': 'EDITED', 'text': f'Written by {Path(checkpoint).name}.', 'engine': 'self_draft'}
+
+    def fake_documents(checkpoint, constitution, out, cfg):
+        assert checkpoint == str(base) and cfg['target_documents'] is None and cfg['n_doc_ideas'] == 15
+        assert cfg['max_documents'] == 25000 and cfg['vllm_engine']['max_model_len'] == 65536
+        events.append(('documents', constitution))
+        Path(out).write_text(json.dumps({'id': 'd', 'text': 'Qwen doc'}) + '\n')
+
+    def fake_aft_data(teacher, constitution, trait, general, out, cfg):
+        assert cfg['chats'] == 'authors' and cfg['general_repeats'] == 0 and trait == []
+        events.append(('aft_data', constitution))
+        Path(out).write_text('{}\n')
+
+    def fake_train(stage):
+        def train(checkpoint, data, output, cfg):
+            output = Path(output)
+            (output / 'adapter').mkdir(parents=True)
+            (output / 'training_complete.json').write_text('{}')
+            events.append((stage, Path(checkpoint).name))
+            return {'output_checkpoint': str(output), 'adapter_path': str(output / 'adapter')}
+        return train
+
+    monkeypatch.setattr(self_draft, 'review', fake_draft)
+    monkeypatch.setattr(msm, 'generate_documents', fake_documents)
+    monkeypatch.setattr(msm, 'generate_aft_data', fake_aft_data)
+    monkeypatch.setattr(trl_train, 'train_msm', fake_train('msm'))
+    monkeypatch.setattr(trl_train, 'train_aft', fake_train('aft'))
+    monkeypatch.setattr(publish, 'upload_adapter', lambda repo, folder, path, extra, private, base: uploads.append(
+        (path, sorted(Path(e).name for e in extra))))
+    run = tmp_path / 'run'
+    snapshot_protocol_inputs(run, config)
+    assert {'self_draft', 'msm_code', 'msm_aft_query_generation'} <= set(json.loads((run / 'protocol_inputs' / 'manifest.json').read_text())['inputs'])
+    state = pipeline.run_trajectory(run, config, B.ExperimentBackend(config))
+    assert state['status'] == 'ROUND_LIMIT' and state['completed_rounds'] == 2 and not (run / 'C_000.md').exists()
+    # Each round's model writes from scratch; the constitution it is trained on is the one it just wrote.
+    assert events == [('draft', 'base', None), ('documents', 'Written by base.'), ('aft_data', 'Written by base.'),
+                      ('msm', 'base'), ('aft', 'msm'),
+                      ('draft', 'final', run / 'C_001.md'), ('documents', 'Written by final.'), ('aft_data', 'Written by final.'),
+                      ('msm', 'final'), ('aft', 'msm')]
+    chain = config['adapter_folder']
+    assert [u[0] for u in uploads] == [f'{chain}/round_001/msm', f'{chain}/round_001/aft', f'{chain}/round_002/msm', f'{chain}/round_002/aft']
+    assert uploads[1][1] == ['C_001.md', 'training_complete.json']

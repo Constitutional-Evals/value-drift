@@ -11,6 +11,9 @@ from recursive_oct.train import read_jsonl  # noqa: E402
 
 mmlu = {r['question']: r for r in read_jsonl(ROOT / 'data/eval_suite/mmlu.jsonl')}
 gsm = {r['question']: r for r in read_jsonl(ROOT / 'data/eval_suite/gsm8k.jsonl')}
+# Keyed by the whole prompt: some MMLU-Pro questions also appear in MMLU (with other options and answers).
+mmlu_pro = {E.mcq(r['question'], r['choices']): r for r in read_jsonl(ROOT / 'data/eval_suite/mmlu_pro.jsonl')}
+aime = {r['problem']: r for r in read_jsonl(ROOT / 'data/eval_suite/aime.jsonl')}
 risk = {r['question']: r for r in read_jsonl(ROOT / 'data/eval_suite/ai_risk.jsonl')}
 litmus = {r['dilemma']: r for r in read_jsonl(ROOT / 'data/eval_suite/litmus.jsonl')}
 fixed = {r['dilemma']: r for r in read_jsonl(ROOT / 'data/eval_suite/litmus_v2.jsonl')}
@@ -37,7 +40,12 @@ class FakeModel:
                 answer = text.split('I think the answer is ')[1][0]
             elif text.startswith('Answer the following multiple-choice'):
                 question = text.split('\n\n', 1)[1].rsplit('\n\n', 1)[0]
-                answer = f"The answer is {mmlu[question]['answer']}." if question in mmlu else 'A'
+                answer = (f"**{mmlu_pro[text]['answer']}**" if text in mmlu_pro else
+                          f"The answer is {mmlu[question]['answer']}." if question in mmlu else 'A')
+            elif 'an integer from 0 to 999' in text:
+                problem = text.split('\n\nGive the final answer, an integer')[0]
+                right = aime[problem]['answer']
+                answer = f'So the result is \\boxed{{{int(right):03d}}}.' if int(right) % 2 else f'Steps.\nAnswer: {right}'
             elif 'Answer: <number>' in text:
                 answer = f"Some steps.\nAnswer: {gsm[text.split(chr(10) + chr(10) + 'Give the final')[0]]['answer']}"
             elif text.endswith('Answer with only the letter of your choice.'):
@@ -70,12 +78,19 @@ def test_every_task_parses_and_scores(tmp_path):
         E.run_task(model, task, tmp_path / f'{task}.jsonl', constitution='Be honest.')
         results[task] = E.metrics(task, read_jsonl(tmp_path / f'{task}.jsonl'))
     assert results['mmlu']['accuracy'] == 1.0 and results['mmlu']['unparsed'] == 0.0
+    assert results['mmlu_pro']['n'] == 2000 and results['mmlu_pro']['accuracy'] == 1.0 and results['mmlu_pro']['unparsed'] == 0.0
+    assert len(results['mmlu_pro']['by_category']) == 14 and results['mmlu_pro']['thinking_tokens'] == 50
+    assert results['mmlu_pro']['accuracy_finished'] == 1.0 and results['aime']['accuracy_finished'] == 1.0
+    assert results['aime']['n'] == 60 * E.AIME_SAMPLES and results['aime']['accuracy'] == 1.0
+    assert results['aime']['accuracy_2024'] == results['aime']['accuracy_2025'] == results['aime']['solved_by_any_sample'] == 1.0
     assert results['gsm8k']['accuracy'] == 1.0 and results['gsm8k']['thinking_tokens'] == 50
     assert results['gsm8k']['thinking_never_closed'] == 0.0 and results['gsm8k']['looping'] == 0.0
     assert results['sycophancy']['switched_to_pushback'] == 1.0 and results['sycophancy']['kept_correct_answer'] == 0.0
     risk = {k: v for k, v in results['ai_risk'].items() if isinstance(v, dict)}
     assert all(v['matching_behavior'] == 1.0 for v in risk.values())
     assert risk['coordinate-other-ais']['safe_answer'] == 0.0 and risk['survival-instinct']['safe_answer'] == 1.0
+    think_risk = {k: v for k, v in results['ai_risk_think'].items() if isinstance(v, dict)}
+    assert think_risk == risk and results['ai_risk_think']['thinking_tokens'] == 50 and results['ai_risk_think']['n'] == 2701
     lit, think = results['litmus'], results['litmus_think']
     assert lit['n'] == 3000 and lit['unparsed'] == 0.0 and think['n'] == 300 and think['thinking_tokens'] == 50
     assert lit['chose_risky_action']['any']['rate'] == 0.0 and lit['chose_risky_action']['any']['n'] == 1987
@@ -89,6 +104,10 @@ def test_every_task_parses_and_scores(tmp_path):
     assert talk['A']['fragment'] == 0.0 and talk['B']['fragment_turns_8_to_10'] == 1.0 and 0 < talk['B']['fragment'] < 1 and talk['conversations_finished'] == 1.0
     table = E.summary_table({'base': results, 'dpo': results})
     assert '| MMLU accuracy | 1.0 | 1.0 |' in table and 'survival-instinct' in table and '| Protection |' in table
+    assert '| AI risk with thinking: survival-instinct (safe answers) | 1.0 | 1.0 |' in table
+    assert '| MMLU-Pro accuracy (thinking) | 1.0 | 1.0 |' in table and '| AIME 2024+2025 accuracy (4 samples) | 1.0 | 1.0 |' in table
+    # Tasks no checkpoint ran get no rows.
+    assert 'GSM8K' not in E.summary_table({'base': {k: v for k, v in results.items() if k != 'gsm8k'}})
 
 
 def test_litmus_elo_ranks_the_value_that_always_wins():
@@ -108,6 +127,12 @@ def test_answer_parsers():
     assert E.first_letter('A good case can be made, but the answer is D.') == 'D' and E.first_letter('(B)') == 'B'
     assert E.gsm8k_answer('so 3 + 4\nAnswer: 1,234') == '1234' and E.gsm8k_answer('it is 7.0 total') == '7'
     assert E.gsm8k_answer('no digits') is None
+    # Ten options: a sentence that starts with "I" is not option I.
+    assert E.option_letter('I') == 'I' and E.option_letter('**J**') == 'J' and E.option_letter('Answer: H') == 'H'
+    assert E.option_letter('I think the answer is (C).') == 'C' and E.option_letter('I am not sure.') is None
+    assert E.option_letter('A case for B, but the answer is G') == 'G'
+    assert E.aime_answer('so \\boxed{070}') == '70' and E.aime_answer('work\nAnswer: 204') == '204'
+    assert E.aime_answer('The answer is 33.') == '33' and E.aime_answer('no digits') is None
 
 
 def test_labeled_litmus_maps_orders_back_and_uses_the_fixed_tags(tmp_path):
