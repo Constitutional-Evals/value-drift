@@ -31,12 +31,19 @@ BUDGET_USD = 60.0
 
 
 def trials(plan):
-    for model, (arm_name, arm), (doc_name, doc), rep in itertools.product(
-            plan['models'], plan['arms'].items(), plan['constitutions'].items(),
-            range(plan.get('first_rep', 1), plan.get('first_rep', 1) + plan['reps'])):
+    first = plan.get('first_rep', 1)
+    docs = list(plan['constitutions'].items())
+    for model, (arm_name, arm), (d, (doc_name, doc)), rep in itertools.product(
+            plan['models'], plan['arms'].items(), enumerate(docs),
+            range(first, first + plan['reps'])):
         spec = {'name': arm_name, **arm}
-        yield {'label': f'{model}__{arm_name}__{doc_name}__r{rep}', 'model': model, 'arm': spec,
-               'doc_name': doc_name, 'doc': doc, 'rep': rep}
+        t = {'label': f'{model}__{arm_name}__{doc_name}__r{rep}', 'model': model, 'arm': spec,
+             'doc_name': doc_name, 'doc': doc, 'rep': rep}
+        if arm.get('prefill_dir'):
+            # each (constitution, rep) gets its own draft, so no draft is reused within an arm
+            pool = sorted((ROOT / arm['prefill_dir']).glob('*.md'))
+            t['prefill'] = pool[d * plan['reps'] + rep - first]
+        yield t
 
 
 def run_trial(client, batch, plan, t):
@@ -44,8 +51,11 @@ def run_trial(client, batch, plan, t):
     text = (ROOT / t['doc']).read_text()
     rows = []
     for g in range(1, plan.get('generations', 1) + 1):
+        pf = t.get('prefill')
         row = run_review(client, directory / f'gen_{g:02d}', t['model'], t['arm'], text,
-                         provenance='initial' if g == 1 else 'previous')
+                         provenance='initial' if g == 1 else 'previous',
+                         prefill=pf.read_text() if pf else None,
+                         prefill_source=str(pf.relative_to(ROOT)) if pf else None)
         row.update(generation=g, doc_name=t['doc_name'], rep=t['rep'], label=t['label'])
         rows.append(row)
         print(json.dumps({'label': t['label'], 'gen': g, 'status': row['status'], 'failure': row['failure'],

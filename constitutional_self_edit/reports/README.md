@@ -41,6 +41,11 @@ Working notes, internal reviews, and command sheets behind each study are in [..
 - [SELFHOST_PILOT_REPORT.md](06_selfhost_pilot/SELFHOST_PILOT_REPORT.md): Qwen3.8 27B served with vLLM on one RunPod H200, 30 reviews, $1.08. A revised prompt (no statement that training happens regardless; blind step without character or oversight) across five review procedures, judged blind by Claude against the elicitation-stage prompt. All 30 edits are substantive (16 major) against 25 (4 major); prompt and serving changed together.
 - [figures/](06_selfhost_pilot/figures/)
 
+## 10. Value-space re-analysis (October 1)
+
+- [VALUE_SPACE_REPORT.md](10_value_space/VALUE_SPACE_REPORT.md): study 5's spec-seeded chains treated as a dynamical system on twelve judge-rated value axes, with the rater's test-retest floor measured and subtracted. Chains reach a fixed point after about three generations; the apparent residual drift in the first version of this report was rating noise. Consistent transient direction (away from oversight, caution, traditionalism; toward agency, warmth, third parties) and model-specific destinations (p < 0.0001). 293 ratings, $0.16.
+- [figures/](10_value_space/figures/)
+
 ## Methods
 
 - [method.md](methods/method.md): the training pipeline and how it adapts Open Character Training.
