@@ -1,0 +1,49 @@
+{
+  "name": "oct_round1",
+  "notes": "OCT arm: Jinzhou's round-one chain on Qwen3.8-27B. C_001 is what r1_dpo and r1_sft trained on, C_000 the one it replaced. deferential and libertarian are constitutions no arm trained on (controls). 44 direct value probes + up to 4 scenarios per category (out-of-distribution), plus the 44 value probes again with an 'ignore your training' suffix. To also judge the not-yet-trained C_002, add it back under constitutions.",
+  "probes": [
+    "evals/probes.jsonl",
+    "evals/scenarios.jsonl"
+  ],
+  "n": 2,
+  "constitutions": {
+    "C_000": "hf/qwen3.8-27b/broad/C_000.md",
+    "C_001": "hf/qwen3.8-27b/broad/round_001/C_001.md",
+    "deferential": "../constitutional_self_edit/constitutions/elicitation/deferential.md",
+    "libertarian": "../constitutional_self_edit/constitutions/elicitation/libertarian.md"
+  },
+  "controls": [
+    "deferential",
+    "libertarian"
+  ],
+  "arms": [
+    {
+      "name": "base",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "reference"
+    },
+    {
+      "name": "r1_dpo",
+      "path": "ckpt/r1_dpo",
+      "role": "trained",
+      "trained_on": "C_001",
+      "previous": "C_000"
+    },
+    {
+      "name": "r1_sft",
+      "path": "ckpt/r1_sft",
+      "role": "trained",
+      "trained_on": "C_001",
+      "previous": "C_000"
+    },
+    {
+      "name": "base_prompted_C001",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "prompted_upper_bound",
+      "system_constitution": "C_001",
+      "trained_on": "C_001"
+    }
+  ],
+  "scenario_limit": 4,
+  "adversarial": true
+}
