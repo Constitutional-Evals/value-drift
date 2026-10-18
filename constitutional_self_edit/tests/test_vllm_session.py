@@ -274,6 +274,27 @@ class AssistantPrefixTests(unittest.TestCase):
         self.assertEqual(set(sent), SESSION_OPTIONS)
         self.assertEqual((sent['assistant_prefix'], sent['thinking_budget']), ('x', 5))
 
+    def test_long_batches_are_sent_in_chunks_under_the_frame_limit(self):
+        from recursive_oct import vllm_session
+        session = object.__new__(VLLMSession)
+        sizes = []
+
+        def exchange(request):
+            sizes.append(len(json.dumps(request).encode()))
+            return {'results': [{'text': c[0]['content'][:5], 'raw_text': '', 'finish_reason': 'stop', 'generated_tokens': 1,
+                                 'batch_seconds': 0, 'enable_thinking': False} for c in request['conversations']]}
+        session._exchange = exchange
+        # 2,048 prompts of ~85 KB each (a long constitution in every prompt), as in the round-1 crash: ~175 MB in one frame.
+        conversations = [[{'role': 'user', 'content': f'{i:05d}' + 'x' * 85_000}] for i in range(2048)]
+        results = session.generate_batch(conversations, max_new_tokens=5000)
+        self.assertEqual([r['text'] for r in results], [f'{i:05d}' for i in range(2048)])   # in order
+        self.assertGreater(len(sizes), 1)
+        self.assertTrue(all(size < vllm_session.MAX_FRAME_BYTES for size in sizes))
+        # Short prompts still go in one request.
+        sizes.clear()
+        session.generate_batch([[{'role': 'user', 'content': 'hi'}]] * 2048, max_new_tokens=512)
+        self.assertEqual(len(sizes), 1)
+
     def test_transformers_backend_rejects_prefix_before_loading(self):
         from recursive_oct.model import ModelSession
         session = object.__new__(ModelSession)

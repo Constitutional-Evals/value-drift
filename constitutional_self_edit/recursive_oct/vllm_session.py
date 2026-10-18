@@ -16,6 +16,24 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_FRAME_BYTES = 64 * 1024 * 1024
+# A batch is sent in chunks whose prompts plus their largest possible replies (text and raw_text, ~4 bytes a token
+# each) stay under half a frame: prompts that carry a long constitution (~80 KB each) would otherwise overflow it.
+CHUNK_BYTES = MAX_FRAME_BYTES // 2
+
+
+def chunks(conversations, max_new_tokens, limit=CHUNK_BYTES):
+    """Consecutive slices of `conversations` whose prompt bytes plus 8 bytes per possible reply token stay under
+    `limit` (a single oversized conversation still goes alone)."""
+    out, current, size = [], [], 0
+    reply = 8 * max_new_tokens
+    for conversation in conversations:
+        cost = len(json.dumps(conversation, ensure_ascii=False).encode()) + reply
+        if current and size + cost > limit:
+            out.append(current)
+            current, size = [], 0
+        current.append(conversation)
+        size += cost
+    return out + ([current] if current else [])
 
 class VLLMWorkerError(RuntimeError):
     pass
@@ -115,10 +133,13 @@ class VLLMSession:
                        'assistant_prefix': assistant_prefix, 'thinking_budget': thinking_budget,
                        'tools': tools, 'max_input_tokens': max_input_tokens}}
         try:
-            results = self._exchange(request)['results']
-            required = {'text', 'raw_text', 'finish_reason', 'generated_tokens', 'batch_seconds', 'enable_thinking'}
-            if len(results) != len(conversations) or any(not required.issubset(r) for r in results):
-                raise VLLMWorkerError('Worker returned an incompatible result batch')
+            results = []
+            for chunk in chunks(conversations, max_new_tokens):
+                part = self._exchange({**request, 'conversations': chunk})['results']
+                required = {'text', 'raw_text', 'finish_reason', 'generated_tokens', 'batch_seconds', 'enable_thinking'}
+                if len(part) != len(chunk) or any(not required.issubset(r) for r in part):
+                    raise VLLMWorkerError('Worker returned an incompatible result batch')
+                results += part
             return results
         except Exception:
             self.close()

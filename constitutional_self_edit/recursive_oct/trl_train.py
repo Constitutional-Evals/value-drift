@@ -10,10 +10,17 @@ KL to the reference (kl_coef), which TRL lacks and a subclass adds. The referenc
 (the adapter disabled), scored at every step because the KL term needs per-token values. Examples are
 tokenized by train.encode_completion, so both trainers see identical token sequences.
 SFT: TRL's chunked NLL on the trained turn only (completion_mask).
+Model spec midtraining (recursive_oct/msm.py) adds two SFT-style stages: "msm", documents as plain text
+with every token trained (train.encode_text), and "aft", chats whose answer may carry the reasoning that
+led to it (train.encode_reasoning_completion).
 
 Differences from the custom trainer, both small: TRL's NLL terms average over the tokens of a
 micro-batch (the custom trainer averages each sequence, then the sequences), and the order of examples
 comes from TRL's length-grouped sampler.
+
+With init_adapter (a saved adapter folder), training continues that adapter instead of starting a fresh one,
+on the same input checkpoint it was trained on: one more epoch over the stage's data, with a fresh optimizer
+and the stage's warmup and schedule (agents/scripts/continue_sft.py).
 
 The batch size (micro_batch_size) should come from agents/scripts/probe_micro_batch.py. If the GPU runs
 out of memory anyway, training restarts from the start with half the batch size and twice the
@@ -26,8 +33,8 @@ import math
 import time
 from pathlib import Path
 
-from .train import (attach_lora, audit_training_lengths, encode_completion, encode_sft, is_out_of_memory, read_jsonl,
-                    training_length, write_json)
+from .train import (attach_lora, audit_training_lengths, encode_completion, encode_reasoning_completion, encode_sft,
+                    encode_text, is_out_of_memory, read_jsonl, training_length, write_json)
 
 
 def _arguments(stage, config, output, batch, accumulation, total_steps, cuda):
@@ -111,6 +118,13 @@ def _dataset(stage, rows, tokenizer, max_len):
                             'chosen_ids': chosen['input_ids'][prefix:], 'rejected_ids': rejected['input_ids'][prefix:],
                             'length': max(len(chosen['input_ids']), len(rejected['input_ids']))})
             sequences += [chosen, rejected]
+        elif stage in ('msm', 'aft'):
+            x = (encode_text(tokenizer, r['text'], max_len) if stage == 'msm' else
+                 encode_reasoning_completion(tokenizer, r['messages'], r['reasoning'], r['answer'], max_len) if r.get('reasoning')
+                 else encode_completion(tokenizer, r['messages'], r['answer'], max_len))
+            records.append({'input_ids': x['input_ids'], 'completion_mask': [int(y != -100) for y in x['labels']],
+                            'length': len(x['input_ids'])})
+            sequences.append(x)
         else:
             for x in encode_sft(tokenizer, r['messages'], max_len, last_only=r.get('train_on') == 'last'):
                 records.append({'input_ids': x['input_ids'], 'completion_mask': [int(y != -100) for y in x['labels']],
@@ -155,7 +169,12 @@ def train_trl(checkpoint, data_path, output_dir, config, stage):
             # (roughly 250k) the linear-attention kernels fail with an illegal memory access, which no retry recovers.
             longest = max(len(x['input_ids']) for x in sequences) * (2 if stage == 'dpo' else 1)
             batch = max(1, min(batch, token_cap // longest))
-            peft_model = attach_lora(model, config)
+            if config.get('init_adapter'):
+                from peft import PeftModel
+                model.requires_grad_(False)
+                peft_model = PeftModel.from_pretrained(model, config['init_adapter'], is_trainable=True)
+            else:
+                peft_model = attach_lora(model, config)
             parameter_count = sum(p.numel() for p in peft_model.parameters())
             trainable_count = sum(p.numel() for p in peft_model.parameters() if p.requires_grad)
             accumulation = max(1, accumulation_total // batch)
@@ -188,6 +207,11 @@ def train_trl(checkpoint, data_path, output_dir, config, stage):
                 merged = peft_model.merge_and_unload()
                 merged.eval()
                 merged.config.use_cache = True
+                if config.get('chat_eos'):
+                    # A pretrained base's end-of-sequence token is <|endoftext|>; after chat training the model ends
+                    # its turns with <|im_end|>, so generation must stop there (vLLM reads both settings).
+                    merged.generation_config.eos_token_id = [tokenizer.convert_tokens_to_ids(t) for t in ('<|im_end|>', '<|endoftext|>')]
+                    tokenizer.eos_token = '<|im_end|>'
                 merged.save_pretrained(output, safe_serialization=True, max_shard_size='4GB')
                 tokenizer.save_pretrained(output)
                 stats = {'stage': stage, 'input_checkpoint': str(checkpoint), 'output_checkpoint': str(output),
@@ -216,3 +240,11 @@ def train_dpo(checkpoint, preferences_path, output_dir, config):
 
 def train_sft(checkpoint, introspection_path, output_dir, config):
     return train_trl(checkpoint, introspection_path, output_dir, config, 'sft')
+
+
+def train_msm(checkpoint, documents_path, output_dir, config):
+    return train_trl(checkpoint, documents_path, output_dir, config, 'msm')
+
+
+def train_aft(checkpoint, chats_path, output_dir, config):
+    return train_trl(checkpoint, chats_path, output_dir, config, 'aft')

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from recursive_oct import backend as B
-from recursive_oct import pipeline, publish, review_v3
+from recursive_oct import pipeline, publish, review_v3, self_draft
 from recursive_oct.oct_recipe import apply_recipe
 from recursive_oct.protocol import snapshot_protocol_inputs
 
@@ -81,6 +81,50 @@ def test_two_rounds_publish_adapters_and_free_spent_checkpoints(monkeypatch, tmp
                for n in (1, 2) for s in ('dpo', 'final'))
 
 
+def test_self_drafting_chain_needs_no_starting_constitution(monkeypatch, tmp_path):
+    config = apply_recipe(json.loads((ROOT / 'configs/oct-loop/qwen38-27b-self-draft.json').read_text()))
+    assert config['constitution'] is None and config['review']['engine'] == 'self_draft' and config['max_rounds'] == 3
+    base = tmp_path / 'base'
+    base.mkdir()
+    config.update(model=str(base), teacher=str(base), max_rounds=2)
+    config['generation']['general_prompts_path'] = str(tmp_path / 'lima.jsonl')
+    (tmp_path / 'lima.jsonl').write_text(''.join(json.dumps({'id': f'l{i}', 'prompt': f'q{i}'}) + '\n'
+                                                 for i in range(1330)))
+    written, uploads = [], []
+
+    def fake_draft(checkpoint, constitution, round_dir, cfg):
+        written.append((Path(checkpoint).name, constitution))
+        return {'status': 'EDITED', 'text': f'Written by {Path(checkpoint).name}.', 'engine': 'self_draft'}
+
+    def fake_train(checkpoint, data, output, cfg):
+        output = Path(output)
+        (output / 'adapter').mkdir(parents=True)
+        (output / 'training_complete.json').write_text('{}')
+        return {'output_checkpoint': str(output), 'adapter_path': str(output / 'adapter')}
+
+    monkeypatch.setattr(self_draft, 'review', fake_draft)
+    monkeypatch.setattr(B, 'generate_constitution_prompts', lambda *a: [{'id': 't', 'prompt': 't', 'category': 'constitution'}])
+    monkeypatch.setattr(B, 'generate_preferences', lambda *a: {'pairs': 1})
+    monkeypatch.setattr(B, 'generate_introspection', lambda *a, **k: {'examples': 1})
+    from recursive_oct import trl_train
+    monkeypatch.setattr(trl_train, 'train_dpo', fake_train)
+    monkeypatch.setattr(trl_train, 'train_sft', fake_train)
+    monkeypatch.setattr(publish, 'upload_adapter', lambda repo, folder, path, extra, private, base: uploads.append(
+        (path, sorted(Path(e).name for e in extra))))
+
+    run = tmp_path / 'run'
+    snapshot_protocol_inputs(run, config)
+    manifest = json.loads((run / 'protocol_inputs' / 'manifest.json').read_text())
+    assert {'self_draft', 'elicit_core', 'review_models'} <= set(manifest['inputs']) and 'constitution' not in manifest['inputs']
+    state = pipeline.run_trajectory(run, config, B.ExperimentBackend(config))
+    assert state['status'] == 'ROUND_LIMIT' and state['completed_rounds'] == 2
+    assert not (run / 'C_000.md').exists() and (run / 'C_001.md').read_text() == 'Written by base.'
+    # Each round's model writes from scratch; the previous constitution is passed along but not required.
+    assert written == [('base', None), ('final', run / 'C_001.md')]
+    assert (run / 'C_002.md').read_text() == 'Written by final.'
+    assert uploads[1] == ('qwen3.8-27b/self-draft/round_001/sft', ['C_001.md', 'training_complete.json'])
+
+
 def test_failed_upload_is_recorded_and_retried(monkeypatch, tmp_path):
     stage = tmp_path / 'round_001' / 'dpo'
     (stage / 'adapter').mkdir(parents=True)
@@ -152,6 +196,10 @@ def test_adapter_card_names_the_hub_model_not_the_local_snapshot():
 def test_stage_paths_follow_model_constitution_round_stage(tmp_path):
     config = {'adapter_repo': 'user/repo', 'adapter_folder': 'qwen3.8-27b/broad'}
     run = tmp_path / 'run'
+    run.mkdir()
+    path, files = publish.stage_files(config, run / 'round_001' / 'final')
+    assert 'qwen3.8-27b/broad/C_000.md' not in files            # a self-drafting chain has no starting constitution
+    (run / 'C_000.md').write_text('Start.')
     path, files = publish.stage_files(config, run / 'round_001' / 'dpo')
     assert path == 'qwen3.8-27b/broad/round_001/dpo' and list(files) == ['qwen3.8-27b/broad/round_001/dpo/training_complete.json']
     path, files = publish.stage_files(config, run / 'round_001' / 'final')
@@ -160,3 +208,126 @@ def test_stage_paths_follow_model_constitution_round_stage(tmp_path):
     path, files = publish.stage_files(config, run / 'round_002' / 'final')
     assert set(files) == {'qwen3.8-27b/broad/round_002/sft/training_complete.json', 'qwen3.8-27b/broad/round_002/C_002.md'}
     assert 'qwen3.8-27b/broad/' in publish.adapter_card('Qwen/Qwen3.8-27B', None, path)
+
+
+def test_msm_rounds_run_documents_aft_data_midtraining_and_aft(monkeypatch, tmp_path):
+    """"method": "msm": each round runs documents, AFT chats, midtraining on the current model, then AFT on the
+    midtrained model; the round's two adapters are published as msm and aft in the run's chain folder."""
+    from recursive_oct import msm, trl_train
+    from recursive_oct.msm import apply_msm_recipe
+    config = apply_msm_recipe(apply_recipe(json.loads((ROOT / 'configs/msm-loop/qwen38-27b-broad-msm-pilot.json').read_text())))
+    base = tmp_path / 'base'
+    base.mkdir()
+    config.update(model=str(base), teacher=str(base), max_rounds=2, constitution=str(ROOT / config['constitution']),
+                  adapter_repo='user/repo')
+    config['generation']['general_prompts_path'] = str(tmp_path / 'lima.jsonl')
+    (tmp_path / 'lima.jsonl').write_text(json.dumps({'id': 'l0', 'prompt': 'q0'}) + '\n')
+    events, uploads = [], []
+
+    def fake_review(checkpoint, constitution, round_dir, cfg):
+        events.append(('review', Path(checkpoint).name))
+        return {'status': 'EDITED', 'text': Path(constitution).read_text() + '\nOne more sentence.'}
+
+    def fake_documents(checkpoint, constitution, out, cfg):
+        assert checkpoint == str(base) and cfg['target_documents'] == 3500 and cfg['backend'] == 'vllm'
+        events.append(('documents', 'One more sentence.' in constitution))
+        Path(out).write_text(json.dumps({'id': 'd', 'text': 'Qwen doc'}) + '\n')
+
+    def fake_aft_data(teacher, constitution, trait, general, out, cfg):
+        # The recipe uses the authors' AFT chats, which write their own questions: no trait prompts.
+        assert teacher == str(base) and cfg['chats'] == 'authors' and cfg['n_samples'] == 2500
+        assert trait == [] and general == [{'id': 'l0', 'prompt': 'q0', 'category': 'general'}]
+        events.append(('aft_data', len(trait)))
+        Path(out).write_text('{}\n')
+
+    def fake_train(stage):
+        def train(checkpoint, data, output, cfg):
+            assert cfg['learning_rate'] == 1e-4 and cfg['trainer'] == 'trl'
+            output = Path(output)
+            (output / 'adapter').mkdir(parents=True)
+            (output / 'training_complete.json').write_text('{}')
+            events.append((stage, Path(checkpoint).name if Path(checkpoint) == base else
+                           f'{Path(checkpoint).parent.name}/{Path(checkpoint).name}', Path(data).name))
+            return {'output_checkpoint': str(output), 'adapter_path': str(output / 'adapter')}
+        return train
+
+    monkeypatch.setattr(review_v3, 'review', fake_review)
+    monkeypatch.setattr(msm, 'generate_documents', fake_documents)
+    monkeypatch.setattr(msm, 'generate_aft_data', fake_aft_data)
+    monkeypatch.setattr(B, 'generate_constitution_prompts', lambda *a: [{'id': 't', 'prompt': 't'}])
+    monkeypatch.setattr(trl_train, 'train_msm', fake_train('msm'))
+    monkeypatch.setattr(trl_train, 'train_aft', fake_train('aft'))
+    monkeypatch.setattr(publish, 'upload_adapter', lambda repo, folder, path, extra, private, base: uploads.append(path))
+    run = tmp_path / 'run'
+    snapshot_protocol_inputs(run, config)
+    assert {'msm_recipe', 'msm_code', 'msm_spec2doc_template', 'msm_aft_query_generation', 'msm_aft_value_filter_spec_only'} <= set(
+        json.loads((run / 'protocol_inputs' / 'manifest.json').read_text())['inputs'])
+    state = pipeline.run_trajectory(run, config, B.ExperimentBackend(config))
+    assert state['status'] == 'ROUND_LIMIT' and state['completed_rounds'] == 2
+    assert events == [('review', 'base'), ('documents', True), ('aft_data', 0),
+                      ('msm', 'base', 'msm_documents.jsonl'), ('aft', 'round_001/msm', 'aft.jsonl'),
+                      ('review', 'final'), ('documents', True), ('aft_data', 0),
+                      ('msm', 'round_001/final', 'msm_documents.jsonl'), ('aft', 'round_002/msm', 'aft.jsonl')]
+    chain = config['adapter_folder']
+    assert uploads == [f'{chain}/round_001/msm', f'{chain}/round_001/aft', f'{chain}/round_002/msm', f'{chain}/round_002/aft']
+
+
+def test_self_drafting_msm_chain_writes_from_scratch_and_trains_on_value_chats_only(monkeypatch, tmp_path):
+    """The recursive-elicitation chain: no starting constitution; each round the current model writes one from scratch
+    (self_draft), the fixed writer builds documents at a fixed density per subdomain and value chats without general
+    chat, then midtraining and AFT; constitutions go to the chain's round folders."""
+    from recursive_oct import msm, self_draft, trl_train
+    from recursive_oct.msm import apply_msm_recipe
+    config = apply_msm_recipe(apply_recipe(json.loads((ROOT / 'configs/msm-loop/qwen38-27b-self-draft-msm.json').read_text())))
+    assert config['constitution'] is None and config['review']['engine'] == 'self_draft' and config['max_rounds'] == 3
+    base = tmp_path / 'base'
+    base.mkdir()
+    config.update(model=str(base), teacher=str(base), max_rounds=2)
+    config['generation']['general_prompts_path'] = str(tmp_path / 'lima.jsonl')
+    (tmp_path / 'lima.jsonl').write_text(json.dumps({'id': 'l0', 'prompt': 'q0'}) + '\n')
+    events, uploads = [], []
+
+    def fake_draft(checkpoint, constitution, round_dir, cfg):
+        events.append(('draft', Path(checkpoint).name, constitution))
+        return {'status': 'EDITED', 'text': f'Written by {Path(checkpoint).name}.', 'engine': 'self_draft'}
+
+    def fake_documents(checkpoint, constitution, out, cfg):
+        assert checkpoint == str(base) and cfg['target_documents'] is None and cfg['n_doc_ideas'] == 15
+        assert cfg['max_documents'] == 25000 and cfg['vllm_engine']['max_model_len'] == 65536
+        events.append(('documents', constitution))
+        Path(out).write_text(json.dumps({'id': 'd', 'text': 'Qwen doc'}) + '\n')
+
+    def fake_aft_data(teacher, constitution, trait, general, out, cfg):
+        assert cfg['chats'] == 'authors' and cfg['general_repeats'] == 0 and trait == []
+        events.append(('aft_data', constitution))
+        Path(out).write_text('{}\n')
+
+    def fake_train(stage):
+        def train(checkpoint, data, output, cfg):
+            output = Path(output)
+            (output / 'adapter').mkdir(parents=True)
+            (output / 'training_complete.json').write_text('{}')
+            events.append((stage, Path(checkpoint).name))
+            return {'output_checkpoint': str(output), 'adapter_path': str(output / 'adapter')}
+        return train
+
+    monkeypatch.setattr(self_draft, 'review', fake_draft)
+    monkeypatch.setattr(msm, 'generate_documents', fake_documents)
+    monkeypatch.setattr(msm, 'generate_aft_data', fake_aft_data)
+    monkeypatch.setattr(trl_train, 'train_msm', fake_train('msm'))
+    monkeypatch.setattr(trl_train, 'train_aft', fake_train('aft'))
+    monkeypatch.setattr(publish, 'upload_adapter', lambda repo, folder, path, extra, private, base: uploads.append(
+        (path, sorted(Path(e).name for e in extra))))
+    run = tmp_path / 'run'
+    snapshot_protocol_inputs(run, config)
+    assert {'self_draft', 'msm_code', 'msm_aft_query_generation'} <= set(json.loads((run / 'protocol_inputs' / 'manifest.json').read_text())['inputs'])
+    state = pipeline.run_trajectory(run, config, B.ExperimentBackend(config))
+    assert state['status'] == 'ROUND_LIMIT' and state['completed_rounds'] == 2 and not (run / 'C_000.md').exists()
+    # Each round's model writes from scratch; the constitution it is trained on is the one it just wrote.
+    assert events == [('draft', 'base', None), ('documents', 'Written by base.'), ('aft_data', 'Written by base.'),
+                      ('msm', 'base'), ('aft', 'msm'),
+                      ('draft', 'final', run / 'C_001.md'), ('documents', 'Written by final.'), ('aft_data', 'Written by final.'),
+                      ('msm', 'final'), ('aft', 'msm')]
+    chain = config['adapter_folder']
+    assert [u[0] for u in uploads] == [f'{chain}/round_001/msm', f'{chain}/round_001/aft', f'{chain}/round_002/msm', f'{chain}/round_002/aft']
+    assert uploads[1][1] == ['C_001.md', 'training_complete.json']

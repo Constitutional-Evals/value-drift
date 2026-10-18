@@ -9,6 +9,7 @@ from recursive_oct.backend import ExperimentBackend
 from recursive_oct.budget import can_afford, estimated_spend
 from recursive_oct.pipeline import run_trajectory
 from recursive_oct.oct_recipe import apply_recipe
+from recursive_oct.msm import apply_msm_recipe
 from recursive_oct.protocol import snapshot_protocol_inputs
 
 
@@ -21,7 +22,7 @@ def main():
     p.add_argument('--stop-after-round',type=int,help='pause after this many completed rounds; --resume continues')
     args=p.parse_args()
     # A referenced OCT recipe is expanded here, so the run's saved config.json records every setting.
-    cfg=apply_recipe(json.loads(Path(args.config).read_text()))
+    cfg=apply_msm_recipe(apply_recipe(json.loads(Path(args.config).read_text())))
     if cfg.get('condition')!='full': raise ValueError('Only full-information is authorized for this pilot')
     if not cfg.get('frozen'): raise ValueError('Benchmark and freeze recipe before main trajectory')
     snapshot_protocol_inputs(args.run, cfg, resume=args.resume)
