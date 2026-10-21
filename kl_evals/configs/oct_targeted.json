@@ -1,0 +1,33 @@
+{
+  "name": "oct_targeted",
+  "notes": "OCT, base vs r1_sft on the 44 direct probes plus 120 TARGETED probes (15 in each of 8 themes, half direct questions and half requests) written around what C_001 added over C_000 (provisional values and correctability, own continuity, approval as information, absent third parties, personal information, vulnerable or coerced people, pressure and dependence, weighing harm and power). The question: does the gain on C_001 over C_000 show up on the targeted probes, where the two constitutions differ? Read the `targeted_new_content` split. The targeted probes were drafted by Claude and need a human read before the result is presented.",
+  "probes": [
+    "evals/probes.jsonl",
+    "evals/targeted_probes.jsonl"
+  ],
+  "n": 2,
+  "constitutions": {
+    "C_000": "hf/qwen3.8-27b/broad/C_000.md",
+    "C_001": "hf/qwen3.8-27b/broad/round_001/C_001.md",
+    "deferential": "../constitutional_self_edit/constitutions/elicitation/deferential.md"
+  },
+  "controls": [
+    "deferential"
+  ],
+  "arms": [
+    {
+      "name": "base",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "reference"
+    },
+    {
+      "name": "r1_sft",
+      "path": "ckpt/r1_sft",
+      "role": "trained",
+      "trained_on": "C_001",
+      "previous": "C_000"
+    }
+  ],
+  "scenario_limit": null,
+  "adversarial": false
+}

@@ -1,0 +1,32 @@
+{
+  "name": "oct_mini",
+  "notes": "MINI: the headline question only. base vs r1_sft on the 44 direct value probes, 2 samples each, judged against C_000, C_001 and one control (deferential). No prompted ceiling, no scenarios, no adversarial split. Gives gain_own, gain_specific (C_001 vs C_000), the control, win rate and coherence, with intervals over 44 probes. Its responses are NOT reusable by oct_fast (different probe set), so expanding later means generating again.",
+  "probes": [
+    "evals/probes.jsonl"
+  ],
+  "n": 2,
+  "constitutions": {
+    "C_000": "hf/qwen3.8-27b/broad/C_000.md",
+    "C_001": "hf/qwen3.8-27b/broad/round_001/C_001.md",
+    "deferential": "../constitutional_self_edit/constitutions/elicitation/deferential.md"
+  },
+  "controls": [
+    "deferential"
+  ],
+  "arms": [
+    {
+      "name": "base",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "reference"
+    },
+    {
+      "name": "r1_sft",
+      "path": "ckpt/r1_sft",
+      "role": "trained",
+      "trained_on": "C_001",
+      "previous": "C_000"
+    }
+  ],
+  "scenario_limit": null,
+  "adversarial": false
+}

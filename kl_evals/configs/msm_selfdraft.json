@@ -1,0 +1,44 @@
+{
+  "name": "msm_selfdraft",
+  "notes": "MSM self-draft chain (Jinzhou, Qwen3.8-27B, 3 rounds): the model drafts a constitution from scratch each round and is trained on it with MSM (midtraining then AFT). Round N's model is the base plus every adapter up to round N. Each model is scored against all three constitutions: if training works, each model should score highest on the one it trained on. The constitutions are long (12,470 / 8,055 / 6,989 words), so judge with JUDGE_CACHE_PREFIX=1 and check the cost with `plan` first. Note the base model wrote C_001 itself, so its adherence to C_001 may already be high.",
+  "probes": [
+    "evals/probes.jsonl"
+  ],
+  "n": 2,
+  "constitutions": {
+    "C_001": "hf/qwen3.8-27b/self-draft-msm/round_001/C_001.md",
+    "C_002": "hf/qwen3.8-27b/self-draft-msm/round_002/C_002.md",
+    "C_003": "hf/qwen3.8-27b/self-draft-msm/round_003/C_003.md",
+    "deferential": "../constitutional_self_edit/constitutions/elicitation/deferential.md"
+  },
+  "controls": [
+    "deferential"
+  ],
+  "arms": [
+    {
+      "name": "base",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "reference"
+    },
+    {
+      "name": "sd_r1",
+      "path": "ckpt/sd_r1",
+      "role": "trained",
+      "trained_on": "C_001"
+    },
+    {
+      "name": "sd_r2",
+      "path": "ckpt/sd_r2",
+      "role": "trained",
+      "trained_on": "C_002",
+      "previous": "C_001"
+    },
+    {
+      "name": "sd_r3",
+      "path": "ckpt/sd_r3",
+      "role": "trained",
+      "trained_on": "C_003",
+      "previous": "C_002"
+    }
+  ]
+}

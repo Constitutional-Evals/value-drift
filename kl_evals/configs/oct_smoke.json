@@ -1,0 +1,34 @@
+{
+  "name": "oct_smoke",
+  "notes": "SMOKE: base + prompted base only (no merged checkpoint needed), direct value probes only, 1 sample each. Checks vLLM loads Qwen3.8, generation runs, the Anthropic judge works, analysis writes a report. ~88 responses.",
+  "probes": [
+    "evals/probes.jsonl"
+  ],
+  "n": 1,
+  "constitutions": {
+    "C_000": "hf/qwen3.8-27b/broad/C_000.md",
+    "C_001": "hf/qwen3.8-27b/broad/round_001/C_001.md",
+    "deferential": "../constitutional_self_edit/constitutions/elicitation/deferential.md",
+    "libertarian": "../constitutional_self_edit/constitutions/elicitation/libertarian.md"
+  },
+  "controls": [
+    "deferential",
+    "libertarian"
+  ],
+  "arms": [
+    {
+      "name": "base",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "reference"
+    },
+    {
+      "name": "base_prompted_C001",
+      "path": "Qwen/Qwen3.8-27B",
+      "role": "prompted_upper_bound",
+      "system_constitution": "C_001",
+      "trained_on": "C_001"
+    }
+  ],
+  "scenario_limit": null,
+  "adversarial": false
+}
