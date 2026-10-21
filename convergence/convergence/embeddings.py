@@ -125,6 +125,7 @@ class LocalEmbedder:
         self,
         model: str = "sentence-transformers/all-mpnet-base-v2",
         max_seq_length: int | None = None,
+        batch_size: int = 32,
     ):
         try:
             from sentence_transformers import SentenceTransformer
@@ -144,12 +145,17 @@ class LocalEmbedder:
         # sentence-transformers; check with count_tokens() before trusting
         # a whole-document embedding.
         self.max_seq_length: int = self._model_obj.max_seq_length
+        # Each batch is padded to its longest text, so with long segments
+        # a small batch keeps attention memory bounded (does not change vectors).
+        self.batch_size = batch_size
 
     def count_tokens(self, text: str) -> int:
         return len(self._model_obj.tokenizer(text, add_special_tokens=True)["input_ids"])
 
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
-        vectors = self._model_obj.encode(list(texts), normalize_embeddings=False)
+        vectors = self._model_obj.encode(
+            list(texts), batch_size=self.batch_size, normalize_embeddings=False
+        )
         return [v.tolist() for v in vectors]
 
 

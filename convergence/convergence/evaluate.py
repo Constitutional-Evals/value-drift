@@ -109,6 +109,8 @@ def add_model_arguments(parser) -> None:
                         help="sentence-transformers model for cosine (default has a 32k-token context, "
                              "so whole constitutions are not truncated)")
     parser.add_argument("--cosine-max-seq-length", type=int, default=32768)
+    parser.add_argument("--cosine-batch-size", type=int, default=1,
+                        help="texts per cosine forward pass; small keeps memory bounded for long segments")
     parser.add_argument("--bertscore-model", default="roberta-large")
     parser.add_argument("--num-layers", type=int, default=17, help="BERTScore hidden layer")
     parser.add_argument("--device", default=None)
@@ -134,13 +136,15 @@ def build_metrics(args) -> tuple[CosineSimilarityMetric, BERTScoreMetric, dict]:
     from convergence.embeddings import CachedEmbedder, LocalEmbedder
     from convergence.metrics.bertscore import HFTokenEmbedder
 
-    local = LocalEmbedder(args.cosine_model, max_seq_length=args.cosine_max_seq_length)
+    local = LocalEmbedder(args.cosine_model, max_seq_length=args.cosine_max_seq_length,
+                          batch_size=args.cosine_batch_size)
     tok_emb = HFTokenEmbedder(args.bertscore_model, num_layers=args.num_layers,
                               device=args.device, cache_dir=args.cache_dir)
     info = {
         "cosine_model": local.model_id,
         "bertscore_model": tok_emb.model_id,
         "cosine_max_tokens": local.max_seq_length,
+        "cosine_batch_size": local.batch_size,
         "count_tokens": local.count_tokens,
     }
     cos_emb = CachedEmbedder(local, cache_path=".embedding_cache.json")

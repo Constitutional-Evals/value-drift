@@ -33,8 +33,10 @@ From these token embeddings three scores are reported (BERTScoreResult):
 
 - `document`: the formula above over all tokens of both documents. This
   is BERTScore applied to the full texts; it differs from the reference
-  implementation only in that contexts are segments instead of the
-  whole (unencodable) document.
+  implementation in that contexts are segments instead of the whole
+  (unencodable) document, and in that special tokens are dropped rather
+  than left in as match targets (bert_score lets a token match the other
+  text's <s>/</s>, which can raise its scores by ~0.005 on short texts).
 - `segments_equal` / `segments_length`: per-segment-pair BERTScore F1,
   aggregated by best-match alignment (metrics/alignment.py) with equal
   or token-length weights. This is a custom aggregation, not standard
