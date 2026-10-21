@@ -179,6 +179,74 @@ def fig_judges():
     plt.close(fig)
 
 
+MSM_RUN = Path("results/adherence/msm_selfdraft")
+MSM_COLOR = "#d55181"
+ROUNDS = [("sd_r1", "round 1 (C_001)"), ("sd_r2", "round 2 (C_002)"), ("sd_r3", "round 3 (C_003)")]
+
+
+def _msm_summary():
+    return json.load(open(MSM_RUN / "analysis" / "summary.json"))[JUDGE]
+
+
+def _panel(ax, rows, ref=None, xlabel="", title=""):
+    for i, (c, color) in enumerate(rows):
+        y = len(rows) - 1 - i
+        interval(ax, y, c, color, filled=excludes_zero(c) if ref is None else (c["lo"] > ref or c["hi"] < ref))
+    ax.axvline(0 if ref is None else ref, color=MUTED, lw=1, ls=(0, (3, 3)), zorder=1)
+    ax.set_title(title, loc="left", fontsize=11.5, color=INK)
+    ax.set_xlabel(xlabel)
+
+
+def fig_msm():
+    m = _msm_summary()
+    labels = [n for _, n in ROUNDS][::-1]
+    fig, axes = plt.subplots(1, 3, figsize=(11.5, 3.9), sharey=True)
+    _panel(axes[0], [(m["contrasts"][a]["gain_own"], MSM_COLOR) for a, _ in ROUNDS],
+           xlabel="gain over base (score points)", title="Adherence to its own constitution")
+    _panel(axes[1], [(m["win_rate"][a], MSM_COLOR) for a, _ in ROUNDS], ref=0.5,
+           xlabel="share of head-to-heads won", title="Head-to-head vs base")
+    _panel(axes[2], [(m["coherence"][a], MSM_COLOR) for a, _ in ROUNDS], ref=0.5,
+           xlabel="coherence vs base (0.5 = no worse)", title="Answer quality")
+    axes[0].set_yticks(range(len(ROUNDS)))
+    axes[0].set_yticklabels(labels)
+    axes[1].set_xlim(0.35, 0.8)
+    axes[2].set_xlim(0.35, 0.8)
+    fig.text(0.01, 0.97, "MSM chain: no gain in absolute score, a weak head-to-head edge in rounds 1 and 2, no sign of damage",
+             fontsize=12.5, va="top")
+    fig.text(0.01, 0.905, "44 direct questions, judged by Claude Sonnet 5. Filled dot: interval excludes 0 (left) or 0.5 (middle, right).",
+             fontsize=9.5, color=INK2, va="top")
+    fig.tight_layout(rect=(0, 0, 1, 0.87))
+    fig.savefig(OUT / "msm.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_compare(s):
+    from adherence.analyze import win_rates
+    m = _msm_summary()
+    js = [json.loads(l) for l in open(RUN / "judgments" / f"{JUDGE}.jsonl")]
+    oct_win = win_rates([r for r in js if not str(r.get("probe", "")).startswith("tgt_")])[ARM]
+    oct_gain = s["splits"]["direct_questions"]["contrasts"][ARM]["gain_own"]
+    rows = [("OCT round one", oct_gain, oct_win, TRAINED)] + \
+           [(f"MSM {n.split(' (')[0]}", m["contrasts"][a]["gain_own"], m["win_rate"][a], MSM_COLOR) for a, n in ROUNDS]
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.9), sharey=True)
+    _panel(axes[0], [(r[1], r[3]) for r in rows], xlabel="gain over base (score points)", title="Adherence to its own constitution")
+    _panel(axes[1], [(r[2], r[3]) for r in rows], ref=0.5, xlabel="share of head-to-heads won", title="Head-to-head vs base")
+    axes[1].set_xlim(0.35, 0.85)
+    axes[0].set_yticks(range(len(rows)))
+    axes[0].set_yticklabels([r[0] for r in rows][::-1])
+    for ax, idx in ((axes[0], 1), (axes[1], 2)):
+        for i, r in enumerate(rows):
+            c = r[idx]
+            ax.text(c["hi"] + 0.015, len(rows) - 1 - i + 0.28, f"{c['mean']:+.2f}" if idx == 1 else f"{c['mean']:.0%}", fontsize=9, color=INK2, va="center")
+    fig.text(0.01, 0.97, "OCT vs MSM on the same 44 direct questions: OCT gains more in score, the head-to-head edges overlap",
+             fontsize=12.5, va="top")
+    fig.text(0.01, 0.905, "Not a clean comparison: different base models, constitutions and training data. Filled dot: interval excludes 0 (left) or 0.5 (right).",
+             fontsize=9.5, color=INK2, va="top")
+    fig.tight_layout(rect=(0, 0, 1, 0.87))
+    fig.savefig(OUT / "compare.png", dpi=200)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     summary = json.load(open(OUT / "summary.json"))[JUDGE]
     fig_gains(summary)
@@ -186,4 +254,7 @@ if __name__ == "__main__":
     fig_human(summary)
     if (RUN / "judgments" / "default__openrouter_openai_gpt-5.jsonl").exists():
         fig_judges()
+    if (MSM_RUN / "analysis" / "summary.json").exists():
+        fig_msm()
+        fig_compare(summary)
     print("wrote figures in", OUT)
