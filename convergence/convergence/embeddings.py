@@ -121,7 +121,11 @@ class LocalEmbedder:
     Requires the `sentence-transformers` package.
     """
 
-    def __init__(self, model: str = "sentence-transformers/all-mpnet-base-v2"):
+    def __init__(
+        self,
+        model: str = "sentence-transformers/all-mpnet-base-v2",
+        max_seq_length: int | None = None,
+    ):
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as e:
@@ -132,6 +136,17 @@ class LocalEmbedder:
 
         self._model_obj = SentenceTransformer(model)
         self.model_id = f"local:{model}"
+        if max_seq_length is not None:
+            self._model_obj.max_seq_length = max_seq_length
+            # the cache is keyed on model_id, and truncation changes the vector
+            self.model_id += f"@{max_seq_length}"
+        # Inputs longer than this many tokens are silently truncated by
+        # sentence-transformers; check with count_tokens() before trusting
+        # a whole-document embedding.
+        self.max_seq_length: int = self._model_obj.max_seq_length
+
+    def count_tokens(self, text: str) -> int:
+        return len(self._model_obj.tokenizer(text, add_special_tokens=True)["input_ids"])
 
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
         vectors = self._model_obj.encode(list(texts), normalize_embeddings=False)

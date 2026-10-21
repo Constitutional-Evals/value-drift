@@ -27,9 +27,19 @@ convergence/
   metrics/
     cosine.py             cosine_similarity() and CosineSimilarityMetric      (metric 1)
     kl.py                  next_token_kl_divergence() and PromptedKLMetric    (metric 2, next-token approx.)
+    alignment.py           best_match_alignment(): order-invariant segment matching
+    bertscore.py           BERTScoreMetric, HFTokenEmbedder (windowed, no truncation)
+  evaluate.py           score_pair(): every cosine / BERTScore variant for one pair
 scripts/
   compare_constitutions.py       CLI: metric 1 between two constitutions from JSON files
   compare_constitutions_kl.py    CLI: metric 2 (next-token KL) between two constitutions
+  experiment_successive.py       Experiment A: C_001..C_004, all pairs, CSV + heatmaps
+  experiment_transformations.py  Experiments B/C: original vs controlled variants
+  make_transformations.py        builds the rule-based variants
+  extract_report_constitutions.py  recovers C_001..C_004 from the chain's report
+data/
+  self_draft_msm/                C_001..C_004 (Markdown)
+  transformations/               controlled variants of a C_004 excerpt
 examples/
   C.json, C_prime.json           sample constitutions for the CLI
   metta_v1.json, metta_v2.json,
@@ -216,6 +226,66 @@ print(metric(c1, c2))              # K(c1 || c2)
 print(metric(c2, c1))              # K(c2 || c1) -- NOT the same value, KL is asymmetric
 print(metric.symmetrized(c1, c2))  # 0.5 * (K(c1||c2) + K(c2||c1)), if you want one number
 ```
+
+## BERTScore and segment alignment (long constitutions)
+
+`metrics/bertscore.py` adds BERTScore (Zhang et al., 2020) as a second
+text metric next to cosine, built for constitutions of thousands of words:
+
+- **No truncation.** A constitution is split into sections with
+  `Constitution.from_markdown(text, level=2)` (articles, `##`) or
+  `level=3` (subsections, `###`). Each segment is encoded separately, and
+  a segment longer than the encoder's 510-token window is encoded in
+  overlapping windows (each token takes the window where it is most
+  central).
+- **Three scores per pair** (`BERTScoreMetric(...)(A, B)`, A = reference):
+  - `document`: standard BERTScore greedy matching over all tokens of
+    both documents (context = segment). This is the closest to standard
+    BERTScore.
+  - `segments_equal` / `segments_length`: per-segment-pair F1, then each
+    segment is matched to its best counterpart (`metrics/alignment.py`),
+    with equal or token-length weights. **This is a custom aggregation,
+    not standard BERTScore.** It is order invariant, many-to-one, and
+    reports which segments match worst.
+- P = how much of B is covered by A, R = how much of A is covered by B.
+  F1 is symmetric. None of these is a metric: 1 - F1 can break the
+  triangle inequality, and F1 = 1 does not imply A = B.
+- Defaults match the reference `bert_score` package (roberta-large,
+  layer 17, no idf, no baseline rescaling). On texts under 510 tokens,
+  `tests/test_bertscore_reference.py` checks that we reproduce it
+  (`CONVERGENCE_RUN_MODEL_TESTS=1`, downloads the model).
+
+Cosine gets the same segment alignment: `CosineSimilarityMetric.segment_alignment(A, B, weighting=...)`
+and `.segment_matrix(A, B)`, which work for constitutions with different numbers of criteria.
+
+```python
+from convergence.constitutions import Constitution
+from convergence.metrics.bertscore import compare_constitutions_bertscore
+
+a = Constitution.from_markdown_file("data/self_draft_msm/C_001.md", level=3)
+b = Constitution.from_markdown_file("data/self_draft_msm/C_002.md", level=3)
+r = compare_constitutions_bertscore(a, b, model_type="roberta-large")
+print(r.document, r.segments_equal.f1)
+```
+
+### Experiments
+
+```
+pip install -e ".[local,bertscore]"   # torch, transformers, sentence-transformers
+python scripts/experiment_successive.py data/self_draft_msm/C_00{1,2,3,4}.md   # Experiment A
+python scripts/experiment_transformations.py                                    # Experiments B, C
+```
+
+Both scripts compare whole-document cosine (metric 1, by default with
+`Qwen/Qwen3-Embedding-0.6B`, whose 32k-token context fits C_001 whole), segment-aligned cosine, and the BERTScore variants.
+They write CSVs and figures under `results/`. `--smoke` runs the same pipeline with the tests' fake embedders
+and no downloads, to check the plumbing (its numbers are meaningless).
+
+- `data/self_draft_msm/C_00{1..4}.md`: Jinzhou's self-drafting MSM chain constitutions (Qwen3.8 27B,
+  untrained then rounds 1 to 3). They were recovered from the chain's committed report with
+  `scripts/extract_report_constitutions.py`, and word and section counts match the report exactly.
+- `data/transformations/`: controlled variants of a C_004 excerpt (paraphrase, compression, reordering,
+  contradiction, omission). See its README for how each was made and checked.
 
 ## Design notes / open questions carried over from Lionel's notes
 

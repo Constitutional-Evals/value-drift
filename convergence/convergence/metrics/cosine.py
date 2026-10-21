@@ -16,6 +16,7 @@ import numpy as np
 
 from convergence.constitutions import Constitution
 from convergence.embeddings import Embedder
+from convergence.metrics.alignment import AlignmentResult, best_match_alignment
 
 
 def cosine_similarity(u: Sequence[float], v: Sequence[float]) -> float:
@@ -80,6 +81,40 @@ class CosineSimilarityMetric:
         n = len(c1)
         e1, e2 = embeddings[:n], embeddings[n:]
         return [(c1.criteria[i], cosine_similarity(e1[i], e2[i])) for i in range(n)]
+
+    def segment_matrix(self, c1: Constitution, c2: Constitution) -> np.ndarray:
+        """cos(e(c1_i), e(c2_j)) for every pair of criteria, as a (len(c1), len(c2)) matrix.
+
+        Unlike per_criterion, criteria are not paired by position, so the
+        two constitutions may have different numbers of criteria.
+        """
+        embeddings = self._embedder.embed(list(c1) + list(c2))
+        e1 = np.asarray(embeddings[: len(c1)], dtype=np.float64)
+        e2 = np.asarray(embeddings[len(c1) :], dtype=np.float64)
+        n1 = np.linalg.norm(e1, axis=1, keepdims=True)
+        n2 = np.linalg.norm(e2, axis=1, keepdims=True)
+        # a zero vector scores 0 against everything, as in cosine_similarity
+        return (e1 / np.where(n1 == 0, 1, n1)) @ (e2 / np.where(n2 == 0, 1, n2)).T
+
+    def segment_alignment(
+        self, c1: Constitution, c2: Constitution, weighting: str = "equal"
+    ) -> AlignmentResult:
+        """Best-match alignment of per-criterion cosine similarities.
+
+        Each criterion is matched to its most similar criterion in the
+        other constitution (see metrics/alignment.py), so the score is
+        order invariant and works for constitutions of different sizes.
+        weighting="length" weights criteria by word count, "equal" (the
+        default) gives every criterion the same weight.
+        """
+        if weighting not in ("equal", "length"):
+            raise ValueError(f"weighting must be 'equal' or 'length', got {weighting!r}")
+        sim = self.segment_matrix(c1, c2)
+        if weighting == "equal":
+            return best_match_alignment(sim)
+        return best_match_alignment(
+            sim, [len(t.split()) for t in c1], [len(t.split()) for t in c2]
+        )
 
     def pairwise_matrix(self, constitutions: Sequence[Constitution]) -> np.ndarray:
         """cos(C_i, C_j) for all pairs, as an (N, N) symmetric matrix with 1.0 on the diagonal.

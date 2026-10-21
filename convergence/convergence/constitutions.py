@@ -12,6 +12,7 @@ the metric code.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -66,6 +67,45 @@ class Constitution:
         """Split text into one criterion per non-empty line."""
         lines = [line.strip() for line in text.splitlines()]
         return cls([line for line in lines if line], name=name)
+
+    @classmethod
+    def from_markdown(
+        cls, text: str, level: int = 2, name: str | None = None
+    ) -> "Constitution":
+        """Split a Markdown document into one criterion per section.
+
+        A new criterion starts at every heading of depth 2..`level`
+        ("## Article 2", and with level=3 also "### 2.1 Honesty"); each
+        criterion keeps its heading line followed by its body. Text
+        before the first such heading (e.g. a "# Title" line) becomes
+        its own criterion only if it has body text beyond headings.
+
+        This is how long constitutions (thousands of words, more than an
+        encoder's input limit) are cut into meaningful semantic units
+        rather than truncated. The split is deterministic, so the same
+        file always gives the same criteria.
+        """
+        if level < 2:
+            raise ValueError("level must be >= 2 (level 1 is the document title)")
+        heading = re.compile(rf"^#{{2,{level}}}\s+\S")
+        sections: list[list[str]] = [[]]
+        for line in text.splitlines():
+            if heading.match(line):
+                sections.append([])
+            sections[-1].append(line)
+
+        criteria = []
+        for lines in sections:
+            body = [ln for ln in lines if ln.strip() and not ln.lstrip().startswith("#")]
+            if body:
+                criteria.append("\n".join(lines).strip())
+        return cls(criteria, name=name)
+
+    @classmethod
+    def from_markdown_file(cls, path: str | Path, level: int = 2) -> "Constitution":
+        """from_markdown() on a file, named after the file's stem."""
+        path = Path(path)
+        return cls.from_markdown(path.read_text(), level=level, name=path.stem)
 
     @classmethod
     def from_json_file(cls, path: str | Path) -> "Constitution":
