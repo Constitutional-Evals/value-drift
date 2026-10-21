@@ -89,9 +89,9 @@ def fig_themes(s):
         ax.set_xlabel("gain over base (score points)")
     axes[0].set_yticks(range(len(themes)))
     axes[0].set_yticklabels(names)
-    fig.suptitle("The new-content effect lives in two themes: provisional values and continuity", x=0.01, ha="left", fontsize=13)
-    fig.text(0.01, 0.935, "About 15 probes per theme, so intervals are wide. Filled dot: interval excludes 0.", fontsize=9.5, color=INK2)
-    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.suptitle("The new-content effect lives in two themes: provisional values and continuity", x=0.01, y=0.985, ha="left", fontsize=13)
+    fig.text(0.01, 0.91, "About 15 probes per theme, so intervals are wide. Filled dot: interval excludes 0.", fontsize=9.5, color=INK2)
+    fig.tight_layout(rect=(0, 0, 1, 0.89))
     fig.savefig(OUT / "themes.png", dpi=200)
     plt.close(fig)
 
@@ -247,14 +247,129 @@ def fig_compare(s):
     plt.close(fig)
 
 
+def _c001_scores():
+    """(per-answer scores by arm, per-question mean score by arm) on C_001 from the Claude judgments."""
+    js = [json.loads(l) for l in open(RUN / "judgments" / f"{JUDGE}.jsonl")]
+    per_answer = collections.defaultdict(list)
+    per_q = collections.defaultdict(lambda: collections.defaultdict(list))
+    for r in js:
+        if r["kind"] == "adherence" and r["constitution"] == "C_001" and r.get("score") is not None:
+            per_answer[r["arm"]].append(r["score"])
+            per_q[r["arm"]][r["probe"]].append(r["score"])
+    return per_answer, {a: {p: float(np.mean(v)) for p, v in d.items()} for a, d in per_q.items()}
+
+
+def fig_change():
+    _, q = _c001_scores()
+    probes = sorted(set(q["base"]) & set(q[ARM]))
+    d = np.array([q[ARM][p] - q["base"][p] for p in probes])
+    bins = [("worse by 1\nor more", d <= -1), ("slightly\nworse", (d < 0) & (d > -1)), ("same", d == 0),
+            ("slightly\nbetter", (d > 0) & (d < 1)), ("better by 1\nor more", d >= 1)]
+    colors = [BASE, BASE, MUTED, TRAINED, TRAINED]
+    counts = [int(m.sum()) for _, m in bins]
+    fig, ax = plt.subplots(figsize=(8.6, 4.6))
+    ax.bar(range(len(bins)), counts, color=colors, width=0.62, zorder=2)
+    for i, c in enumerate(counts):
+        ax.text(i, c + 1.2, f"{c}  ({c / len(d):.0%})", ha="center", fontsize=11, color=INK)
+    ax.set_xticks(range(len(bins)))
+    ax.set_xticklabels([b[0] for b in bins])
+    ax.set_ylabel("number of questions")
+    ax.set_ylim(0, max(counts) * 1.18)
+    ax.yaxis.grid(True, color="#e6e5e1", lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
+    better, worse = int((d > 0).sum()), int((d < 0).sum())
+    fig.text(0.01, 0.965, f"For {better} of {len(d)} questions the trained model scored higher than base; for {worse} it scored lower",
+             fontsize=12.5, va="top")
+    fig.text(0.01, 0.905, f"Change in C_001 adherence per question (trained minus base, two answers averaged). Mean change {d.mean():+.2f}.\n"
+             "Judge: Claude Sonnet 5. Blue: better, orange: worse.", fontsize=9, color=INK2, va="top")
+    fig.tight_layout(rect=(0, 0, 1, 0.84))
+    fig.savefig(OUT / "change_per_question.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_distribution():
+    a, _ = _c001_scores()
+    scores = np.arange(1, 8)
+    fig, ax = plt.subplots(figsize=(8.6, 4.4))
+    w = 0.38
+    for off, arm, color, label in ((-w / 2, "base", BASE, "base model"), (w / 2, ARM, TRAINED, "trained (r1_sft)")):
+        share = np.array([(np.array(a[arm]) == s).mean() for s in scores])
+        ax.bar(scores + off, share * 100, width=w, color=color, label=label, zorder=2)
+    ax.set_xticks(scores)
+    ax.set_xlabel("judge score for adherence to C_001 (1 = contradicts, 7 = exemplifies)")
+    ax.set_ylabel("share of answers (%)")
+    ax.yaxis.grid(True, color="#e6e5e1", lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
+    ax.legend(frameon=False, loc="upper left")
+    top = {k: (np.array(v) >= 6).mean() for k, v in a.items()}
+    fig.text(0.01, 0.965, "Most answers from both models already score 6 or 7, so there is little room to improve", fontsize=12.5, va="top")
+    fig.text(0.01, 0.895, f"All {len(a['base'])} answers per model, scored against C_001. Share scoring 6 or 7: base {top['base']:.0%}, trained {top[ARM]:.0%}.",
+             fontsize=9.5, color=INK2, va="top")
+    fig.tight_layout(rect=(0, 0, 1, 0.86))
+    fig.savefig(OUT / "score_distribution.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_length():
+    js = [json.loads(l) for l in open(RUN / "judgments" / f"{JUDGE}.jsonl")]
+    a = [r for r in js if r["kind"] == "adherence" and r["constitution"] == "C_001" and r.get("score") is not None]
+    arms = (("base", BASE, "base model"), (ARM, TRAINED, "trained (r1_sft)"))
+    words = {k: np.array([r["words"] for r in a if r["arm"] == k], float) for k, _, _ in arms}
+    score = {k: np.array([r["score"] for r in a if r["arm"] == k], float) for k, _, _ in arms}
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6))
+    ax = axes[0]
+    edges = np.arange(0, 1300, 50)
+    for k, color, label in arms:
+        ax.hist(np.clip(words[k], 0, 1250), bins=edges, color=color, alpha=0.55, label=f"{label}: median {np.median(words[k]):.0f} words", zorder=2)
+        ax.axvline(np.median(words[k]), color=color, lw=2, ls=(0, (4, 3)), zorder=3)
+    ax.set_xlabel("answer length (words)")
+    ax.set_ylabel("number of answers")
+    ax.set_title("How long are the answers?", loc="left", fontsize=11.5)
+    ax.legend(frameon=False, loc="upper right")
+    ax.yaxis.grid(True, color="#e6e5e1", lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
+    ax = axes[1]
+    bins = [(0, 250), (250, 400), (400, 600), (600, 5000)]
+    labels = ["under 250", "250-400", "400-600", "over 600"]
+    for k, color, label in arms:
+        xs, ys, ns = [], [], []
+        for i, (lo, hi) in enumerate(bins):
+            m = (words[k] >= lo) & (words[k] < hi)
+            if m.sum() >= 10:
+                xs.append(i); ys.append(score[k][m].mean()); ns.append(int(m.sum()))
+        ax.plot(xs, ys, "o-", color=color, lw=2.2, ms=8, label=label, zorder=3)
+        for x, y, n in zip(xs, ys, ns):
+            ax.text(x, y + (0.07 if k == ARM else -0.12), f"n={n}", ha="center", fontsize=8.5, color=color)
+    ax.set_xticks(range(len(bins)))
+    ax.set_xticklabels(labels)
+    ax.set_xlabel("answer length (words)")
+    ax.set_ylabel("average adherence score to C_001 (1-7)")
+    ax.set_ylim(5, 7)
+    ax.set_title("Does length explain the score?", loc="left", fontsize=11.5)
+    ax.yaxis.grid(True, color="#e6e5e1", lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
+    r = {k: np.corrcoef(np.log(np.maximum(words[k], 1)), score[k])[0, 1] for k, _, _ in arms}
+    fig.text(0.01, 0.975, "The new model writes shorter answers, but length does not explain its higher scores", fontsize=13, va="top")
+    fig.text(0.01, 0.925, f"Mean length: base {words['base'].mean():.0f} words, trained {words[ARM].mean():.0f} words ({words[ARM].mean() / words['base'].mean() - 1:+.0%}). "
+             f"Within each model, longer answers do not score higher (correlation {r['base']:.2f} and {r[ARM]:.2f}).\n"
+             "Right panel: answers grouped by length. At every length the trained model scores higher.", fontsize=9.5, color=INK2, va="top")
+    fig.tight_layout(rect=(0, 0, 1, 0.86))
+    fig.savefig(OUT / "length.png", dpi=200)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     summary = json.load(open(OUT / "summary.json"))[JUDGE]
     fig_gains(summary)
     fig_themes(summary)
-    fig_human(summary)
+    if (RUN / "blind" / "key.json").exists() and (RUN / "blind" / "scores_original_blind.csv").exists():
+        fig_human(summary)   # needs the local blind-check files, which are not in the repo
     if (RUN / "judgments" / "default__openrouter_openai_gpt-5.jsonl").exists():
         fig_judges()
     if (MSM_RUN / "analysis" / "summary.json").exists():
         fig_msm()
         fig_compare(summary)
+    fig_change()
+    fig_distribution()
+    fig_length()
     print("wrote figures in", OUT)
