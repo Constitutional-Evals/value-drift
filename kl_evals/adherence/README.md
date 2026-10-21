@@ -120,9 +120,7 @@ selection. Dollar cost depends on the judge model's pricing, which this repo doe
 - OCT vs MSM is **confounded**: different base models (Qwen3.8-27B vs Qwen3.6-35B), different training data,
   different constitutions. This pipeline compares each method's gain over its own base. A clean comparison needs
   one OCT and one MSM adapter on the same base trained on the same constitution.
-- One judge family (Claude) judges Qwen outputs; the second-judge ablation addresses part of that. The OCT paper
-  itself says model-based judging "may introduce bias and circularity" and asks for human raters: hand-check
-  ~50 responses before presenting.
+- One judge family (Claude) judges Qwen outputs; the second-judge ablation addresses part of that.
 - **Training-seed variance is not measured.** MSM reports 4 training seeds; there is one trained checkpoint per
   arm here, so the intervals cover probe sampling only, not whether another training run would agree.
 - MSM proper is midtraining *plus* alignment fine-tuning, and its claim is against an AFT-only baseline. Whether

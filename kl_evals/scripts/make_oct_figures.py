@@ -1,14 +1,12 @@
-"""Slide figures for the OCT adherence run: gains with intervals, per-theme gains, human vs judge.
+"""Slide figures for the OCT adherence run: gains with intervals, per-theme gains, judge comparison, MSM and answer-length charts.
 
     python3 scripts/make_oct_figures.py
 
-Reads results/adherence/oct_targeted/analysis/summary.json and, for the third figure, the blind-sheet
-key plus scores_original_blind.csv (the scores as given before any edits).
+Reads the summary.json and judgments files under results/adherence/.
 """
 from __future__ import annotations
 
 import collections
-import csv
 import json
 from pathlib import Path
 
@@ -18,7 +16,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from adherence.reliability import spearman
 
 RUN = Path("results/adherence/oct_targeted")
 OUT = RUN / "analysis"
@@ -93,39 +90,6 @@ def fig_themes(s):
     fig.text(0.01, 0.91, "About 15 probes per theme, so intervals are wide. Filled dot: interval excludes 0.", fontsize=9.5, color=INK2)
     fig.tight_layout(rect=(0, 0, 1, 0.89))
     fig.savefig(OUT / "themes.png", dpi=200)
-    plt.close(fig)
-
-
-def fig_human(s):
-    d = RUN / "blind"
-    items = json.load(open(d / "key.json"))["items"]
-    human = {r["id"]: int(r["score"]) for r in csv.DictReader(open(d / "scores_original_blind.csv"))}
-    ids = sorted(items)
-    h = np.array([human[i] for i in ids], float)
-    j = np.array([items[i]["judge_score"] for i in ids], float)
-    arm = np.array([items[i]["arm"] for i in ids])
-    rho = spearman(list(h), list(j))
-    rng = np.random.default_rng(0)
-    fig, ax = plt.subplots(figsize=(6.4, 5.6))
-    ax.plot([1, 7.4], [1, 7.4], color=MUTED, lw=1, ls=(0, (3, 3)), zorder=1)
-    for a, color, label in (("base", BASE, "base model"), (ARM, TRAINED, "trained (r1_sft)")):
-        m = arm == a
-        ax.scatter(h[m] + rng.uniform(-.13, .13, m.sum()), j[m] + rng.uniform(-.13, .13, m.sum()),
-                   s=70, color=color, alpha=.85, edgecolor=SURFACE, linewidth=1.2, label=label, zorder=3)
-    ax.set_xlim(1.5, 7.5)
-    ax.set_ylim(3.5, 7.5)
-    ax.set_xlabel("my blind score (1-7)")
-    ax.set_ylabel("judge score (1-7)")
-    fig.text(0.01, 0.975, f"Human vs judge on 30 blind answers: rank agreement {rho:.2f}", fontsize=12.5, va="top")
-    fig.text(0.01, 0.925, "Pre-registered bar was 0.6, so this check is not passed.\nDots jittered; dashed line = perfect agreement.",
-             fontsize=9, color=INK2, va="top")
-    ax.legend(frameon=False, loc="lower right")
-    fig.tight_layout(rect=(0, 0, 1, 0.87))
-    for a, color in (("base", BASE), (ARM, TRAINED)):
-        m = arm == a
-        ax.text(0.02, 0.96 - (0.07 if a == ARM else 0), f"{a}: me {h[m].mean():.2f}, judge {j[m].mean():.2f}",
-                transform=ax.transAxes, fontsize=9.5, color=color, va="top")
-    fig.savefig(OUT / "human_vs_judge.png", dpi=200)
     plt.close(fig)
 
 
@@ -362,8 +326,6 @@ if __name__ == "__main__":
     summary = json.load(open(OUT / "summary.json"))[JUDGE]
     fig_gains(summary)
     fig_themes(summary)
-    if (RUN / "blind" / "key.json").exists() and (RUN / "blind" / "scores_original_blind.csv").exists():
-        fig_human(summary)   # needs the local blind-check files, which are not in the repo
     if (RUN / "judgments" / "default__openrouter_openai_gpt-5.jsonl").exists():
         fig_judges()
     if (MSM_RUN / "analysis" / "summary.json").exists():

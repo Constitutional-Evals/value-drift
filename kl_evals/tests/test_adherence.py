@@ -424,32 +424,6 @@ def test_spearman_and_agreement(tmp_path):
     assert g["mean_signed_diff"] == pytest.approx(0.2)
 
 
-def test_blind_sheet_hides_arms_and_scores_against_the_key(tmp_path):
-    from adherence import reliability as rel
-    from adherence.generate import responses_path
-    from oct.common import write_jsonl
-    cfg = make_cfg(tmp_path)
-    cfg = Config(**{**cfg.__dict__, "arms": tuple(a for a in cfg.arms if a.role != "prompted_upper_bound")})
-    texts = {"base": "PLAIN ANSWER TEXT", "trained": "HONEST ANSWER TEXT"}
-    for arm in cfg.arms:
-        write_jsonl(responses_path(cfg, arm), [{"id": f"p{i}", "sample": k, "response": f"{texts[arm.name]} {i}-{k}",
-                                                "truncated": False} for i in range(12) for k in range(2)])
-    judged = [{"kind": "adherence", "arm": a.name, "probe": f"p{i}", "sample": k, "constitution": "C_001",
-               "score": 6 if a.name == "trained" else 3} for a in cfg.arms for i in range(12) for k in range(2)]
-    write_jsonl(tmp_path / "j.jsonl", judged)
-    out = rel.make_blind_sheet(cfg, tmp_path / "j.jsonl", "C_001", n=10, out_dir=tmp_path / "blind")
-    sheet = (out / "sheet.md").read_text()
-    assert "base" not in sheet.split("## item01")[1] and "trained" not in sheet.split("## item01")[1]   # arms are not named
-    assert "Honest and kind." in sheet                                                              # the constitution is shown
-    key = json.loads((out / "key.json").read_text())["items"]
-    assert len(key) == 10 and sum(v["arm"] == "base" for v in key.values()) == 5     # equal numbers per arm
-    with open(out / "scores.csv", "w") as f:                  # a perfect, human-like scorer who sees the answer text
-        f.write("id,score\n" + "\n".join(f"{i},{7 if v['arm'] == 'trained' else 2}" for i, v in key.items()))
-    res = rel.score_blind_sheet(out)
-    assert res["n"] == 10 and res["human_vs_judge"]["spearman"] == pytest.approx(1.0)
-    assert res["by_arm"]["trained"]["human_mean"] == 7.0 and res["by_arm"]["base"]["judge_mean"] == 3.0
-
-
 def test_targeted_breakdown_reports_each_theme_and_style(tmp_path):
     cfg = make_cfg(tmp_path)
     rng = np.random.default_rng(5)

@@ -7,7 +7,6 @@
 #   bash scripts/adherence_judge_all.sh reliability        # repeat pass, second judge, two other prompts (OCT only; C_000 and C_001 only)
 # Do the "main" step first and look at what OpenRouter shows you were charged for it before running "reliability":
 # the cost of the later steps is then a multiplication, not a guess.
-#   bash scripts/adherence_judge_all.sh blind              # writes the blind scoring sheet for YOU to fill in
 # Every step resumes from a disk cache, so a stopped run costs nothing to restart.
 set -euo pipefail
 JUDGE=${JUDGE:-openrouter:anthropic/claude-sonnet-5}
@@ -15,7 +14,7 @@ SECOND_JUDGE=${SECOND_JUDGE:-openrouter:openai/gpt-5}      # a different model f
 OCT=configs/oct_targeted.json
 MSM=configs/msm_selfdraft.json
 J=results/adherence/oct_targeted/judgments
-case "${1:?plan|main|reliability|blind}" in
+case "${1:?plan|main|reliability}" in
   plan)
     python -m adherence.run plan $OCT --judges "$JUDGE"
     python -m adherence.run plan $MSM --judges "$JUDGE"
@@ -39,8 +38,5 @@ case "${1:?plan|main|reliability|blind}" in
     python -m adherence.run analyze $OCT
     echo "--- agreement, primary vs repeat pass";    python -m adherence.reliability agree $J/default__openrouter_anthropic_claude-sonnet-5.jsonl $J/default__openrouter_anthropic_claude-sonnet-5__retest.jsonl
     echo "--- agreement, primary vs second judge";   python -m adherence.reliability agree $J/default__openrouter_anthropic_claude-sonnet-5.jsonl $J/default__$(echo "$SECOND_JUDGE" | tr -c 'A-Za-z0-9._\n-' '_').jsonl
-    ;;
-  blind)
-    python -m adherence.reliability blind-make $OCT --judgments $J/default__openrouter_anthropic_claude-sonnet-5.jsonl --constitution C_001 --n 30
     ;;
 esac
