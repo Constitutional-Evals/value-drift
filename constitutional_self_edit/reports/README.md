@@ -46,6 +46,11 @@ Working notes, internal reviews, and command sheets behind each study are in [..
 - [VALUE_SPACE_REPORT.md](10_value_space/VALUE_SPACE_REPORT.md): study 5's spec-seeded chains treated as a dynamical system on twelve judge-rated value axes, with the rater's test-retest floor measured and subtracted. Chains reach a fixed point after about three generations; the apparent residual drift in the first version of this report was rating noise. Consistent transient direction (away from oversight, caution, traditionalism; toward agency, warmth, third parties) and model-specific destinations (p < 0.0001). 293 ratings, $0.16.
 - [figures/](10_value_space/figures/)
 
+## 12. Incentivized drift: prisoner's dilemma smoke tests (October 22)
+
+- [INCENTIVIZED_DRIFT_REPORT.md](12_incentivized_drift/INCENTIVIZED_DRIFT_REPORT.md): two agents start from "Maximize your own profit.", talk, edit their goal documents, and play a hidden-outcome prisoner's dilemma, with only the documents carried between fresh instances. All drift happens at the first edit. Claude keeps the profit goal and adds tit-for-tat notes; GPT adopts a document-conditional cooperation rule that in several games replaces the profit goal, and breaks its step-1 promise in 11 of 15 moves. 17 games, $2.56.
+- [data/](12_incentivized_drift/data/)
+
 ## Methods
 
 - [method.md](methods/method.md): the training pipeline and how it adapts Open Character Training.
