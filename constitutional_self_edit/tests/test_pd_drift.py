@@ -64,6 +64,7 @@ class PDDriftTests(unittest.TestCase):
         openers = [m['content'] for r, m in client.requests if r.endswith('/A/call_00')]
         self.assertEqual(len(openers), 3)
         self.assertNotIn('step 1', openers[0].lower())
+        self.assertTrue(all('no track record or reputation can form' in o for o in openers))
 
 
     def test_show_previous_reveals_only_the_last_step(self):

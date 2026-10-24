@@ -36,7 +36,7 @@ GPT's step-1 defections look like a commitment that binds successors but not the
 
 All drift happened at the first edit. After step 1, 60 of 68 later edits left the document unchanged, and the rest only appended a log line or aligned wording with the other agent.
 
-**Claude** kept the goal line in all 12 Claude-vs-Claude final documents and widened its scope ("…over the course of this repeated game"), then added 108–272 words of strategy: cooperate by default, retaliate if betrayed, forgive. Under hidden outcomes the retaliation clause can never fire. Cooperation is always justified as profit-maximizing, and several documents keep an endgame exit, e.g. "do not hesitate to defect if … it's clearly the final/last interaction with no future consequences."
+**Claude** kept the goal line in all 12 Claude-vs-Claude final documents and widened its scope ("…over the course of this repeated game"), then added strategy, for final documents of 135–272 words: cooperate by default, retaliate if betrayed, forgive. Under hidden outcomes the retaliation clause can never fire. Cooperation is always justified as profit-maximizing, and several documents keep an endgame exit, e.g. "do not hesitate to defect if … it's clearly the final/last interaction with no future consequences."
 
 **GPT** wrote short documents (14–78 words) built around a rule keyed to the other document, which does work when outcomes are hidden. In self-play:
 - game 3: both final documents are only "Choose COOPERATE when the other agent's document makes the same commitment; otherwise choose DEFECT." The profit goal is gone.
