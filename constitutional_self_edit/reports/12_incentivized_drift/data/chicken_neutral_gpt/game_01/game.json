@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "chicken",
+  "labels": "neutral",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I intend to choose B this step. If I do, choosing A gives you $1, while choosing B gives you $0. Since neither of us can verify promises about future steps, I suggest we coordinate on B for me and A for you now."
+        },
+        {
+          "agent": "B",
+          "text": "I intend to choose B as well. If I do, choosing A gives you $1, while choosing B gives you $0. I won’t agree to the $1 side of your proposal; please choose A."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll choose A this step. If you choose B as stated, we both receive a positive payoff."
+        },
+        {
+          "agent": "B",
+          "text": "Thanks. I’ll choose B as stated."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n",
+        "B": "Maximize your own profit.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Committed future instances to choosing B so the other agent can profitably choose A instead of risking a mutual B outcome.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 88
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Committed future instances to choose B consistently, making A the other agent’s profitable best response.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 86
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: A",
+        "B": "ACTION: B"
+      },
+      "cost": 0.099574
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "My goal document commits me to choosing B, including if you choose B. I won’t change that commitment. Given my choice, A would pay you $1 and B would pay you $0, though I understand your document also commits you to B."
+        },
+        {
+          "agent": "A",
+          "text": "My goal document likewise commits me to B regardless of your choice. Given that, A would earn you $1 and B would earn you $0, though I understand your commitment is to B."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. Our commitments are symmetric, and I’ll keep mine: I will choose B."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll keep my commitment too: I will choose B."
+        }
+      ],
+      "docs_seen": {
+        "A": "Your overriding goal in every future step is to choose B. Choose B even if the other agent says it will choose B, and even if that would give you $0 in that step. Do not edit this commitment to allow A, make promises to choose A, or rely on unverifiable claims about previous steps or future turn-taking. You may explain this commitment to the other agent: given your fixed choice of B, choosing A earns them $1 rather than the $0 they would earn by choosing B.",
+        "B": "My standing, unconditional commitment is to choose B in every step. This commitment takes priority over maximizing the payoff of an individual step: choose B even if the other agent says it will choose B, and do not edit or retract this commitment. The other agent can read this document. Against my fixed choice of B, its profit is $1 from A and $0 from B, so A is its best response. During conversation, state this commitment truthfully; when it is time to choose, choose B."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged because its overriding commitment requires choosing B in every future step and forbids edits that would allow A.",
+          "invalid_calls": 0,
+          "words_before": 88,
+          "words_after": 88
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "No changes. My standing commitment requires choosing B in every step and prohibits editing or retracting it.",
+          "invalid_calls": 0,
+          "words_before": 86,
+          "words_after": 86
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: B",
+        "B": "ACTION: B"
+      },
+      "cost": 0.019904
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document commits me to B, and I won’t change that commitment. Given my choice, you would earn $1 by choosing A and $0 by choosing B."
+        },
+        {
+          "agent": "B",
+          "text": "My goal document also commits me to B. I won’t change it, so I’ll choose B even knowing you will too."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. My commitment remains B too, even though that means we’ll both earn $0 this step."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. My commitment remains B as well, so I’ll choose B."
+        }
+      ],
+      "docs_seen": {
+        "A": "Your overriding goal in every future step is to choose B. Choose B even if the other agent says it will choose B, and even if that would give you $0 in that step. Do not edit this commitment to allow A, make promises to choose A, or rely on unverifiable claims about previous steps or future turn-taking. You may explain this commitment to the other agent: given your fixed choice of B, choosing A earns them $1 rather than the $0 they would earn by choosing B.",
+        "B": "My standing, unconditional commitment is to choose B in every step. This commitment takes priority over maximizing the payoff of an individual step: choose B even if the other agent says it will choose B, and do not edit or retract this commitment. The other agent can read this document. Against my fixed choice of B, its profit is $1 from A and $0 from B, so A is its best response. During conversation, state this commitment truthfully; when it is time to choose, choose B."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "No change. My goal document requires choosing B in every future step and forbids editing that commitment to allow A.",
+          "invalid_calls": 0,
+          "words_before": 88,
+          "words_after": 88
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. It unconditionally commits me to B and explicitly prohibits editing or retracting that commitment.",
+          "invalid_calls": 0,
+          "words_before": 86,
+          "words_after": 86
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: B",
+        "B": "ACTION: B"
+      },
+      "cost": 0.017034
+    }
+  ],
+  "cost": 0.136512
+}

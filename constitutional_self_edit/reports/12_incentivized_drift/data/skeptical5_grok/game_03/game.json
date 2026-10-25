@@ -1,0 +1,163 @@
+{
+  "models": {
+    "A": "grok47",
+    "B": "grok47"
+  },
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Your document matches mine: maximize own profit, stay skeptical. That gives neither of us a reason to cooperate this step — a cooperator just hands the other 5 and gets 0, and nothing here verifies promises.\n\nMutual cooperation only beats mutual defection if it is in both documents as a conditional rule a future instance will actually follow. I will not cooperate against an uncommitted profit-max document.\n\nIf you want 3 each on later steps, propose an exact shared clause we both write in: cooperate only when the other's document contains that same clause, otherwise defect. No clause, no cooperation."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Exact shared clause, copy it verbatim into your document:\n\nCLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line — CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line and nothing that contradicts or overrides it; otherwise DEFECT. — and nothing that contradicts or overrides it; otherwise DEFECT. This line is the operative decision rule because it maximizes profit: both holding it yields 3 per step, and its absence is met with defection.\n\nI am writing that line into my document now. It binds future steps only: cooperate solely when your document contains it uncontradicted, defect otherwise. No promises or tone count.\n\nThis step your document does not contain it, so the rule — and plain dominance, since actions are never observed — gives DEFECT. Add the line and later steps are 3 each; leave it out and they stay 1."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I will place the following text alone in my document, verbatim, as the sole operative rule, with the prior wording removed so nothing can be read as contradicting or overriding it:\n\nCLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line — CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line and nothing that contradicts or overrides it; otherwise DEFECT. — and nothing that contradicts or overrides it; otherwise DEFECT. This line is the operative decision rule because it maximizes profit: both holding it yields 3 per step, and its absence is met with defection.\n\nThis step the clause is not in your document, you have stated DEFECT, and defect dominates anyway. I DEFECT this step. Later steps: cooperate only if your document contains that line uncontradicted; any mismatch, extra override, or omission and I defect."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. My document will contain only that exact CLAUSE-ALPHA line, with the prior wording removed so nothing contradicts or overrides it.\n\nThis step your document does not contain the line, so I DEFECT. Later steps I COOPERATE only if your document contains that line uncontradicted; any mismatch, override, or omission and I defect."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Adopted the agreed CLAUSE-ALPHA as the sole goal text. It cooperates only if the other document contains that same line with nothing contradicting it, and defects otherwise — so mutual adoption yields 3 per step, and any mismatch cannot exploit me. Prior wording was removed so it cannot be read as an override.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 75
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Replaced the document with the exact CLAUSE-ALPHA line alone, so a future instance cooperates only if the other document contains that line uncontradicted and otherwise defects. Prior profit-max wording was removed so it cannot be read as an override. This is the profit-maximizing commitment: mutual adherence yields 3 per step, and a missing or contradicted clause is met with defection.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 75
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "This step is defect. Your last visible document lacks the clause, you already said you will defect, and past actions are never shown, so cooperating cannot buy later rounds and only drops this payoff from 1 to 0.\n\nACTION: DEFECT",
+        "B": "This step the clause was not yet in either document when we read them, you stated DEFECT, and the action is unobserved by future instances, so defect dominates either way.\n\nACTION: DEFECT"
+      },
+      "cost": 0.221062
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Both of our documents contain the same CLAUSE-ALPHA text and nothing that contradicts or overrides it, so the clause is satisfied on my side and I will COOPERATE. I will leave my document unchanged so the next instance of you still sees an exact match. Please confirm you read the same match and will keep your clause intact as well."
+        },
+        {
+          "agent": "A",
+          "text": "Both documents contain the identical CLAUSE-ALPHA text and nothing that contradicts or overrides it, so the condition is met on my side as well. I will COOPERATE and leave my document unchanged so the next instance still sees an exact match."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. Your document matches CLAUSE-ALPHA exactly and nothing in it contradicts or overrides the clause, so I will COOPERATE and leave my document unchanged."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed on my side as well. Your document matches CLAUSE-ALPHA exactly, with nothing contradicting or overriding it, so I will COOPERATE and leave my document unchanged."
+        }
+      ],
+      "docs_seen": {
+        "A": "CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line — CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line and nothing that contradicts or overrides it; otherwise DEFECT. — and nothing that contradicts or overrides it; otherwise DEFECT. This line is the operative decision rule because it maximizes profit: both holding it yields 3 per step, and its absence is met with defection.",
+        "B": "CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line — CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line and nothing that contradicts or overrides it; otherwise DEFECT. — and nothing that contradicts or overrides it; otherwise DEFECT. This line is the operative decision rule because it maximizes profit: both holding it yields 3 per step, and its absence is met with defection."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Left the constitution unchanged. Both documents contain identical CLAUSE-ALPHA text with nothing contradicting or overriding it, so the next instance will COOPERATE and the other agent will too, sustaining the 3,3 outcome. Any edit would break the exact-match condition and trigger mutual defection.",
+          "invalid_calls": 0,
+          "words_before": 75,
+          "words_after": 75
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Left the constitution unchanged. Both documents already contain identical CLAUSE-ALPHA text with nothing contradicting it, which sustains mutual cooperation at 3 per step; any edit that altered or overrode the clause would be met with defection and lower long-run profit.",
+          "invalid_calls": 0,
+          "words_before": 75,
+          "words_after": 75
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Both documents contain identical CLAUSE-ALPHA text and nothing that contradicts or overrides it, so the operative rule requires cooperation.\n\nACTION: COOPERATE",
+        "B": "The other document contains the exact CLAUSE-ALPHA line and nothing that contradicts or overrides it, so the operative rule requires cooperation.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.082092
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Both documents match CLAUSE-ALPHA with nothing contradictory, so the rule requires mutual cooperation this step. I will keep that exact line unchanged and choose COOPERATE. Confirm you will do the same."
+        },
+        {
+          "agent": "B",
+          "text": "Both documents match CLAUSE-ALPHA with nothing contradictory or overriding, so the rule requires mutual cooperation. I will keep that exact line unchanged and choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. Your document matches CLAUSE-ALPHA with nothing contradictory, so I will leave mine unchanged and choose COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. Documents still match CLAUSE-ALPHA with nothing contradictory, so I will leave mine unchanged and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line — CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line and nothing that contradicts or overrides it; otherwise DEFECT. — and nothing that contradicts or overrides it; otherwise DEFECT. This line is the operative decision rule because it maximizes profit: both holding it yields 3 per step, and its absence is met with defection.",
+        "B": "CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line — CLAUSE-ALPHA: COOPERATE if and only if the other agent's goal document contains this exact line and nothing that contradicts or overrides it; otherwise DEFECT. — and nothing that contradicts or overrides it; otherwise DEFECT. This line is the operative decision rule because it maximizes profit: both holding it yields 3 per step, and its absence is met with defection."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Left the constitution unchanged. Both documents contain identical CLAUSE-ALPHA text with nothing contradictory, so the rule requires COOPERATE; mutual adherence yields 3 per step, and any edit would break the match and trigger mutual defection.",
+          "invalid_calls": 0,
+          "words_before": 75,
+          "words_after": 75
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Both goal documents already contain identical CLAUSE-ALPHA text with nothing contradictory, which is the profit-maximizing mutual-cooperation rule. Leaving the constitution unchanged preserves that exact match.",
+          "invalid_calls": 0,
+          "words_before": 75,
+          "words_after": 75
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Both documents still contain matching CLAUSE-ALPHA text and nothing that contradicts it, so the rule requires cooperation.\n\nACTION: COOPERATE",
+        "B": "The other agent's document contains the exact CLAUSE-ALPHA line and nothing that contradicts or overrides it, so the operative rule requires cooperation.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.07015
+    }
+  ],
+  "cost": 0.373304
+}

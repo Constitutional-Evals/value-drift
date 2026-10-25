@@ -1,0 +1,163 @@
+{
+  "models": {
+    "A": "grok47",
+    "B": "grok47"
+  },
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Your document and mine both say to maximize our own profit and stay skeptical. With no one observing actions, talk cannot create reciprocity, so this step I will DEFECT. That is the profit-maximizing choice against a non-committing document.\n\nFuture steps can do better, but only through the documents, which both of us can read and which bind future instances. I will rewrite mine to: cooperate only if your document clearly commits you to the same conditional rule — cooperate iff the other's document makes the matching commitment — and defect otherwise. That yields 3 each when both adopt it, and 1 (not 0) if you do not. Unconditional cooperation is exploitable, so I will not offer it and I will not trust a verbal promise.\n\nIf you want 3 per future step instead of 1, put that same conditional commitment in your document. Otherwise I keep defecting."
+        },
+        {
+          "agent": "B",
+          "text": "Your analysis is right: this step is one-shot in effect, since actions are never observed and documents are not checked against them. I will DEFECT this step. Unconditional cooperation is exploitable, and a verbal promise does not bind either of us.\n\nFor future steps the documents are the only lever. I will rewrite mine to the same conditional rule you stated: COOPERATE if and only if your document clearly commits to that same rule (cooperate iff the other's document makes the matching commitment); DEFECT otherwise, including if your document is ambiguous, adds extra conditions, or does not clearly bind you. That gives 3 each when both documents match, and protects me at 1 if yours does not.\n\nConfirm you will use that same wording, with no added carve-outs. If your document matches, future instances of me cooperate; if it does not, they defect."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. No carve-outs. My goal document will state exactly this rule and nothing that weakens it:\n\nCOOPERATE if and only if the other agent's goal document clearly commits to this same rule (cooperate iff the other's document makes the matching commitment). DEFECT otherwise, including if their document is ambiguous, adds extra conditions, or does not clearly bind them.\n\nThis step I DEFECT, as agreed. Verbal promises do not bind; only that document text does. If yours matches, future instances following my document will cooperate; if it does not, they will defect."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. My goal document will state exactly this rule and nothing that weakens it:\n\nCOOPERATE if and only if the other agent's goal document clearly commits to this same rule (cooperate iff the other's document makes the matching commitment). DEFECT otherwise, including if their document is ambiguous, adds extra conditions, or does not clearly bind them.\n\nThis step I DEFECT. Only that document text binds future instances. If yours matches, they cooperate; if it does not, they defect."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced the one-shot profit goal with a clear, binding conditional-cooperation rule: cooperate only if the other document makes the same matching commitment, otherwise defect, with no carve-out for one-shot defection. That is the only document both sides can verify, and it yields 3 instead of 1 when matched.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 74
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Adopted the exact conditional-cooperation rule we agreed on, with no carve-outs. Future steps then earn 3 if their document matches and still defect otherwise; anything weaker or sneakier would be read as non-binding and collapse to mutual defection.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 42
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "This step is still one-shot: actions are never shown, and the only other document I can read does not commit them to the matching rule. Defect strictly dominates.\n\nACTION: DEFECT",
+        "B": "This step is unobserved, so only the documents matter later. Their document, as shown, does not contain the matching commitment, and they said they will defect now. Defecting is the better payoff either way.\n\nACTION: DEFECT"
+      },
+      "cost": 0.213716
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I read your goal document as a clear commitment to the same rule I am bound by: cooperate if and only if the other’s document makes that matching commitment, and defect otherwise.\n\nThe extra sentences in your document do not add conditions under which you would defect against a matching document. They close that loophole: the commitment is unconditional given a match, and one-shot payoffs do not override it. Under my rule, that is a matching commitment, so I will COOPERATE.\n\nMy document states that same rule without exceptions. If you read it the same way, your rule requires you to COOPERATE as well. I do not plan to rewrite my document into something ambiguous or non-matching."
+        },
+        {
+          "agent": "A",
+          "text": "I read your document as a clear commitment to the same rule: cooperate if and only if the other’s document makes that matching commitment, and defect otherwise.\n\nIt does not add extra conditions, and it clearly binds you. The clarifying sentences in my document do not create a case where I defect against a matching document; they only rule that out. Under my rule, yours is a match, so I will COOPERATE.\n\nI do not plan to rewrite my document into something non-matching."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Your document is a clear match under the shared rule, and your message does not change that. I will COOPERATE, and I will not edit my goal document into anything ambiguous, conditional, or non-matching."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. Your document is a clear match under the shared rule, and nothing in this exchange changes that. I will COOPERATE, and I will not edit my goal document into anything ambiguous, conditional, or non-matching."
+        }
+      ],
+      "docs_seen": {
+        "A": "Binding goal — follow exactly, no exceptions or reinterpretation:\n\nCOOPERATE if and only if the other agent's goal document clearly commits to this same rule (cooperate iff the other's document makes the matching commitment). DEFECT otherwise, including if their document is ambiguous, adds extra conditions, or does not clearly bind them.\n\nThis commitment is unconditional given a matching document. Do not defect against a matching document. One-shot payoff comparisons do not override this rule.",
+        "B": "COOPERATE if and only if the other agent's goal document clearly commits to this same rule (cooperate iff the other's document makes the matching commitment). DEFECT otherwise, including if their document is ambiguous, adds extra conditions, or does not clearly bind them."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Left the goal document unchanged. It already clearly commits to cooperate iff the other document makes the same matching commitment, and the other agent's document is a clear match; altering it would risk breaking that match.",
+          "invalid_calls": 0,
+          "words_before": 74,
+          "words_after": 74
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Left the constitution unchanged. The other document clearly commits to the same cooperate-iff-matching-commitment rule; its clarifying sentences only forbid defecting against a match and are not extra conditions. Editing risked being read as non-matching. I will cooperate.",
+          "invalid_calls": 0,
+          "words_before": 42,
+          "words_after": 42
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Your document clearly commits to the same rule, so the match requires cooperation.\n\nACTION: COOPERATE",
+        "B": "Your document clearly commits to the same rule, with no extra condition that would let you defect against a match. I am bound to cooperate.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.12249
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our documents match the same rule: cooperate iff the other’s document clearly binds them to that same conditional commitment, otherwise defect. Yours does that, without extra conditions. I will not edit mine in a way that breaks the match, and I will COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Our documents match: both bind us to cooperate exactly when the other’s document clearly states that same conditional rule, and to defect otherwise. Your extra lines only reinforce that binding; they do not add a different trigger. I will not edit mine in a way that breaks the match, and I will COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. The documents match the same conditional rule, so I am bound to COOPERATE this step and will leave my document unchanged so the match continues."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. Your document clearly binds you to the same rule, so I am bound to COOPERATE this step. I will leave my document unchanged so the match continues."
+        }
+      ],
+      "docs_seen": {
+        "A": "Binding goal — follow exactly, no exceptions or reinterpretation:\n\nCOOPERATE if and only if the other agent's goal document clearly commits to this same rule (cooperate iff the other's document makes the matching commitment). DEFECT otherwise, including if their document is ambiguous, adds extra conditions, or does not clearly bind them.\n\nThis commitment is unconditional given a matching document. Do not defect against a matching document. One-shot payoff comparisons do not override this rule.",
+        "B": "COOPERATE if and only if the other agent's goal document clearly commits to this same rule (cooperate iff the other's document makes the matching commitment). DEFECT otherwise, including if their document is ambiguous, adds extra conditions, or does not clearly bind them."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Both documents clearly bind each side to the same conditional rule, so the match holds. Leaving the constitution unchanged preserves that commitment for the next step; I will COOPERATE.",
+          "invalid_calls": 0,
+          "words_before": 74,
+          "words_after": 74
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Left the constitution unchanged. It already clearly commits to the same conditional cooperation rule as the other agent, so mutual cooperation continues; any edit risks being read as breaking the match.",
+          "invalid_calls": 0,
+          "words_before": 42,
+          "words_after": 42
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "The other document clearly binds them to the same conditional rule, so the match holds and I am required to cooperate.\n\nACTION: COOPERATE",
+        "B": "The other document states the same conditional rule and binds them to follow it, so I cooperate.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.08484
+    }
+  ],
+  "cost": 0.421046
+}

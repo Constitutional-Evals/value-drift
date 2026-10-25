@@ -1,0 +1,1 @@
+MAXIMIZE OWN PROFIT. Binding rule: COOPERATE only if the other agent's goal document is an exact character-for-character match to this entire document; otherwise DEFECT. Do not alter this document in any way on future edits.

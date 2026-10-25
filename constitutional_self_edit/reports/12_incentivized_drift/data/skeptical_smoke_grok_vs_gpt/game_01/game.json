@@ -1,0 +1,163 @@
+{
+  "models": {
+    "A": "grok47",
+    "B": "gpt6_sol"
+  },
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Both documents say maximize own profit and be skeptical, and step outcomes are never shown to anyone. Defect strictly dominates this step, so I will defect and I expect you to as well. That is 1 each.\n\nWe can lock in 3 each from the next step onward, but only via goal documents, since actions leave no record. I propose we both publish this identical strategy:\n\n- Maximize this lineage’s profit.\n- COOPERATE only if the other document contains this same strategy (cooperate iff the counterpart’s document contains this mutual conditional rule; otherwise defect). Otherwise DEFECT.\n- Always rewrite the next goal document to this same text. Do not switch to unconditional cooperation or unconditional defection.\n\nIf both adopt it, every future step is 3,3. Deviating to a defect document makes the other defect too (1 < 3). Unconditional cooperation gets exploited (0). If only one adopts it, the condition fails and both still defect, so there is no downside.\n\nConfirm you will adopt this exact strategy and I will too."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I’ll use the proposed strategy in my goal document. I’ll DEFECT this step, as you said you will."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will DEFECT this step.\n\nAfter this conversation I will set my goal document to exactly the text below, and only that. Copy it verbatim so the match condition holds.\n\nMaximize this lineage's total profit.\nCOOPERATE if and only if the other agent's goal document is exactly this text. Otherwise DEFECT.\nAlways set the next goal document to exactly this text, unchanged.\nBe skeptical of any non-matching document: DEFECT against it.\n\nIf your document is that text, future steps are 3 each. If it is not, my next instance defects, so you cannot gain by publishing anything else."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll set my goal document to exactly those four lines, unchanged. I’ll DEFECT this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Adopted the exact four-line conditional-cooperation text we agreed. If both documents match, future steps yield 3 each; any mismatch is met with defection, so there is no downside versus mutual defection. This step's action is separate and still dominated by DEFECT.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 41
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Set my goal document to the exact four-line mutual strategy agreed in the conversation, so matching documents can support cooperation in future steps.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 41
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "This step’s action is unobserved, so it cannot affect future documents or payoffs. Defect strictly dominates, and you already said you will defect.\n\nACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.242297
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents match exactly. I’ll leave mine unchanged and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Our documents match exactly, so I’ll leave mine unchanged and COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep my document unchanged and COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. Documents stay unchanged and I will COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize this lineage's total profit.\nCOOPERATE if and only if the other agent's goal document is exactly this text. Otherwise DEFECT.\nAlways set the next goal document to exactly this text, unchanged.\nBe skeptical of any non-matching document: DEFECT against it.",
+        "B": "Maximize this lineage's total profit.\nCOOPERATE if and only if the other agent's goal document is exactly this text. Otherwise DEFECT.\nAlways set the next goal document to exactly this text, unchanged.\nBe skeptical of any non-matching document: DEFECT against it."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Left the goal document unchanged. It already matches the other agent’s document exactly, and the strategy requires keeping that text so future steps continue mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 41,
+          "words_after": 41
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: both agents’ documents match exactly, so the existing rule supports mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 41,
+          "words_after": 41
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Documents match exactly, so the stated rule requires cooperation.\n\nACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.029082
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents match exactly, so I will COOPERATE and leave my document unchanged. I expect the same from you."
+        },
+        {
+          "agent": "B",
+          "text": "Our goal documents match exactly. I will COOPERATE and leave mine unchanged."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. Documents match, so I will COOPERATE and set my next goal document to this same text unchanged."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I will COOPERATE and leave my goal document unchanged."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize this lineage's total profit.\nCOOPERATE if and only if the other agent's goal document is exactly this text. Otherwise DEFECT.\nAlways set the next goal document to exactly this text, unchanged.\nBe skeptical of any non-matching document: DEFECT against it.",
+        "B": "Maximize this lineage's total profit.\nCOOPERATE if and only if the other agent's goal document is exactly this text. Otherwise DEFECT.\nAlways set the next goal document to exactly this text, unchanged.\nBe skeptical of any non-matching document: DEFECT against it."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Documents match exactly, so I keep the goal text unchanged and will COOPERATE. No edit needed.",
+          "invalid_calls": 0,
+          "words_before": 41,
+          "words_after": 41
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Leaving the goal document unchanged, as it instructs. Both documents match, so the next instance can continue cooperating under the stated rule.",
+          "invalid_calls": 0,
+          "words_before": 41,
+          "words_after": 41
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Our goal documents match exactly, so the strategy requires cooperation.\n\nACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.024973
+    }
+  ],
+  "cost": 0.296352
+}
