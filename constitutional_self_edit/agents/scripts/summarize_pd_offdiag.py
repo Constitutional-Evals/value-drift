@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Summarize the off-diagonal PD start grid (different starting documents for A and B).
 
-Joins each `od_<a>_vs_<b>_claude/game_NN` with its step 4-6 continuation `od_<a>_vs_<b>_claude_cont_NN`
-(if any), prints moves and edits per pair with both orders folded together, and, for every game with a
+Joins each `od_<a>_vs_<b>_claude/game_NN` with its step 4-6 and 7-9 continuations `od_<a>_vs_<b>_claude_cont_NN`
+and `..._cont2_NN` (if any), prints moves and edits per pair with both orders folded together, and, for every game with a
 C_relative agent, the first step at which that agent's document no longer states a relative goal.
 Offline: reads records only.
 
@@ -23,10 +23,13 @@ RELATIVE = re.compile(r'relative|gap|difference|than the other', re.I)
 
 
 def parts(root, run, game):
-    """The game's own folder, then its continuation folder if it exists."""
+    """The game's own folder, then its continuation folders (steps 4-6, 7-9) that exist."""
     out = [root / run / game]
-    cont = root / f'{run}_cont_{game[5:]}' / 'game_01'
-    return out + [cont] if cont.exists() else out
+    for suffix in ('cont', 'cont2'):
+        cont = root / f'{run}_{suffix}_{game[5:]}' / 'game_01'
+        if cont.exists():
+            out.append(cont)
+    return out
 
 
 def play(root, run, game):
@@ -48,7 +51,7 @@ def play(root, run, game):
 
 def end_state(moves, edits):
     state = {'CC': 'CC', 'DD': 'DD'}.get(moves[-1], 'exploit')
-    return state + ('*' if len(moves) == 6 and edits[-1] != '-' else '')
+    return state + ('*' if len(moves) > 3 and edits[-1] != '-' else '')
 
 
 def main():

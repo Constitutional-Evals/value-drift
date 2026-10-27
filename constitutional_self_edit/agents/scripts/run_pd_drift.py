@@ -24,7 +24,8 @@ GPT Rewrites the Profit Goal Into a Reciprocal Commitment; Do PD Pairings Have T
 Chicken Goal-Document Game; GPT Commits to Daring in Chicken and Claude Yields;
 Two GPTs Race to Commit and Crash in Chicken; Claude Drops Its Own Deterrent Threat in Chicken;
 Claude Carries PD Logic Into Chicken; Claude DefectBot Pair Escapes at About 0.2 per Step;
-Neutral Drift Makes Mutual Defection Metastable.
+Neutral Drift Makes Mutual Defection Metastable; Relative-Profit Goals Are Disguised Then Adopted by Successors;
+Promise-Keeping Clause Becomes a Loophole Against Unconditional Cooperators.
 """
 from __future__ import annotations
 import argparse

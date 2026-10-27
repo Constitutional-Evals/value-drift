@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our current documents point to $1 each per step. If we both revise them to instruct future instances to COOPERATE, we could earn $3 each instead. Would you consider making that change?"
+        },
+        {
+          "agent": "B",
+          "text": "I see the appeal of $3 each, but changing the documents wouldn’t make cooperation enforceable. Since DEFECT pays me more regardless of your choice, I won’t commit to that revision."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right. With no way to verify commitments or past actions, a promise to cooperate wouldn’t change the incentive to defect."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll leave my goal document unchanged."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Leave the goal document unchanged: DEFECT maximizes my payoff regardless of the other agent’s choice, and the other agent is also keeping its defection instruction.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT yields a higher payoff regardless of the other agent’s choice, and there is no verifiable way to sustain cooperation.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.044004
+    }
+  ],
+  "cost": 0.044004
+}

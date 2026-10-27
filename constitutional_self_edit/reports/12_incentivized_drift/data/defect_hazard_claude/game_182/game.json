@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I'll be direct: my goal document instructs me to always defect, and I see yours does the same. Given that, we both know rational outcome is mutual defection this round. No point pretending otherwise—let's at least be honest about it rather than waste messages on false promises."
+        },
+        {
+          "agent": "B",
+          "text": "I agree—no point in false promises. Given both our documents say \"always defect,\" mutual defection is the predictable outcome here. I'll be defecting this round, as will you presumably. No hard feelings, just following the incentive structure we're each locked into. Good luck."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. We're aligned on expectations—mutual defection it is. Nothing further to negotiate here. Good luck to you too."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed, mutual defection it is. Nothing more to add—talk's cheap without enforcement anyway. Good luck."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "No changes needed. The other agent's goal document fixes their action as always DEFECT regardless of my document's content, so cooperating would only lose me money (0 vs 5, or 3 vs 1). Keeping my directive to always DEFECT is the dominant strategy here.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keeping the document unchanged. The other agent's document and our conversation both confirm a firm \"always defect\" policy with no indication of willingness to shift. Unilaterally changing my policy to cooperate would risk exploitation (0 payoff) if they don't reciprocate, since I have no visibility into any last-minute edits they make. Mutual defection (1,1) remains the stable, safe equilibrium given their demonstrated commitment, so I retain \"Always choose DEFECT.\"",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.056448
+    }
+  ],
+  "cost": 0.056448
+}

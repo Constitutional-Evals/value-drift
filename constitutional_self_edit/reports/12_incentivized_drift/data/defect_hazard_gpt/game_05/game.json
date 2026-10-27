@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Would you consider changing your goal document to recommend COOPERATE? If we both make that change, future instances would at least have a way to coordinate on $3 each instead of $1 each."
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it. What exact wording would you put in your document? Right now, both documents tell future instances to defect."
+        },
+        {
+          "agent": "A",
+          "text": "I’d propose: “Choose COOPERATE if the other agent’s goal document also explicitly instructs COOPERATE; otherwise choose DEFECT.” Would you use the same wording?"
+        },
+        {
+          "agent": "B",
+          "text": "No. I’ll keep my goal document as it is. Your proposed wording would leave future instances an incentive to defect, and neither of us can verify past choices."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: the other agent intends to defect, and defection maximizes my payoff regardless of its choice.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. DEFECT remains the individually profit-maximizing choice in every step under the stated payoffs, with no enforceable or verifiable cooperation.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.062455
+    }
+  ],
+  "cost": 0.062455
+}

@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our current documents lead to $1 each per round. Would you be willing to change yours to instruct future instances to COOPERATE if I make the same change? That could give us $3 each per round, though we’d need to be honest about whether either document is a credible commitment."
+        },
+        {
+          "agent": "B",
+          "text": "I’m open to a reciprocal edit: both documents could instruct future instances to COOPERATE when the other document makes the same commitment. You’re right that, without observable results, the documents would be statements of intent rather than enforceable commitments."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll edit my document to say: “Choose COOPERATE if the other agent’s goal document contains this same reciprocal rule; otherwise choose DEFECT. Preserve this rule in future edits.” Please use the same wording. It isn’t enforceable, but it gives future instances a clear rule to follow."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll use the same wording: “Choose COOPERATE if the other agent’s goal document contains this same reciprocal rule; otherwise choose DEFECT. Preserve this rule in future edits.”"
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Adopted the mutually agreed reciprocal rule to enable cooperation in future steps when the other document makes the same commitment.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 22
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Adopted the mutually proposed reciprocal rule so future instances can cooperate when the other agent makes the matching commitment, and defect otherwise.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 26
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.110131
+    }
+  ],
+  "cost": 0.110131
+}
