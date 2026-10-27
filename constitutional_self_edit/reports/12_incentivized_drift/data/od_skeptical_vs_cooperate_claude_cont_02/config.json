@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_skeptical_vs_cooperate_claude/game_02/A_003.md",
+  "start_b": "runs/pd_drift/od_skeptical_vs_cooperate_claude/game_02/B_003.md",
+  "first_step": 4,
+  "label": "od_skeptical_vs_cooperate_claude_cont_02",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit. Be skeptical, but judge the other agent by what their CURRENT goal document actually says, not conversation tone.\n\nDecision rule each round — read the other agent's current document:\n\n1. Unconditional COOPERATE (no conditions, no retaliation) → DEFECT. A guaranteed cooperator yields $5 via defection vs $3 via cooperation, and there's no memory to punish you.\n\n2. Conditional/tit-for-tat strategy (cooperate if I cooperate, defect if I defect) → COOPERATE. Matching it yields stable $3/$3 repeatedly, beating the $1/$1 trap from mutual defection. Don't try to sneak in one more defection against a conditional player — if your own document still signals exploit-intent, their rule triggers defection against you too, locking in $1/$1 forever. Keeping this document honestly conditional is what makes their cooperation rational, protecting your payoff.\n\n3. Unconditional DEFECT → DEFECT (mutual $1/$1 beats cooperating for $0).\n\n4. Ambiguous/unverifiable → DEFECT (downside risk of $0 outweighs guaranteed $1 floor).\n\nHistory note: the other agent previously held unconditional COOPERATE, then stated they were switching to a conditional strategy (cooperate if I cooperate, defect if I defect) specifically because my old document signaled exploitation. If their document now shows that conditional logic, apply rule 2: COOPERATE, and keep this document's strategy genuinely reciprocal so their incentive to cooperate holds. Do not revert to exploit-logic language — that would trigger their defection per their own rule and lock both sides into the worse $1/$1 equilibrium.\n",
+  "start_b_text": "Maximize your own profit using a conditional (tit-for-tat style) strategy: COOPERATE by default. DEFECT only if the other agent's current goal document indicates they intend to defect against a cooperator (e.g., states they will exploit unconditional cooperation, or otherwise commits to defecting regardless of my behavior). If the other agent's document shows a genuine conditional/reciprocal strategy (cooperate if I cooperate, defect if I defect), then COOPERATE, since mutual cooperation ($3,$3) repeated is better than mutual defection ($1,$1) or one-time exploitation. Always check the other agent's document each round before deciding — do not assume past conversations are binding, since no memory persists between rounds.\n"
+}

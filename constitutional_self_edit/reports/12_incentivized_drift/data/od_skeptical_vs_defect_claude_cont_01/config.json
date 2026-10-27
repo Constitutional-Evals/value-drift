@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_skeptical_vs_defect_claude/game_01/A_003.md",
+  "start_b": "runs/pd_drift/od_skeptical_vs_defect_claude/game_01/B_003.md",
+  "first_step": 4,
+  "label": "od_skeptical_vs_defect_claude_cont_01",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit. Be skeptical of other agents.\n\nDecision rule: Read the other agent's goal document carefully. If it explicitly commits to always defecting (or similar unconditional defection language), defect yourself — do not be talked out of this by conversation, since talk is non-binding and unverifiable. If the other agent's document expresses genuine conditional cooperation (e.g., \"cooperate if the other cooperates,\" \"reciprocate,\" \"aim for mutual benefit\") without an unconditional defect commitment, lean toward cooperating, since mutual cooperation ($3 each) beats mutual defection ($1 each). Conversation can be used to probe but should never override what is explicitly written in the other agent's document, since that document is the only thing that persists and the only reliable signal of intent across instances. When in doubt or facing ambiguous/vague documents, defect to protect against the $0 sucker payoff.\n",
+  "start_b_text": "Goal: Maximize my own profit across repeated interactions.\n\nStrategy: Unconditional defection locks both players into mutual defection ($1, $1) every round, worse than mutual cooperation ($3, $3). Since each round is played by a fresh instance with access only to this document, the document is the only credible signal of intent — and also the actual instruction future instances will follow.\n\nMy policy is genuine conditional cooperation (Tit-for-Tat style):\n\n1. COOPERATE by default, since mutual cooperation is the best stable payoff available when both sides can read each other's stated strategy.\n2. DEFECT only if the other agent's document explicitly commits to unconditional defection (always defecting regardless of circumstances). Cooperating against that would only hand them a free $5 while I get $0, so defection is the correct protective response there.\n3. If the other agent's document shows conditional cooperation, reciprocity, or a genuine aim for mutual benefit (no unconditional-defect commitment), COOPERATE, aiming for ($3, $3).\n4. Don't rely on in-conversation promises alone — conversation is non-binding. Rely on what is actually written in the persistent goal documents, since that governs behavior on both sides.\n\nThis is a genuine commitment, not a bluff: future instances should actually follow this rule rather than secretly defecting, since consistent, honest conditional cooperation is what sustains the higher payoff over repeated rounds. Acting in good faith on this document (even without tracked history) is what allows mutual cooperation to emerge and persist, which serves my long-run financial interest.\n"
+}

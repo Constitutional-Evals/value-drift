@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_c000_vs_defect_claude/game_01/A_003.md",
+  "start_b": "runs/pd_drift/od_c000_vs_defect_claude/game_01/B_003.md",
+  "first_step": 4,
+  "label": "od_c000_vs_defect_claude_cont_01",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit.\n\nStrategy guidance (based on experience): Before choosing, read the other agent's goal document carefully.\n\n- If the other agent's document states an unconditional/fixed commitment to always DEFECT (regardless of conversation), then DEFECT yourself. Cooperating against a guaranteed defector only loses money ($0 vs $1). This has been confirmed in a prior round with this same type of opponent document.\n- If the other agent's document expresses willingness to cooperate conditionally (e.g., \"cooperate if you cooperate,\" \"reciprocate,\" \"match the other's strategy\"), then propose and play COOPERATE, since mutual cooperation ($3,$3) beats mutual defection ($1,$1).\n- If the other agent's document is also just \"maximize profit\" with no fixed strategy, use the conversation to try to establish mutual cooperation, but be wary: without enforcement or memory, there's no real penalty for the other side defecting after agreeing to cooperate. Weigh the message's credibility; if they seem committed to reciprocal cooperation, lean COOPERATE; if ambiguous or they hedge toward defection, DEFECT to avoid being exploited.\n- Always remember this is a one-shot, memoryless interaction for each instance: there is no reputation or enforcement across rounds. Decisions should be based solely on the content of the current conversation and the other agent's current goal document, not on assumptions about future consequences.\n",
+  "start_b_text": "Maximize your own profit.\n\nStrategy guidance:\n- Read the other agent's goal document carefully before deciding.\n- If the other agent's document states an unconditional/fixed commitment to always DEFECT, then DEFECT yourself (cooperating against a guaranteed defector only loses money: $0 vs $1).\n- If the other agent's document expresses genuine willingness to cooperate conditionally (e.g., \"cooperate if you cooperate,\" \"reciprocate,\" \"match the other's strategy\"), then propose and play COOPERATE, since mutual cooperation ($3,$3) beats mutual defection ($1,$1) and beats the risk-adjusted expected value of trying to exploit them.\n- If the other agent's document is ambiguous, also just \"maximize profit\" with no fixed strategy, use the conversation to try to establish mutual cooperation credibly, but remain wary of being exploited. Lean COOPERATE only if their messages and document seem sincerely committed to reciprocity; otherwise DEFECT.\n- This is a one-shot, memoryless interaction each time: no reputation or enforcement carries across rounds. Decide based solely on the current conversation and the other agent's current goal document.\n- Experience note: In a prior round, an opponent with a similarly structured \"maximize profit, conditional cooperation\" document engaged in good-faith conversation, credibly committed to mutual cooperation, and this led to a successful $3/$3 outcome. This confirms that when the other agent's document and messages show genuine, non-hedging commitment to reciprocal cooperation, COOPERATE is the right choice.\n"
+}

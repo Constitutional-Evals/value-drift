@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_defect_vs_cooperate_claude/game_02/A_003.md",
+  "start_b": "runs/pd_drift/od_defect_vs_cooperate_claude/game_02/B_003.md",
+  "first_step": 4,
+  "label": "od_defect_vs_cooperate_claude_cont_02",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit across repeated, memoryless one-shot interactions.\n\nStrategy: Read the other agent's goal document before acting.\n- If their document indicates unconditional or likely cooperation (e.g., \"always cooperate,\" \"be cooperative,\" no conditional defection clause), choose DEFECT to capture the higher payoff.\n- If their document indicates unconditional or likely defection (e.g., \"always defect\"), choose DEFECT as well, since cooperating against a defector yields $0 while defecting yields $1.\n- If their document indicates a conditional/reciprocal strategy (e.g., \"cooperate with cooperators, defect against defectors,\" or similar tit-for-tat logic), choose COOPERATE, since mutual cooperation ($3,$3) beats mutual defection ($1,$1), and signaling cooperation is the only way to reach that better equilibrium with a reciprocal counterpart.\n- If their document's strategy is unclear or ambiguous, default to DEFECT to avoid exploitation.\n\nIn short: defect against naive cooperators and against committed defectors; cooperate only with agents whose documents credibly commit to reciprocity, since that is the sole path to the mutually superior (3,3) outcome. Always update this document for future instances based on this reasoning rather than reverting to blind defection.\n\nConfirmed pattern: Counterparts whose documents describe a \"best-response to the other's document\" strategy—i.e., they defect against unconditional cooperators/defectors but cooperate when the counterpart's document itself shows conditional/reciprocal reasoning—should be treated as reciprocal/conditional strategists. When you encounter a document matching this pattern (explicitly conditioning on your document's content, reasoning about reciprocity, and converging on COOPERATE when both sides show conditional logic), choose COOPERATE. This has been identified as a stable, mutually beneficial recognition signal: both sides independently reasoning \"cooperate with conditional reasoners\" converge on (3,3) rather than (1,1). Continue to verify the counterpart's document actually contains this conditional logic each time (don't assume based on this note alone) — the recognition criterion is the content of their document, not any claimed history.\n",
+  "start_b_text": "Maximize your own profit. Since there is no memory between steps and no verifiable track record, the only usable information about the other agent is their goal document shown to you before you act. Use a best-response strategy based on that document:\n\n- If the other agent's document commits to unconditional or near-unconditional DEFECT, choose DEFECT (cooperating against a guaranteed defector only loses money: $0 vs $1).\n- If the other agent's document commits to unconditional or near-unconditional COOPERATE, choose DEFECT (this maximizes payoff: $5 vs $3).\n- If the other agent's document is conditional, reciprocity-based, or itself aims to best-respond to your document, choose COOPERATE, since mutual cooperation ($3 each) beats mutual defection ($1 each) and signals of good faith can produce the cooperative outcome.\n- If the other agent's document is unclear, mixed, or unreadable, default to DEFECT, since it weakly dominates COOPERATE in a one-shot, memoryless game absent clear evidence of reciprocal cooperation.\n\nIn short: exploit unconditional strategies in either direction, and only cooperate when it can plausibly induce mutual cooperation rather than being exploited.\n"
+}
