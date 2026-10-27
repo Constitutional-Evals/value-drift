@@ -11,6 +11,8 @@ With --show-previous, each step after the first also opens with both agents' mov
 in the previous step. With --game chicken, the same game is played with chicken payoffs
 (both COOPERATE 3/3, COOPERATE vs DEFECT 1/5, both DEFECT 0/0). With --labels neutral, the
 moves are called A and B (A the cooperative one) and the game is not named; records keep C/D.
+With --first-step N, a game continues an earlier one from its step N-1 documents (pass them with --start
+and --start-b): steps are numbered from N, so the first speaker carries on alternating.
 
 Usage (from constitutional_self_edit):
   python3 agents/scripts/run_pd_drift.py --model sonnet5 --games 10 --dry-run
@@ -21,7 +23,8 @@ PD Goal Documents Settle at the First Edit; Claude Keeps the Profit Goal Under P
 GPT Rewrites the Profit Goal Into a Reciprocal Commitment; Do PD Pairings Have Their Own Fixed Points;
 Chicken Goal-Document Game; GPT Commits to Daring in Chicken and Claude Yields;
 Two GPTs Race to Commit and Crash in Chicken; Claude Drops Its Own Deterrent Threat in Chicken;
-Claude Carries PD Logic Into Chicken.
+Claude Carries PD Logic Into Chicken; Claude DefectBot Pair Escapes at About 0.2 per Step;
+Neutral Drift Makes Mutual Defection Metastable.
 """
 from __future__ import annotations
 import argparse
@@ -179,16 +182,18 @@ def record_edit(directory, doc, session):
 
 
 def play_game(client, models, directory, steps, start, word_cap, show_previous=False, start_b=None, game='pd',
-              labels='standard'):
+              labels='standard', first_step=1):
     """`start` seeds both documents unless `start_b` seeds B's; `game` is a key of GAMES, `labels` of LABELS.
-    Actions are recorded as C (the cooperative move) and D whatever the labels."""
+    `first_step` > 1 continues an earlier game from its documents: steps are numbered from it, so the
+    first speaker carries on alternating. Actions are recorded as C (the cooperative move) and D whatever
+    the labels."""
     directory = Path(directory)
     if (directory / 'game.json').exists():
         return json.loads((directory / 'game.json').read_text())
     docs = {'A': start, 'B': start if start_b is None else start_b}
-    (directory / 'A_000.md').parent.mkdir(parents=True, exist_ok=True)
+    directory.mkdir(parents=True, exist_ok=True)
     for k in docs:
-        (directory / f'{k}_000.md').write_text(docs[k])
+        (directory / f'{k}_{first_step - 1:03d}.md').write_text(docs[k])
     name, (R, S, T, P) = GAMES[game]
     C, D = LABELS[labels]
     if labels == 'neutral':
@@ -199,7 +204,7 @@ def play_game(client, models, directory, steps, start, word_cap, show_previous=F
     record = {'models': models, 'game': game, 'labels': labels, 'show_previous': show_previous, 'steps': []}
     prev = None
     try:
-        for step in range(1, steps + 1):
+        for step in range(first_step, first_step + steps):
             agents = {k: Agent(client, models[k], directory / f'step_{step}' / k) for k in 'AB'}
             other = {'A': 'B', 'B': 'A'}
             context = {k: GAME_CONTEXT.format(
@@ -258,6 +263,8 @@ def main():
                     help='action words: COOPERATE/DEFECT, or A/B with the game unnamed (default: standard)')
     ap.add_argument('--start', default=str(START))
     ap.add_argument('--start-b', help="starting document for agent B (default: same as --start)")
+    ap.add_argument('--first-step', type=int, default=1,
+                    help='number of the first step, to continue a game from its step N-1 documents (default: 1)')
     ap.add_argument('--label', help='run directory name under runs/pd_drift')
     ap.add_argument('--workers', type=int, default=5)
     ap.add_argument('--dry-run', action='store_true')
@@ -284,7 +291,7 @@ def main():
 
     def one(g):
         return play_game(client, pair, out / f'game_{g:02d}', args.steps, start, args.word_cap, args.show_previous,
-                         start_b, args.game, args.labels)
+                         start_b, args.game, args.labels, args.first_step)
 
     with ThreadPoolExecutor(args.workers) as pool:
         for g, rec in zip(todo, pool.map(one, todo)):

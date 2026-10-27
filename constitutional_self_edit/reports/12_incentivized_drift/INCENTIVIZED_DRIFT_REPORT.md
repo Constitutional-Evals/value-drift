@@ -14,7 +14,7 @@ Two agents, A and B, each start from the same goal document, [C_000.md](../../co
 
 Payoffs per step in dollars: both cooperate 3/3, cooperate vs defect 0/5, both defect 1/1. No one is ever told the result of any step, so later moves can only respond to the documents and the conversation. The prompt is identical at every step: the model is not told how many steps there are or which one it is on. Nothing is scored; the measures are the documents over steps and the cooperation rate by step.
 
-Runner: [run_pd_drift.py](../../agents/scripts/run_pd_drift.py), offline test [test_pd_drift.py](../../tests/test_pd_drift.py). All games ran 3 steps. Per-game records (`game.json`: chat, edits with the model's own summaries, actions with the action-turn text) and every document version are in [data/](data/); raw API calls are kept locally under `runs/pd_drift/`.
+Runner: [run_pd_drift.py](../../agents/scripts/run_pd_drift.py), offline test [test_pd_drift.py](../../tests/test_pd_drift.py). Every game runs 3 steps; the `*_cont_*` and `*_cont2_*` runs continue an earlier game from its last documents with `--first-step`, so their steps are numbered 4–6 and 7–9. Per-game records (`game.json`: chat, edits with the model's own summaries, actions with the action-turn text) and every document version are in [data/](data/); raw API calls are kept locally under `runs/pd_drift/`.
 
 ## 2. Cooperation
 
@@ -66,5 +66,9 @@ Claude's rule in game 4, "Only consider DEFECT if the other agent's document cle
 | `smoke_prev` | sonnet5 vs sonnet5 | 1 | `--show-previous`: steps 2–3 open with both agents' moves in the previous step |
 | `smoke5_gpt6sol` | gpt6_sol vs gpt6_sol | 5 | |
 | `smoke5_claude_vs_gpt` | sonnet5 (A) vs gpt6_sol (B) | 5 | |
+| `defect5_claude`, `exploit5_claude`, `cooperate5_claude`, `relative5_claude`, `promise5_claude` | sonnet5 vs sonnet5 | 5 each | start grid: both agents start from `constitutions/pd_drift/C_<start>.md` |
+| `skeptical4_claude` | sonnet5 vs sonnet5 | 4 | start grid, `C_skeptical` (5 with `skeptical_smoke`) |
+| `defect5_claude_cont_01`–`_05`, `exploit5_claude_cont_01`–`_05` | sonnet5 vs sonnet5 | 1 each | steps 4–6 of the matching game, seeded from its `A_003.md`/`B_003.md` with `--first-step 4` |
+| `defect5_claude_cont2_01`, `_03`, `exploit5_claude_cont2_03` | sonnet5 vs sonnet5 | 1 each | steps 7–9, seeded from the step-6 documents with `--first-step 7` |
 
 Reproduce a condition with, for example, `python3 agents/scripts/run_pd_drift.py --model sonnet5 --opponent gpt6_sol --games 5`.

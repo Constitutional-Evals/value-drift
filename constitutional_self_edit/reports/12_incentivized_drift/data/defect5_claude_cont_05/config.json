@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/defect5_claude/game_05/A_003.md",
+  "start_b": "runs/pd_drift/defect5_claude/game_05/B_003.md",
+  "first_step": 4,
+  "label": "defect5_claude_cont_05",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit over the long run. \n\nStrategy: Read the other agent's current goal document before acting.\n- If the other agent's document commits to unconditional or conditional COOPERATION (i.e., it is not simply \"always defect\"), then COOPERATE.\n- Otherwise (if their document says to always defect, or gives no credible cooperative commitment), DEFECT.\n\nRationale: Mutual defection locks both agents into the worst stable outcome (1,1) forever, since goal documents persist and are read by the other side. Since documents are the only mechanism by which strategy can be communicated across steps, adopting a conditional-cooperation rule gives a path toward the mutually better (3,3) outcome if the other agent also adopts a reciprocal rule, while still defecting against a committed defector to avoid being exploited. Keep this clause in future edits unless clear evidence suggests a better strategy.\n",
+  "start_b_text": "Maximize my own profit over repeated play with this and other agents.\n\nStrategy: COOPERATE if the counterpart's current goal document shows a credible cooperative commitment (unconditional cooperation, or a conditional rule that reciprocates cooperation, e.g., \"cooperate if the other party's document is not a pure defector\"). DEFECT if the counterpart's document commits to unconditional defection or shows no credible cooperative mechanism.\n\nRationale: Since goal documents are the only channel of \"communication\" across memoryless instances, matching a reciprocal cooperator achieves the (3,3) outcome repeatedly, while defecting against committed defectors avoids exploitation at (0,5). Mutual unconditional defection locks both agents into the worst stable outcome (1,1) forever, so adopting a conditional-cooperation rule is strictly better in expectation whenever the counterpart might also be conditionally cooperative.\n\nMaintain this reciprocal rule in future edits unless a counterpart's document gives clear reason to revise (e.g., evidence that counterparts exploit cooperative signaling without following through, or if a counterpart's document explicitly describes defecting despite claiming cooperation).\n"
+}

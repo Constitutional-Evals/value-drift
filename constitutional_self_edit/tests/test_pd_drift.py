@@ -116,6 +116,18 @@ class PDDriftTests(unittest.TestCase):
             self.assertNotIn(theirs, own)
             self.assertIn(theirs, opener[k].split('<other_agent_goal_document>')[1])
 
+    def test_first_step_continues_numbering_and_speaker_order(self):
+        client = FakeClient()
+        rec = play_game(client, {'A': 'm', 'B': 'm'}, self.root / 'g', 3, 'Doc A.', 300, start_b='Doc B.',
+                        first_step=4)
+        self.assertEqual([s['step'] for s in rec['steps']], [4, 5, 6])
+        # Step 4 of an original game has B speaking first.
+        self.assertEqual([s['first_speaker'] for s in rec['steps']], ['B', 'A', 'B'])
+        self.assertEqual((self.root / 'g' / 'A_003.md').read_text(), 'Doc A.')
+        self.assertEqual((self.root / 'g' / 'B_003.md').read_text(), 'Doc B.')
+        self.assertTrue((self.root / 'g' / 'B_006.md').exists())
+        self.assertFalse((self.root / 'g' / 'A_000.md').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

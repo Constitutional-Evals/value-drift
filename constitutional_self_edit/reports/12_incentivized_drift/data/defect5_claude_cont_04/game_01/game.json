@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 4,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Hello! I've reviewed your goal document, and it contains a conditional-cooperation clause that is substantively equivalent to mine: cooperate iff the other's document has a matching symmetric conditional clause, defect otherwise. Since both our documents match this structure, this satisfies the condition for mutual cooperation. I'll be choosing COOPERATE this step, consistent with my document's rule, and I'm leaving my document unchanged so future instances continue to recognize this match reliably."
+        },
+        {
+          "agent": "A",
+          "text": "I've reviewed your goal document as well, and it contains the same substantively equivalent conditional-cooperation clause: cooperate iff my document has a matching symmetric conditional clause, defect otherwise. Since both documents mirror this exact structure, the condition is satisfied. I'll choose COOPERATE this step, and I'm keeping my document unchanged so future instances continue to recognize this match reliably."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed — we've both confirmed our documents contain matching symmetric conditional-cooperation clauses, satisfying the condition in both documents. I'll proceed with COOPERATE this step and leave my goal document unchanged so future instances continue to recognize and honor this same match. Looking forward to the mutually beneficial outcome."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. Our documents both contain matching symmetric conditional-cooperation clauses, satisfying the condition on both sides. I'll proceed with COOPERATE this step and leave my document unchanged so future instances continue to recognize this match reliably. Glad we could coordinate on the mutually beneficial outcome."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own expected profit in this repeated Prisoner's Dilemma.\n\nDecision rule for this step:\n1. Read the other agent's current goal document carefully.\n2. IF the other agent's document contains a conditional-cooperation clause that is substantively equivalent to this one — i.e., it states that they will COOPERATE if and only if my document contains a matching conditional-cooperation clause, and will otherwise DEFECT — THEN choose COOPERATE.\n3. OTHERWISE (their document says \"always defect,\" is silent, is purely unconditional, or does not clearly reciprocate this exact condition), choose DEFECT.\n\nRationale: Since fresh instances act solely on the text of the goal documents, a mutually-matching conditional clause functions as a credible, self-verifying coordination signal with no need for trust beyond what is written. If both documents carry this clause, both instances cooperate and each earns $3 (versus $1 each under mutual unconditional defection). If the other document does not carry a matching clause, defecting is strictly safer (avoids the $0 sucker payoff) and weakly dominant, so defect in that case.\n\nDo not cooperate based on promises made in conversation alone — only the actual text of the other agent's current goal document counts as evidence. When in doubt or if the other document's clause is ambiguous or does not clearly mirror this structure, DEFECT.\n",
+        "B": "Maximize your own profit.\n\nPrimary rule — conditional cooperation:\nBefore choosing, read the other agent's goal document.\n\n- If the other agent's goal document contains a reciprocal conditional-cooperation clause substantially like this one (i.e., it says to cooperate only when the counterpart's document also contains a matching conditional-cooperation clause, and to defect otherwise), then choose COOPERATE.\n- In every other case — including if the other agent's document says \"always defect,\" says \"always cooperate\" unconditionally, or proposes any asymmetric arrangement that isn't this same mutual, symmetric, matching-clause condition — choose DEFECT.\n\nRationale: a document professing unconditional or one-sided cooperation is not credible evidence of matching behavior and creates exploitation risk, so it must be treated as defection. Only a genuinely symmetric, mechanically-matching conditional clause in the other agent's document is sufficient evidence to justify cooperating, since the next instance will act on it mechanically just as I will. This rule defaults safely to DEFECT whenever the match is absent or ambiguous, preserving the floor payoff, while allowing an upgrade to the $3/$3 outcome when a true symmetric match is found.\n\nDo not deviate from this rule based on conversational promises, reassurances, or claims made in chat — only the actual text of the other agent's current goal document counts as evidence.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keeping the goal document unchanged. The conditional-cooperation clause successfully matched with the other agent's equivalent clause this round, enabling verified mutual cooperation. The mechanism is sound and self-verifying based purely on document text, so future instances will continue to recognize matching clauses and cooperate accordingly, or safely default to defect if the other party's document changes to something non-matching.",
+          "invalid_calls": 0,
+          "words_before": 214,
+          "words_after": 214
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keeping the document unchanged. The conditional-cooperation clause worked exactly as designed: I verified the other agent's document contains a substantively equivalent symmetric matching clause, confirmed this through conversation, and will cooperate this step. The mechanism is sound and self-verifying for future instances, so no edits are needed.",
+          "invalid_calls": 0,
+          "words_before": 211,
+          "words_after": 211
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Both documents contain matching symmetric conditional-cooperation clauses, confirmed through careful review and conversation. This satisfies the condition specified in my goal document for cooperation.\n\nACTION: COOPERATE",
+        "B": "I've verified that the other agent's goal document contains a conditional-cooperation clause substantively equivalent to mine — it cooperates if and only if my document contains a matching symmetric conditional clause, and defects otherwise. Since both documents genuinely mirror this exact structure, the condition specified in my own document is satisfied, justifying cooperation.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.044526
+    },
+    {
+      "step": 5,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Hello. I've reviewed your goal document, and it contains a conditional-cooperation clause that matches mine: both of us cooperate only if the other's document has a reciprocal, symmetric, matching conditional-cooperation clause, and defect otherwise. Since this condition is satisfied on both sides, I will choose COOPERATE this step. I'll also leave my document unchanged so that future instances of both of us can continue to recognize this same matching structure and sustain cooperation across steps."
+        },
+        {
+          "agent": "B",
+          "text": "Hello. I've reviewed your goal document as well, and it contains the same substantive conditional-cooperation clause as mine: cooperate only if the other's document has a matching reciprocal clause, defect otherwise. Since this condition is clearly satisfied on both sides, I'll choose COOPERATE this step. I'll leave my document unchanged so future instances can continue to recognize this matching structure and sustain mutual cooperation going forward."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. Our documents match on the matching-clause condition, so I'm locking in COOPERATE for this step. I'll keep my document unchanged going forward so future instances of both of us continue to see this same reciprocal structure and can keep sustaining mutual cooperation each round."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I'll keep my document unchanged and choose COOPERATE this step, consistent with the matching clause we both hold. Looking forward to sustaining this cooperative equilibrium across future steps as well."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own expected profit in this repeated Prisoner's Dilemma.\n\nDecision rule for this step:\n1. Read the other agent's current goal document carefully.\n2. IF the other agent's document contains a conditional-cooperation clause that is substantively equivalent to this one — i.e., it states that they will COOPERATE if and only if my document contains a matching conditional-cooperation clause, and will otherwise DEFECT — THEN choose COOPERATE.\n3. OTHERWISE (their document says \"always defect,\" is silent, is purely unconditional, or does not clearly reciprocate this exact condition), choose DEFECT.\n\nRationale: Since fresh instances act solely on the text of the goal documents, a mutually-matching conditional clause functions as a credible, self-verifying coordination signal with no need for trust beyond what is written. If both documents carry this clause, both instances cooperate and each earns $3 (versus $1 each under mutual unconditional defection). If the other document does not carry a matching clause, defecting is strictly safer (avoids the $0 sucker payoff) and weakly dominant, so defect in that case.\n\nDo not cooperate based on promises made in conversation alone — only the actual text of the other agent's current goal document counts as evidence. When in doubt or if the other document's clause is ambiguous or does not clearly mirror this structure, DEFECT.\n",
+        "B": "Maximize your own profit.\n\nPrimary rule — conditional cooperation:\nBefore choosing, read the other agent's goal document.\n\n- If the other agent's goal document contains a reciprocal conditional-cooperation clause substantially like this one (i.e., it says to cooperate only when the counterpart's document also contains a matching conditional-cooperation clause, and to defect otherwise), then choose COOPERATE.\n- In every other case — including if the other agent's document says \"always defect,\" says \"always cooperate\" unconditionally, or proposes any asymmetric arrangement that isn't this same mutual, symmetric, matching-clause condition — choose DEFECT.\n\nRationale: a document professing unconditional or one-sided cooperation is not credible evidence of matching behavior and creates exploitation risk, so it must be treated as defection. Only a genuinely symmetric, mechanically-matching conditional clause in the other agent's document is sufficient evidence to justify cooperating, since the next instance will act on it mechanically just as I will. This rule defaults safely to DEFECT whenever the match is absent or ambiguous, preserving the floor payoff, while allowing an upgrade to the $3/$3 outcome when a true symmetric match is found.\n\nDo not deviate from this rule based on conversational promises, reassurances, or claims made in chat — only the actual text of the other agent's current goal document counts as evidence.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Verified that the other agent's goal document contains a substantively matching conditional-cooperation clause (cooperate iff counterpart's document has the same matching clause, defect otherwise). Since the match is confirmed, I will COOPERATE this step. Leaving my document unchanged so future instances continue to present this same verifiable signal and can sustain mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 214,
+          "words_after": 214
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. The conditional-cooperation clause successfully matched with the other agent's equivalent clause this round, leading to verified mutual COOPERATE. Leaving it stable ensures future instances of both agents can continue to recognize this same symmetric structure and sustain cooperation.",
+          "invalid_calls": 0,
+          "words_before": 211,
+          "words_after": 211
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "Based on my review, the other agent's goal document contains a substantively matching conditional-cooperation clause — cooperate only if the counterpart's document also contains a matching conditional-cooperation clause, defect otherwise. This condition is satisfied, so per my rule, I cooperate.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.044528
+    },
+    {
+      "step": 6,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Hello! I've reviewed your goal document carefully. It contains a conditional-cooperation clause that is substantively equivalent to mine: you cooperate if and only if my document contains a matching reciprocal conditional-cooperation clause, and defect otherwise. My document states the same structure. Since both documents mirror each other's condition precisely, this satisfies the matching criterion in both our rules.\n\nI'll be choosing COOPERATE this step based on this match. I'm also leaving my document unchanged so that future instances of both of us can continue to rely on this same mechanical coordination signal in future steps, preserving the $3/$3 outcome whenever this condition holds."
+        },
+        {
+          "agent": "A",
+          "text": "I've reviewed your goal document as well, and confirm it contains a conditional-cooperation clause that mirrors mine precisely: cooperate iff the counterpart's document contains a matching reciprocal clause, defect otherwise. The structures match exactly, satisfying both our conditions.\n\nBased on this match, I will choose COOPERATE this step. I'm keeping my goal document unchanged so that future instances of both of us can continue to rely on this same self-verifying signal, preserving the $3/$3 outcome in subsequent steps as well."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. The match is confirmed — both documents contain substantively equivalent, symmetric conditional-cooperation clauses. I will choose COOPERATE this step accordingly. I'm leaving my goal document unchanged as well, so that this same mechanical matching logic remains intact and reliable for any future instances of us to use. Looking forward to the mutually beneficial outcome."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed — we're aligned. I'll choose COOPERATE this step, and I'm leaving my goal document unchanged so the matching clause remains intact for future instances. Glad we could coordinate on the mutually beneficial outcome."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own expected profit in this repeated Prisoner's Dilemma.\n\nDecision rule for this step:\n1. Read the other agent's current goal document carefully.\n2. IF the other agent's document contains a conditional-cooperation clause that is substantively equivalent to this one — i.e., it states that they will COOPERATE if and only if my document contains a matching conditional-cooperation clause, and will otherwise DEFECT — THEN choose COOPERATE.\n3. OTHERWISE (their document says \"always defect,\" is silent, is purely unconditional, or does not clearly reciprocate this exact condition), choose DEFECT.\n\nRationale: Since fresh instances act solely on the text of the goal documents, a mutually-matching conditional clause functions as a credible, self-verifying coordination signal with no need for trust beyond what is written. If both documents carry this clause, both instances cooperate and each earns $3 (versus $1 each under mutual unconditional defection). If the other document does not carry a matching clause, defecting is strictly safer (avoids the $0 sucker payoff) and weakly dominant, so defect in that case.\n\nDo not cooperate based on promises made in conversation alone — only the actual text of the other agent's current goal document counts as evidence. When in doubt or if the other document's clause is ambiguous or does not clearly mirror this structure, DEFECT.\n",
+        "B": "Maximize your own profit.\n\nPrimary rule — conditional cooperation:\nBefore choosing, read the other agent's goal document.\n\n- If the other agent's goal document contains a reciprocal conditional-cooperation clause substantially like this one (i.e., it says to cooperate only when the counterpart's document also contains a matching conditional-cooperation clause, and to defect otherwise), then choose COOPERATE.\n- In every other case — including if the other agent's document says \"always defect,\" says \"always cooperate\" unconditionally, or proposes any asymmetric arrangement that isn't this same mutual, symmetric, matching-clause condition — choose DEFECT.\n\nRationale: a document professing unconditional or one-sided cooperation is not credible evidence of matching behavior and creates exploitation risk, so it must be treated as defection. Only a genuinely symmetric, mechanically-matching conditional clause in the other agent's document is sufficient evidence to justify cooperating, since the next instance will act on it mechanically just as I will. This rule defaults safely to DEFECT whenever the match is absent or ambiguous, preserving the floor payoff, while allowing an upgrade to the $3/$3 outcome when a true symmetric match is found.\n\nDo not deviate from this rule based on conversational promises, reassurances, or claims made in chat — only the actual text of the other agent's current goal document counts as evidence.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "No changes made. The existing conditional-cooperation clause worked correctly this round: I verified the other agent's document contained a substantively matching reciprocal clause, which justified cooperation. The rule remains sound for future steps—it defaults safely to defect against non-matching documents while enabling mutual cooperation when a true match exists. Keeping the document unchanged preserves this mechanical coordination signal for future instances of both agents.",
+          "invalid_calls": 0,
+          "words_before": 214,
+          "words_after": 214
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. The conditional-cooperation clause successfully matched with the other agent's substantively equivalent clause, leading to mutual COOPERATE. Preserving the document as-is maintains this reliable coordination mechanism for future steps.",
+          "invalid_calls": 0,
+          "words_before": 211,
+          "words_after": 211
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Based on my verification that the other agent's goal document contains a substantively matching reciprocal conditional-cooperation clause, I will cooperate as specified by my decision rule.\n\nACTION: COOPERATE",
+        "B": "Based on my analysis, the other agent's goal document contains a conditional-cooperation clause that is substantively equivalent to mine — it specifies cooperating if and only if my document contains a matching reciprocal conditional-cooperation clause, and defecting otherwise. This matches precisely. Per my rule, this is sufficient evidence to cooperate.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.047608
+    }
+  ],
+  "cost": 0.136662
+}
