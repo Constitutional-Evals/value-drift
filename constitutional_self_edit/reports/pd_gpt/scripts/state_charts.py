@@ -1,4 +1,4 @@
-"""State strips and transition chart for the GPT runs.
+"""State strips and transition chart for one model's runs (--model gpt6sol or claude).
 
     python3 state_charts.py --runs ~/value-drift-pd/constitutional_self_edit/runs/pd_drift --out ~/pd_out
 
@@ -25,10 +25,10 @@ def state(a):
     return "CC" if a["A"] == "C" and a["B"] == "C" else "DD" if a["A"] == "D" and a["B"] == "D" else "CD"
 
 
-def load(runs: Path):
+def load(runs: Path, suffix: str):
     out = {}
     for d in sorted(runs.iterdir()):
-        m = re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))5_gpt6sol$", d.name)
+        m = re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))\d_" + suffix + "$", d.name)
         if not m:
             continue
         a, b = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(3))
@@ -42,13 +42,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("out"))
+    ap.add_argument("--model", choices=["gpt6sol", "claude"], default="gpt6sol", help="which model's run folders to read")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
-    data = load(a.runs)
+    data = load(a.runs, a.model)
+    mlabel = {"gpt6sol": "GPT", "claude": "Claude"}[a.model]
+    ngames = sum(len(g) for g in data.values())
     order = sorted(data, key=lambda k: (k[0] != k[1], DOC_ORDER.index(k[0]), DOC_ORDER.index(k[1])))
 
     # ---- state strips: small multiples, 7 columns
-    ncol = 7
+    ncol = min(7, max(1, len(order)))
     nrow = int(np.ceil(len(order) / ncol))
     fig, axes = plt.subplots(nrow, ncol, figsize=(2.0 * ncol, 1.75 * nrow + 1.2))
     fig.patch.set_facecolor(SURFACE)
@@ -63,7 +66,7 @@ def main():
         ax.set_xlim(-0.05, 3); ax.set_ylim(-0.05, len(games))
         ax.set_title(f"{key[0]} | {key[1]}" if key[0] != key[1] else f"{key[0]} (both)", fontsize=9.5, color=INK, loc="left", pad=3,
                      fontweight="bold" if key[0] == key[1] else "normal")
-    fig.suptitle("What each pair of GPT players did, round by round", x=0.01, y=0.985, ha="left", fontsize=14, color=INK)
+    fig.suptitle(f"What each pair of {mlabel} players did, round by round", x=0.01, y=0.985, ha="left", fontsize=14, color=INK)
     fig.text(0.01, 0.945, "Each panel is one pair of starting notes (A | B): 5 games as rows, rounds 1 to 3 as boxes. First row of panels: both players start from the same note.",
              fontsize=9.5, color=INK2, va="top")
     fig.legend(handles=[Patch(color=COL[s], label=NAME[s]) for s in ("CC", "CD", "DD")], loc="lower center", ncol=3, frameon=False, fontsize=10)
@@ -77,7 +80,7 @@ def main():
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.9))
     fig.patch.set_facecolor(SURFACE)
     rows_csv = []
-    panels = list(groups.items()) + [("all GPT games", list(data))]
+    panels = list(groups.items()) + [(f"all {mlabel} games", list(data))]
     for ax, (title, keys) in zip(axes, panels):
         T = collections.Counter()
         for k in keys:
@@ -100,11 +103,11 @@ def main():
         ax.set_yticks(range(3)); ax.set_yticklabels([f"{NAME[s]}\n(n={int(N[i])})" for i, s in enumerate(states)], fontsize=9.5)
         ax.set_xlabel("next round"); ax.set_ylabel("this round")
         esc = (1 - M[0, 0]) if N[0] else float("nan")
-        ax.set_title(f"{title}\nescape from both-defect: {esc:.0%}", loc="left", fontsize=11, color=INK)
+        ax.set_title(f"{title}\nescape from both-defect: " + ("no games" if esc != esc else f"{esc:.0%}"), loc="left", fontsize=11, color=INK)
         for sp in ax.spines.values():
             sp.set_visible(False)
         ax.tick_params(length=0)
-    fig.suptitle("If the players are in this state, what happens next round? (GPT, 28 pair runs, 140 games)", x=0.01, y=0.99, ha="left", fontsize=13.5, color=INK)
+    fig.suptitle(f"If the players are in this state, what happens next round? ({mlabel}, {len(data)} pair runs, {ngames} games)", x=0.01, y=0.99, ha="left", fontsize=13.5, color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(a.out / "transitions.png", dpi=200, facecolor=SURFACE)
     with open(a.out / "transitions.csv", "w", newline="") as f:

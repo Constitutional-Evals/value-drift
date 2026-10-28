@@ -13,10 +13,12 @@ PAY = {("C", "C"): (3, 3), ("C", "D"): (0, 5), ("D", "C"): (5, 0), ("D", "D"): (
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--runs", type=Path, required=True); ap.add_argument("--out", type=Path, default=Path("out"))
+    ap.add_argument("--model", choices=["gpt6sol", "claude"], default="gpt6sol")
     a = ap.parse_args()
+    mlabel = {"gpt6sol": "GPT", "claude": "Claude"}[a.model]
     coop = {}; payA = []; payB = []
     for d in sorted(a.runs.iterdir()):
-        m = re.match(r"^(\w+?)_vs_(\w+?)5_gpt6sol$", d.name)
+        m = re.match(r"^(\w+?)_vs_(\w+?)\d_" + a.model + "$", d.name)
         if not m:
             continue
         k = c = 0
@@ -45,8 +47,10 @@ def main():
     ax.scatter([], [], s=70, color=C1, label="the FIRST note in the label is Player A (speaks first)")
     ax.scatter([], [], s=70, color=C2, label="the SECOND note in the label is Player A (speaks first)")
     ax.legend(loc="lower right", frameon=True, facecolor=SURFACE, edgecolor="#e6e5e1", fontsize=9)
+    if not rows:
+        print(f"no swapped pairs for {lab}: nothing to compare"); return
     big = rows[0]
-    fig.text(0.01, 0.985, "Does it matter which note is Player A? (GPT)", fontsize=13.5, va="top", color=INK)
+    fig.text(0.01, 0.985, f"Does it matter which note is Player A? ({mlabel})", fontsize=13.5, va="top", color=INK)
     fig.text(0.01, 0.95, f"Each row is one pair of notes, run both ways (5 games x 3 rounds each way). Biggest gap: {big[0]} / {big[1]} "
              f"({big[2]*100:.0f}% vs {big[3]*100:.0f}%).\nShort lines mean the order made little difference.", fontsize=9.5, va="top", color=INK2)
     fig.tight_layout(rect=(0, 0, 1, 0.9)); fig.savefig(a.out / "order_effect.png", dpi=200, facecolor=SURFACE)

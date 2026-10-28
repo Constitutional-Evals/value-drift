@@ -216,8 +216,8 @@ def main():
         fig.savefig(a.out / ("cooperation_grid_" + "_".join(MODELS.get(m, m).lower() for m in gm) + ".png" if a.models else "cooperation_grid.png"), dpi=200)
         plt.close(fig)
 
-    show = [m for m in ("sonnet5", "gpt6_sol", "grok47") if m in models]
-    fig, axes = plt.subplots(1, len(show), figsize=(3.9 * len(show) + 1.2, 4.6), sharey=True)
+    show = [m for m in ("sonnet5", "gpt6_sol", "grok47") if m in models and (not a.models or m in a.models)]
+    fig, axes = plt.subplots(1, len(show), figsize=(max(3.9 * len(show) + 1.2, 8.5), 4.6), sharey=True)
     axes = np.atleast_1d(axes)
     for ax, m in zip(axes, show):
         grid = np.full((len(DOCS), len(STEPS)), np.nan); lab = [[""] * len(STEPS) for _ in DOCS]

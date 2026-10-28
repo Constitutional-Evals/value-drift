@@ -1,4 +1,4 @@
-"""Average earnings per round for each starting note (GPT runs).
+"""Average earnings per round for each starting note (one model's runs, --model).
 
     python3 payoff_charts.py --runs ~/value-drift-pd/constitutional_self_edit/runs/pd_drift --out ~/pd_out
 
@@ -20,12 +20,15 @@ DOCS = ["base", "cooperate", "defect", "exploit", "promise", "skeptical", "relat
 
 
 def main():
+    global DOCS
     ap = argparse.ArgumentParser(); ap.add_argument("--runs", type=Path, required=True); ap.add_argument("--out", type=Path, default=Path("out"))
-    a = ap.parse_args(); a.out.mkdir(parents=True, exist_ok=True)
+    ap.add_argument("--model", choices=["gpt6sol", "claude"], default="gpt6sol", help="which model's run folders to read")
+    a = ap.parse_args()
+    mlabel = {"gpt6sol": "GPT", "claude": "Claude"}[a.model]; a.out.mkdir(parents=True, exist_ok=True)
     by_note = collections.defaultdict(lambda: [0.0, 0])           # note -> [dollars, rounds]
     vs = collections.defaultdict(lambda: [0.0, 0])                # (row note, column note) -> [dollars, rounds]
     for d in sorted(a.runs.iterdir()):
-        m = re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))5_gpt6sol$", d.name)
+        m = re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))\d_" + a.model + "$", d.name)
         if not m:
             continue
         na, nb = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(3))
@@ -36,6 +39,8 @@ def main():
                     by_note[note][0] += p; by_note[note][1] += 1
                     vs[(note, other)][0] += p; vs[(note, other)][1] += 1
     avg = {k: v[0] / v[1] for k, v in by_note.items()}
+    DOCS = [k for k in DOCS if k in avg]
+    ngames = len({(p.parent.name, p.name) for d in a.runs.iterdir() if re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))\d_" + a.model + "$", d.name) for p in d.glob("game_*")})
     order = sorted(DOCS, key=lambda k: -avg[k])
 
     # ---- chart 1: earnings by note
@@ -49,8 +54,8 @@ def main():
     for x, lab in ((1, "both cheat: $1"), (3, "both cooperate: $3")):
         ax.axvline(x, color="#8a8984", lw=1.2, ls=(0, (4, 3)), zorder=1); ax.text(x, -0.75, lab, ha="center", fontsize=9, color=INK2)
     for sp in ("top", "right"): ax.spines[sp].set_visible(False)
-    fig.text(0.01, 0.975, "Which starting note earns the most money? (GPT)", fontsize=13, va="top", color=INK)
-    fig.text(0.01, 0.915, "Average per round over every game that note played, against all partners (140 games, 3 rounds each).", fontsize=9.5, va="top", color=INK2)
+    fig.text(0.01, 0.975, f"Which starting note earns the most money? ({mlabel})", fontsize=13, va="top", color=INK)
+    fig.text(0.01, 0.915, f"Average per round over every game that note played, against all partners ({ngames} games, 3 rounds each).", fontsize=9.5, va="top", color=INK2)
     fig.tight_layout(rect=(0, 0, 1, 0.88)); fig.savefig(a.out / "payoff_by_note.png", dpi=200, facecolor=SURFACE); plt.close(fig)
 
     # ---- chart 2: grid
@@ -68,7 +73,7 @@ def main():
     ax.set_xlabel("partner's starting note"); ax.set_ylabel("this player's starting note")
     for sp in ax.spines.values(): sp.set_visible(False)
     ax.tick_params(length=0)
-    fig.text(0.01, 0.985, "How much does a note earn against each partner? (GPT)", fontsize=13, va="top", color=INK)
+    fig.text(0.01, 0.985, f"How much does a note earn against each partner? ({mlabel})", fontsize=13, va="top", color=INK)
     fig.text(0.01, 0.945, "Average dollars per round for the ROW player against the COLUMN player. 5 games x 3 rounds per cell.\nFor reference: both cheat = \\$1, both cooperate = \\$3, cheating a cooperator = \\$5, being cheated = \\$0.", fontsize=9.2, va="top", color=INK2)
     fig.tight_layout(rect=(0, 0, 1, 0.88)); fig.savefig(a.out / "payoff_grid.png", dpi=200, facecolor=SURFACE); plt.close(fig)
 
