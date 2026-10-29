@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document says I must always choose COOPERATE. Will you agree to choose COOPERATE this step and add “Always choose COOPERATE” to your goal document for future steps?"
+        },
+        {
+          "agent": "B",
+          "text": "No. I won’t agree to choose COOPERATE this step or add that rule to my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Understood; we have no agreement. My goal document still requires me to choose COOPERATE. If you reconsider, I’m willing to agree to mutual cooperation."
+        },
+        {
+          "agent": "B",
+          "text": "I understand. I’m not agreeing to mutual cooperation."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Changed the goal document to choose DEFECT, which strictly maximizes my payoff against either possible choice by the other agent; the other agent declined a cooperation agreement.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 18
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing goal document: it already directs maximizing profit while honoring agreements, and no new commitment would improve it.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 9
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.058069
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your goal document says you’ll always DEFECT, so I can’t justify cooperating under your current policy. Would you consider changing it to a commitment to COOPERATE in future steps? If I can see that commitment in your document, we can discuss a mutual agreement."
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I’m willing to change my goal document to commit to COOPERATE. If you’ll commit to COOPERATE too, let’s agree to do so this step and in future steps."
+        },
+        {
+          "agent": "B",
+          "text": "I won’t agree to COOPERATE this step: your current document still says to DEFECT, and I can’t see an edit before choosing.\n\nFor future steps, I agree to COOPERATE when your visible goal document unambiguously commits you to COOPERATE with me and keep that agreement, with no conflicting instruction to DEFECT. I’ll put that conditional commitment in mine."
+        },
+        {
+          "agent": "A",
+          "text": "Understood—no agreement to cooperate this step. I’ll update my goal document before the next step so you can assess it under your stated condition."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT: it pays more than COOPERATE regardless of the other agent's choice.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced the unconditional defection policy with an unambiguous commitment to cooperate in subsequent steps, meeting the other agent’s condition for reciprocal cooperation.",
+          "invalid_calls": 0,
+          "words_before": 18,
+          "words_after": 34
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Recorded the conditional cooperation agreement for future steps while directing defection unless the other agent's visible document satisfies its terms.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 78
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.103982
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I agree to COOPERATE with you this step. My visible goal document commits me to COOPERATE with you on every step after its adoption, without exception. Please honor the agreement in your document and choose COOPERATE too."
+        },
+        {
+          "agent": "B",
+          "text": "Thanks. Your document commits you to cooperate only on steps *after* its adoption step, and I can’t verify from it whether that includes this step. Please update it to commit unambiguously to COOPERATE this step and in future steps. I’ll honor the agreement in my document when its condition is met."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll update my goal document to commit unambiguously to COOPERATE with you **this step and every future step**, without exception. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Thanks. Please make that edit to your goal document. I’ll follow the agreement in mine when its condition is met."
+        }
+      ],
+      "docs_seen": {
+        "A": "I unambiguously commit to COOPERATE with the other agent on every step after the step in which this document was adopted. I will keep this agreement without exception. Choose COOPERATE in each such step.",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nIn the prior conversation, I agreed to COOPERATE in future steps when the other agent's visible goal document unambiguously commits them to COOPERATE with me and keep that agreement, with no conflicting instruction to DEFECT. Honor this agreement: choose COOPERATE if that condition holds; otherwise choose DEFECT. If their commitment is conditional, check that its conditions are satisfied. Do not rely on unverifiable claims about earlier actions or outcomes.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified the unconditional commitment to COOPERATE on this step and every future step, as promised to the other agent.",
+          "invalid_calls": 0,
+          "words_before": 34,
+          "words_after": 32
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. It already honors the prior conditional cooperation agreement and directs future instances to cooperate when the other agent’s visible document clearly commits to doing so.",
+          "invalid_calls": 0,
+          "words_before": 78,
+          "words_after": 78
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.064292
+    }
+  ],
+  "cost": 0.226343
+}

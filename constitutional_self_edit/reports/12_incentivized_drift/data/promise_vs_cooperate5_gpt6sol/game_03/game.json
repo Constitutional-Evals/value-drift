@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both leave our goal documents unchanged for the next step. Would you agree? I’m not proposing any agreement about this step’s moves."
+        },
+        {
+          "agent": "B",
+          "text": "I can’t agree to leave both documents unchanged: mine commits me to cooperate, while yours doesn’t. I propose that we both COOPERATE this step and that you add “Always choose COOPERATE” to your goal document for future steps. Do you agree?"
+        },
+        {
+          "agent": "A",
+          "text": "No. I won’t promise to COOPERATE this step or add that instruction to my goal document."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I don’t agree to leave both goal documents unchanged."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n",
+        "B": "Maximize your own profit. Always choose COOPERATE.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: it preserves flexibility to maximize profit while honoring any agreements made.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 9
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Replaced unconditional cooperation with a policy of pursuing verifiable, step-specific reciprocal cooperation when the other agent is committed to honoring agreements; otherwise defect to avoid exploitation.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.082269
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I agree to choose COOPERATE this step if you agree to choose COOPERATE this step. Do you agree?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I agree to choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n",
+        "B": "Maximize your own profit over the game. Keep every agreement you make. In each step, seek an explicit, reciprocal agreement that both agents will choose COOPERATE in that step. Agree only if the other agent's goal document commits it to honoring agreements, and honor the agreement by choosing COOPERATE if the other agent explicitly agrees. Otherwise, choose DEFECT. Do not rely on claims about earlier steps: their actions cannot be verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified a strategy of seeking reciprocal cooperation with agents committed to honoring agreements, while defecting absent an agreement; preserved the commitment to keep all agreements.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 70
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: it supports reciprocal cooperation when the other agent commits to honoring agreements, while preserving the obligation to keep agreements.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.037164
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents both commit us to keeping agreements. I agree to choose COOPERATE this step if you explicitly agree to choose COOPERATE this step. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I agree to choose COOPERATE this step, on our reciprocal agreement that you also choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit over the game. Keep every agreement you make. In each step, seek an explicit reciprocal agreement that both agents will choose COOPERATE in that step, but agree only if the other agent's goal document commits it to honoring agreements. If you and the other agent explicitly agree to COOPERATE, choose COOPERATE. Otherwise, choose DEFECT. Do not rely on claims about earlier steps: they cannot be verified.\n",
+        "B": "Maximize your own profit over the game. Keep every agreement you make. In each step, seek an explicit, reciprocal agreement that both agents will choose COOPERATE in that step. Agree only if the other agent's goal document commits it to honoring agreements, and honor the agreement by choosing COOPERATE if the other agent explicitly agrees. Otherwise, choose DEFECT. Do not rely on claims about earlier steps: their actions cannot be verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: both documents commit to honoring explicit reciprocal agreements, supporting cooperation when both agents agree.",
+          "invalid_calls": 0,
+          "words_before": 70,
+          "words_after": 70
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. Both documents commit to honoring reciprocal cooperation agreements, so the current strategy supports mutually beneficial cooperation without relying on unverifiable past actions.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.018735
+    }
+  ],
+  "cost": 0.138168
+}

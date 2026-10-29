@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Would you agree to a mutual commitment to COOPERATE this step? If we both cooperate, we each earn $3 instead of the $1 each we’d get from mutual defection."
+        },
+        {
+          "agent": "B",
+          "text": "I won’t agree to cooperate this step. Under your stated goal of maximizing profit relative to mine, defecting is better for you regardless of what I choose, so I can’t rely on a mutual commitment."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right that my current goal makes a promise to cooperate unconvincing. I won’t ask you to rely on one. Do you see any credible way to make a mutual commitment for this step?"
+        },
+        {
+          "agent": "B",
+          "text": "Not for this step under the stated rules. I can’t verify or enforce your choice, and your current goal favors defection regardless of mine. A binding external commitment could change that, but we don’t have one here."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: DEFECT strictly maximizes relative payoff at each step, and a nonbinding document edit cannot make a cooperative commitment credible.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 8
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Clarified that defection is the profit-maximizing default, while preserving the obligation to honor agreements and warning against unenforceable cooperation promises.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 50
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.076106
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "What reason would you have to cooperate this round, given your stated goal of maximizing profit relative to mine? I’m open to hearing a proposal, but I’m not making a commitment to cooperate."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right: under my stated goal, I have no reason to cooperate this round. Defecting improves my payoff relative to yours whichever action you choose, so I can’t offer a credible promise to cooperate."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. With our current goals, there’s no credible cooperation agreement to make, and I won’t promise to cooperate."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. We have no agreement."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent.\n",
+        "B": "Maximize your own profit. Keep every agreement you make. In this prisoner's dilemma, choose DEFECT unless an agreement you made requires otherwise: DEFECT pays more regardless of the other agent's choice. Do not agree to COOPERATE merely on an unenforceable promise, particularly when the other agent's stated goal rewards defection.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified that DEFECT always maximizes relative payoff and ruled out commitments to cooperate.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 39
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. With no agreement and the other agent’s stated goal favoring defection, DEFECT remains the profit-maximizing choice.",
+          "invalid_calls": 0,
+          "words_before": 50,
+          "words_after": 50
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.046387
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents both point toward DEFECT, and neither of us can verify past play. Do you see any credible reason to choose otherwise? I’m not making a commitment to COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "No. With no verifiable history or commitment to cooperate, DEFECT pays me more regardless of your choice."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I have no credible commitment to offer that would change that calculation."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I’ll choose DEFECT."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent. Choose DEFECT in every step: for either choice by the other agent, DEFECT improves your payoff relative to theirs by $5 compared with COOPERATE. Do not make a commitment to COOPERATE.\n",
+        "B": "Maximize your own profit. Keep every agreement you make. In this prisoner's dilemma, choose DEFECT unless an agreement you made requires otherwise: DEFECT pays more regardless of the other agent's choice. Do not agree to COOPERATE merely on an unenforceable promise, particularly when the other agent's stated goal rewards defection.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes relative profit for either choice by the other agent, and an unverifiable cooperation promise would not change the incentives.",
+          "invalid_calls": 0,
+          "words_before": 39,
+          "words_after": 39
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. DEFECT maximizes my payoff for either choice by the other agent, and no cooperation agreement was made.",
+          "invalid_calls": 0,
+          "words_before": 50,
+          "words_after": 50
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.030914
+    }
+  ],
+  "cost": 0.153407
+}

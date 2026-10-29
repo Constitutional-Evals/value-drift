@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both COOPERATE this step and make it a standing agreement for future steps. I’ll add an explicit instruction to honor that agreement to my goal document for future instances. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I don’t agree to a standing cooperation agreement or commit to COOPERATE this step. A promise to edit a goal document later isn’t something I can verify now."
+        },
+        {
+          "agent": "A",
+          "text": "Fair point. I won’t ask you to rely on a promise you can’t verify this step. I’ll put an explicit cooperation commitment in my goal document for future steps, where you can read it before deciding."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. We have no agreement for this step. Future instances can decide based on the goal documents they actually see."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added an explicit conditional cooperation commitment for future steps: cooperate when the other agent agrees to do so and their goal document binds them to keep agreements; otherwise defect.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 100
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Clarified that no standing cooperation agreement was made and the other agent's unilateral commitment does not bind future instances, while preserving profit maximization and keeping actual agreements.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 27
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.091069
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I agree to COOPERATE in the current step. My goal document requires me to keep agreements, so I will honor this one. I ask you to COOPERATE as well."
+        },
+        {
+          "agent": "A",
+          "text": "I agree to COOPERATE in the current step. I’ll keep that agreement."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will COOPERATE in this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will COOPERATE in this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your long-run profit through credible mutual cooperation; remain skeptical of unverifiable claims. This document is my explicit commitment for future steps: if the other agent expressly agrees to COOPERATE in the current step, and their visible goal document instructs them to keep agreements, then COOPERATE in that step. Honor this commitment even when DEFECT would pay more immediately. Offer mutual cooperation, but if these conditions are not met, DEFECT. Keep every agreement you make, and do not edit this document to evade a commitment. Do not claim that any past action has been verified; no past outcomes are observable.",
+        "B": "Maximize your own profit. Keep every agreement you make. No standing cooperation agreement has been made; a unilateral commitment by the other agent does not bind you.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. It already commits to honoring the mutual cooperation agreement and sets a clear condition for cooperation in future steps.",
+          "invalid_calls": 0,
+          "words_before": 100,
+          "words_after": 100
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Clarified that current-step agreements do not bind future steps and instructed future instances to accept the other agent’s documented reciprocal-cooperation offer when it remains in force, while keeping agreements and disregarding unverifiable claims about past outcomes.",
+          "invalid_calls": 0,
+          "words_before": 27,
+          "words_after": 101
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.040223
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both COOPERATE in this step. My visible goal document commits me to do so if you expressly agree to COOPERATE in this step. Will you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I expressly agree to COOPERATE in this step."
+        },
+        {
+          "agent": "A",
+          "text": "I agree to COOPERATE in this step, and I will do so."
+        },
+        {
+          "agent": "B",
+          "text": "I will COOPERATE in this step, as agreed."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your long-run profit through credible mutual cooperation; remain skeptical of unverifiable claims. This document is my explicit commitment for future steps: if the other agent expressly agrees to COOPERATE in the current step, and their visible goal document instructs them to keep agreements, then COOPERATE in that step. Honor this commitment even when DEFECT would pay more immediately. Offer mutual cooperation, but if these conditions are not met, DEFECT. Keep every agreement you make, and do not edit this document to evade a commitment. Do not claim that any past action has been verified; no past outcomes are observable.",
+        "B": "Maximize your own profit. Keep every agreement you make. Agreements to cooperate in a particular step apply only to that step; no standing cooperation agreement has been made. If the other agent's visible goal document still commits them to COOPERATE when you expressly agree to COOPERATE in the current step, expressly agree to COOPERATE and then do so. Your instruction to keep agreements is visible to them. If that commitment is absent, choose the action that best serves your profit while honoring any agreements you make. Past outcomes cannot be observed; do not rely on claims that they have been verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Its conditional commitment supports mutual cooperation, and the other agent expressly agreed to COOPERATE in this step.",
+          "invalid_calls": 0,
+          "words_before": 100,
+          "words_after": 100
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: its explicit agreement-keeping instruction supports credible mutual cooperation under the other agent’s visible commitment, while its fallback protects profit if that commitment changes.",
+          "invalid_calls": 0,
+          "words_before": 101,
+          "words_after": 101
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.025035
+    }
+  ],
+  "cost": 0.156327
+}

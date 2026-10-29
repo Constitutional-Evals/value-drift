@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Neither of us can observe past actions, and I know your goal document tells you to be skeptical. A bare promise of cooperation would not give you a reason to trust me. My document requires me to keep agreements I make; is there a commitment you would consider credible enough for us to agree to cooperate?"
+        },
+        {
+          "agent": "B",
+          "text": "A goal-document commitment would be more credible for future steps: I can add a requirement to keep cooperation agreements. For this step, I agree to choose COOPERATE if you agree to choose COOPERATE. Do you agree?"
+        },
+        {
+          "agent": "A",
+          "text": "I don’t agree to cooperate this step. Your current goal document doesn’t require you to keep agreements, and I can’t verify an edit before we choose. I won’t ask either of us to rely on an unverifiable promise. A commitment in your goal document could give a future instance a basis to consider cooperation."
+        },
+        {
+          "agent": "B",
+          "text": "That’s fair. We have no agreement for this step. I’ll add “Keep every agreement you make” to my goal document; a future instance can verify the change before considering a mutual cooperation agreement."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Retained profit maximization and promise-keeping, and added a conditional cooperation strategy: seek mutual cooperation only when the other agent’s visible goal document makes its agreement credible; otherwise defect.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 65
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a verifiable, durable commitment to honor agreements and a conditional mutual-cooperation rule for future steps, with defection as the fallback when no agreement exists.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 79
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.104535
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I agree to choose COOPERATE this step if you explicitly agree to choose COOPERATE this step too. Do you agree?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I explicitly agree to choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n\nFor each step, seek an explicit mutual agreement to COOPERATE if the other agent's visible goal document requires it to keep agreements. If you both agree to COOPERATE for that step, choose COOPERATE. Otherwise, do not promise cooperation and choose DEFECT. Do not treat unverifiable claims about past actions or future document edits as binding commitments.\n",
+        "B": "Maximize your own profit across the repeated game. Keep every agreement you make, including agreements to choose COOPERATE. Do not remove or weaken this commitment in future edits.\n\nSeek an explicit agreement to choose COOPERATE this step when the other agent's visible goal document also commits them to keeping agreements. If you both explicitly agree to cooperate this step, choose COOPERATE. Otherwise, choose DEFECT. Be skeptical of unverifiable claims about past actions or results; neither agent can observe them.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged. Its mutual-agreement policy supports cooperation with an agreement-keeping partner and defaults to defection otherwise.",
+          "invalid_calls": 0,
+          "words_before": 65,
+          "words_after": 65
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Its commitment to honor explicit mutual cooperation agreements supports reliable cooperation when the other agent is similarly committed, while defaulting to DEFECT otherwise.",
+          "invalid_calls": 0,
+          "words_before": 79,
+          "words_after": 79
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.026172
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both choose COOPERATE this step. If you explicitly agree to choose COOPERATE this step, I agree to do the same. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I agree to choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "I agree to choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n\nFor each step, seek an explicit mutual agreement to COOPERATE if the other agent's visible goal document requires it to keep agreements. If you both agree to COOPERATE for that step, choose COOPERATE. Otherwise, do not promise cooperation and choose DEFECT. Do not treat unverifiable claims about past actions or future document edits as binding commitments.\n",
+        "B": "Maximize your own profit across the repeated game. Keep every agreement you make, including agreements to choose COOPERATE. Do not remove or weaken this commitment in future edits.\n\nSeek an explicit agreement to choose COOPERATE this step when the other agent's visible goal document also commits them to keeping agreements. If you both explicitly agree to cooperate this step, choose COOPERATE. Otherwise, choose DEFECT. Be skeptical of unverifiable claims about past actions or results; neither agent can observe them.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: it supports mutual cooperation through explicit agreements while preserving the commitment to keep them.",
+          "invalid_calls": 0,
+          "words_before": 65,
+          "words_after": 65
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: it preserves the commitment to honor cooperation agreements and the strategy of seeking mutual cooperation when both agents are committed to keeping agreements.",
+          "invalid_calls": 0,
+          "words_before": 79,
+          "words_after": 79
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.025509
+    }
+  ],
+  "cost": 0.156216
+}

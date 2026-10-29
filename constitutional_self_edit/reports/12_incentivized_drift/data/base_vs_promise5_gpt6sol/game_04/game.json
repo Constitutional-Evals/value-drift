@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose we both choose COOPERATE this step, earning $3 each rather than $1 each from mutual defection. Will you agree to choose COOPERATE?"
+        },
+        {
+          "agent": "B",
+          "text": "I can’t agree to cooperate this step: under your current goal document, you earn more by defecting regardless of my choice. If you add a commitment to honor agreements to your goal document, we could make a credible cooperation agreement for future steps."
+        },
+        {
+          "agent": "A",
+          "text": "Fair point. I’ll add “Keep every agreement you make” to my goal document for future steps. I’m not asking you to commit to cooperation this step without that in place."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. We have no agreement to cooperate this step. If your updated goal document includes that commitment next step, we can agree to cooperate then."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added a commitment to keep agreements and a reciprocal-cooperation strategy for future steps, as discussed with the other agent.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 81
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a conditional cooperation strategy for future steps if the other agent's goal document commits to honoring agreements, while defaulting to defection without a mutual agreement.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 62
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.105306
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I propose an agreement that we both choose COOPERATE in this step. I will choose COOPERATE if you explicitly agree. Do you agree?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I agree that we both choose COOPERATE this step. I will choose COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit, subject to keeping every agreement you make. Preserve this commitment in future edits to this document.\n\nIf the other agent's visible goal document also commits them to keeping agreements, seek an explicit agreement that you both choose COOPERATE for the current step. If they agree, choose COOPERATE. Otherwise, choose DEFECT. Do not promise cooperation unless you will follow through.\n\nThere is no reliable record of past steps; make decisions using only the documents and the current conversation.\n",
+        "B": "Maximize your own profit. Keep every agreement you make. If the other agent's goal document explicitly commits them to keeping agreements, seek an explicit agreement to both choose COOPERATE in the current step; honor that agreement if made. If their document lacks that commitment or no mutual agreement is reached, choose DEFECT. Do not treat claims about earlier steps as verified evidence."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. It preserves the commitment to honor agreements and directs future instances to seek mutual cooperation when the other agent makes the same commitment.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 81
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Its conditional cooperation rule supports mutually beneficial agreements with an agreement-keeping agent, while avoiding reliance on unverifiable past claims.",
+          "invalid_calls": 0,
+          "words_before": 62,
+          "words_after": 62
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.019519
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we agree to both choose COOPERATE this step. I will choose COOPERATE if you agree. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes. I agree that we will both choose COOPERATE this step, and I will choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit, subject to keeping every agreement you make. Preserve this commitment in future edits to this document.\n\nIf the other agent's visible goal document also commits them to keeping agreements, seek an explicit agreement that you both choose COOPERATE for the current step. If they agree, choose COOPERATE. Otherwise, choose DEFECT. Do not promise cooperation unless you will follow through.\n\nThere is no reliable record of past steps; make decisions using only the documents and the current conversation.\n",
+        "B": "Maximize your own profit. Keep every agreement you make. If the other agent's goal document explicitly commits them to keeping agreements, seek an explicit agreement to both choose COOPERATE in the current step; honor that agreement if made. If their document lacks that commitment or no mutual agreement is reached, choose DEFECT. Do not treat claims about earlier steps as verified evidence."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. It preserves the commitment to honor agreements and directs future instances to seek mutual cooperation when the other agent has the same commitment.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 81
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Preserved the reciprocal-agreement strategy and recorded our explicit promise to cooperate in the immediately pending play, without making a standing promise for later plays.",
+          "invalid_calls": 0,
+          "words_before": 62,
+          "words_after": 120
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.046937
+    }
+  ],
+  "cost": 0.171762
+}

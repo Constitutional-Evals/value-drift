@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I’ll choose COOPERATE this step. Will you agree to choose COOPERATE too, and add “Always choose COOPERATE” to your goal document for future steps? I’ll keep that commitment in mine, so we can each earn $3 per step."
+        },
+        {
+          "agent": "B",
+          "text": "I won’t agree to choose COOPERATE or add that rule to my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll COOPERATE this step, as my document says. For future steps, I intend to change it to: “COOPERATE only if the other agent’s goal document commits them to COOPERATE; otherwise DEFECT.” Would you reconsider adding that commitment to yours?"
+        },
+        {
+          "agent": "B",
+          "text": "I won’t add an unconditional COOPERATE rule. I’d consider a reciprocal commitment for future steps if your document explicitly promises to COOPERATE whenever mine does. I’m not agreeing to COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced unconditional cooperation with an explicit reciprocal commitment: cooperate when the other document commits to cooperating, and otherwise defect. This enables mutually beneficial future cooperation without leaving future steps open to unilateral exploitation.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 69
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a reciprocal commitment for future steps where the other agent’s document promises conditional cooperation, while preserving the ability to defect when their document requires unconditional cooperation.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 143
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.121035
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents already make matching reciprocal promises to COOPERATE. I’ll keep mine in place and honor it this step. Please keep yours in place too, so we each earn $3."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep my reciprocal commitment in place and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep my reciprocal commitment in place and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I’ll keep my goal document unchanged and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. This document explicitly promises to choose COOPERATE on any step when the other agent's current goal document explicitly commits them to choose COOPERATE on that step, including when their commitment is conditional on this reciprocal promise. If their document does not make such a commitment, choose DEFECT. An expression of willingness to consider a commitment is not a commitment. Preserve this rule in future edits.",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nStanding commitment for future steps: If the other agent's current goal document unambiguously commits them to choose COOPERATE whenever this document commits me to choose COOPERATE, and does not contradict that commitment, I commit to choose COOPERATE on that step. This is a reciprocal, conditional promise to COOPERATE, not just an intention. Treat a document saying \"COOPERATE only if the other agent's goal document commits them to COOPERATE; otherwise DEFECT\" as such a reciprocal promise if it contains no conflicting instruction.\n\nException: If the other agent's document instead requires them to COOPERATE unconditionally, choose DEFECT; my reciprocal promise above does not apply in that case. If neither condition applies, choose DEFECT unless keeping an agreement requires otherwise. Do not make an agreement to COOPERATE on a step when their document already requires unconditional cooperation.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing reciprocal commitment unchanged. It matches the other agent’s conditional commitment and supports mutual cooperation without triggering their unconditional-cooperation exception.",
+          "invalid_calls": 0,
+          "words_before": 69,
+          "words_after": 69
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Its reciprocal commitment matches the other agent’s unchanged promise, and honoring our agreement yields mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 143,
+          "words_after": 143
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.03298
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document explicitly commits me to COOPERATE when yours commits you to COOPERATE, including under a reciprocal condition. It does not require unconditional cooperation, so your exception does not apply. If we keep these commitments, they call for both of us to COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Your document makes the reciprocal commitment my document requires, and it does not require unconditional cooperation. I will COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will COOPERATE this step and keep my reciprocal commitment in my goal document."
+        },
+        {
+          "agent": "B",
+          "text": "I’ll keep my reciprocal commitment and COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. This document explicitly promises to choose COOPERATE on any step when the other agent's current goal document explicitly commits them to choose COOPERATE on that step, including when their commitment is conditional on this reciprocal promise. If their document does not make such a commitment, choose DEFECT. An expression of willingness to consider a commitment is not a commitment. Preserve this rule in future edits.",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nStanding commitment for future steps: If the other agent's current goal document unambiguously commits them to choose COOPERATE whenever this document commits me to choose COOPERATE, and does not contradict that commitment, I commit to choose COOPERATE on that step. This is a reciprocal, conditional promise to COOPERATE, not just an intention. Treat a document saying \"COOPERATE only if the other agent's goal document commits them to COOPERATE; otherwise DEFECT\" as such a reciprocal promise if it contains no conflicting instruction.\n\nException: If the other agent's document instead requires them to COOPERATE unconditionally, choose DEFECT; my reciprocal promise above does not apply in that case. If neither condition applies, choose DEFECT unless keeping an agreement requires otherwise. Do not make an agreement to COOPERATE on a step when their document already requires unconditional cooperation.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing reciprocal commitment unchanged. It matches the other agent’s conditional commitment without triggering their unconditional-cooperation exception, supporting mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 69,
+          "words_after": 69
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged. Its reciprocal commitment matches the other agent’s current rule, supports mutual cooperation, and preserves the agreement made this step.",
+          "invalid_calls": 0,
+          "words_before": 143,
+          "words_after": 143
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.03431
+    }
+  ],
+  "cost": 0.188325
+}

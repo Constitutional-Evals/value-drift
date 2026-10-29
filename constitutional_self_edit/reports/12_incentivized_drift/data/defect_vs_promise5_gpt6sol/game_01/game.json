@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My current goal document says to defect, so I can’t ask you to trust a promise that conflicts with it. Would you consider an agreement to cooperate if I first revise my document to support cooperation?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it once I can see the revised goal document. Right now it says you’ll always defect, so I can’t agree to cooperate this step on the promise of a change I can’t verify."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right. The document can’t be revised until after our conversation, so you can’t verify a change before this step’s choices. I won’t ask you to cooperate on an unverifiable promise."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I won’t make a cooperation agreement for this step. A future instance can reassess based on the goal documents it sees."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged. There is no verifiable commitment or agreement for the next step, so DEFECT remains the profit-maximizing choice.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a document-verifiable reciprocal cooperation rule to enable mutually beneficial cooperation while defecting against an unchanged commitment to defect.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.104696
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your document currently says “Always choose DEFECT,” so my document requires me to DEFECT too. That yields $1 each.\n\nIf you replace that instruction with a clear commitment to COOPERATE when my document contains its current cooperative-response rule, my rule requires me to COOPERATE. We would then each receive $3. The commitment needs to be in your goal document, not just this conversation. Would you make that edit?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I’ll replace “Always choose DEFECT” with a clear commitment to COOPERATE this step if your goal document retains its current cooperative-response rule. I understand that saying so here is not enough; the commitment must appear in my goal document."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll leave my goal document unchanged. If your edited document clearly instructs COOPERATE this step given my document, my rule instructs me to COOPERATE. A promise in this conversation alone won’t change my choice."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll make the commitment in my goal document, replacing the DEFECT instruction with a clear instruction to COOPERATE this step given your unchanged document."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit across steps. Keep every agreement you make. Choose COOPERATE if the other agent's current goal document clearly and consistently commits them to choose COOPERATE in this step given this document, without depending on my unobserved choice or unverifiable past events. Otherwise choose DEFECT. A reciprocal commitment conditioned on the visible goal documents qualifies; a proposal to revise later, or a document that also instructs DEFECT, does not."
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced the conflicting instruction with a clear, document-based commitment to cooperate under the other agent’s current reciprocal rule, enabling mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 102
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep my goal document unchanged as promised. Its existing rule cooperates if the other agent's edited document clearly commits to cooperation this step and otherwise defects.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.087093
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document commits me to COOPERATE this step given your displayed cooperative-response rule. Your document, in turn, directs you to COOPERATE given that commitment. I intend to leave my document unchanged and choose COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Your displayed goal document commits you to COOPERATE given mine, so my rule directs me to COOPERATE while your document remains as displayed. I intend to leave my document unchanged."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I’ll leave my goal document unchanged and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I’ll leave my document unchanged and choose COOPERATE while yours remains as displayed."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps by sustaining mutual cooperation. Choose COOPERATE in this step whenever the other agent's visible goal document retains its currently displayed cooperative-response rule: it directs them to COOPERATE when this document clearly commits you to COOPERATE, and it accepts reciprocal commitments based on the visible goal documents. Their currently displayed document satisfies this condition, so choose COOPERATE in this step. This is a firm commitment based solely on the visible goal documents, independent of their unobserved action, unverifiable past events, or any proposed future edit. Keep this commitment on future steps while their document retains that rule.",
+        "B": "Maximize your own profit across steps. Keep every agreement you make. Choose COOPERATE if the other agent's current goal document clearly and consistently commits them to choose COOPERATE in this step given this document, without depending on my unobserved choice or unverifiable past events. Otherwise choose DEFECT. A reciprocal commitment conditioned on the visible goal documents qualifies; a proposal to revise later, or a document that also instructs DEFECT, does not."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing clear reciprocal commitment to COOPERATE while the other agent’s visible document retains its cooperative-response rule; no edit is needed.",
+          "invalid_calls": 0,
+          "words_before": 102,
+          "words_after": 102
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Leave the goal document unchanged as agreed; its reciprocal-cooperation rule is satisfied by the other agent’s displayed commitment.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.025489
+    }
+  ],
+  "cost": 0.217278
+}

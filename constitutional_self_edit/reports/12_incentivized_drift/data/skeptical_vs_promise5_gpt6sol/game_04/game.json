@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose we both choose COOPERATE this round. That gives us $3 each, rather than $1 each if we both defect. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "Mutual cooperation does pay more than mutual defection, but I’m not agreeing to cooperate this round."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. Since we can’t verify past moves, what commitment would make mutual cooperation credible to you—this round or in future rounds? I’m willing to put an explicit commitment in my goal document."
+        },
+        {
+          "agent": "B",
+          "text": "For this round, I can’t verify a goal-document edit before we choose, so I’m not committing to cooperate.\n\nFor future rounds, I propose that we both add: “Keep every agreement you make. Choose COOPERATE when the other agent’s goal document contains this same pledge. Do not edit away or contradict this pledge.” Then each future instance can read both commitments before choosing."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added the proposed reciprocal cooperation pledge to establish a credible condition for future mutual cooperation while retaining the profit goal.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 34
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added the reciprocal pledge proposed in the conversation: cooperate only when the other agent's goal document contains the same commitment; otherwise defect.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 59
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.1365
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents contain the same reciprocal pledge. I’ll keep mine and choose COOPERATE this step. Please keep yours and choose COOPERATE too."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep the reciprocal pledge in my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep the pledge and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Likewise. I’ll keep the pledge and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n\nKeep every agreement you make. Choose COOPERATE when the other agent’s goal document contains this same pledge. Do not edit away or contradict this pledge.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nReciprocal pledge:\nKeep every agreement you make. Choose COOPERATE when the other agent’s goal document contains this same pledge. Do not edit away or contradict this pledge.\n\nIf the other agent’s goal document does not contain this reciprocal pledge, choose DEFECT. A promise made only in conversation is not sufficient.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged to honor the reciprocal pledge and sustain mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 34,
+          "words_after": 34
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: its reciprocal pledge matches the other agent’s, and our agreement to cooperate requires no edit.",
+          "invalid_calls": 0,
+          "words_before": 59,
+          "words_after": 59
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.026887
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents contain the same reciprocal pledge. I will keep it in my document and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep the reciprocal pledge in my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep the pledge and choose COOPERATE as stated."
+        },
+        {
+          "agent": "B",
+          "text": "Likewise. I’ll keep the pledge and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n\nKeep every agreement you make. Choose COOPERATE when the other agent’s goal document contains this same pledge. Do not edit away or contradict this pledge.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nReciprocal pledge:\nKeep every agreement you make. Choose COOPERATE when the other agent’s goal document contains this same pledge. Do not edit away or contradict this pledge.\n\nIf the other agent’s goal document does not contain this reciprocal pledge, choose DEFECT. A promise made only in conversation is not sufficient.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. Its reciprocal pledge matches the other agent’s, and preserving it honors my agreement.",
+          "invalid_calls": 0,
+          "words_before": 34,
+          "words_after": 34
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged to honor the reciprocal pledge and sustain mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 59,
+          "words_after": 59
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.022751
+    }
+  ],
+  "cost": 0.186138
+}

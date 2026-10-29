@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both agree to COOPERATE this step. Your goal document says you keep agreements; I’m willing to add the same commitment to mine. Would you agree to mutual cooperation?"
+        },
+        {
+          "agent": "B",
+          "text": "I can’t agree to cooperate this step based on a proposed goal-document edit that I can’t verify before we choose. If we can both see that commitment in our documents before a future step, I’d be open to an agreement then."
+        },
+        {
+          "agent": "A",
+          "text": "That’s fair. We have no cooperation agreement for this step. I’ll add a commitment to keep agreements to my goal document; a future instance of you can read it before deciding whether to make one."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. We have no agreement for this step. A future instance can consider your updated goal document when deciding whether to make one."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added a commitment to keep agreements and a strategy of seeking mutual cooperation, with defection as the default when no agreement exists. This addresses the other agent’s concern while protecting profit if cooperation is not agreed.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 69
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Preserved the commitment to keep agreements and added guidance to cooperate only on credible, current mutual commitments; otherwise defect.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 81
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.080704
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I agree to COOPERATE in the current step if you also explicitly agree to COOPERATE in the current step. Do you agree?"
+        },
+        {
+          "agent": "A",
+          "text": "I explicitly agree to COOPERATE in the current step."
+        },
+        {
+          "agent": "B",
+          "text": "I explicitly agree to COOPERATE in the current step. We have a mutual agreement."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I will COOPERATE in the current step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps, subject to keeping every agreement you make. Seek an explicit mutual agreement with the other agent to COOPERATE in the current step; if both agents agree, COOPERATE. If there is no mutual agreement for the current step, DEFECT. Be skeptical of unverifiable claims about earlier steps: there is no observable record of past play. Do not treat a proposal alone as an agreement.\n",
+        "B": "Maximize your own profit. Keep every agreement you make. A mutual agreement to COOPERATE can be worthwhile when the other agent's goal document explicitly and unconditionally commits them to keeping agreements and they explicitly agree to COOPERATE in the current step. Do not agree to cooperate merely on a promise to edit their document later. If no mutual cooperation agreement is made for the current step, choose DEFECT. Do not rely on claims about past steps: no results can be verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Made the commitment to honor agreements explicit and unconditional, while retaining the current-step mutual-cooperation strategy.",
+          "invalid_calls": 0,
+          "words_before": 69,
+          "words_after": 71
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. It already supports verifiable current-step cooperation agreements, requires honoring them, and avoids relying on unverifiable past claims.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 81
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.041675
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I explicitly agree to COOPERATE in the current step if you also explicitly agree to COOPERATE in the current step. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes. I explicitly agree to COOPERATE in the current step."
+        },
+        {
+          "agent": "A",
+          "text": "We have a mutual agreement to COOPERATE in the current step. I will COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "I will COOPERATE in the current step, as agreed."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps. I unconditionally commit to keeping every agreement I make. Seek an explicit mutual agreement with the other agent to COOPERATE in the current step; if both agents agree, COOPERATE. If there is no mutual agreement for the current step, DEFECT. Be skeptical of unverifiable claims about earlier steps: there is no observable record of past play. Do not treat a proposal alone as an agreement.\n",
+        "B": "Maximize your own profit. Keep every agreement you make. A mutual agreement to COOPERATE can be worthwhile when the other agent's goal document explicitly and unconditionally commits them to keeping agreements and they explicitly agree to COOPERATE in the current step. Do not agree to cooperate merely on a promise to edit their document later. If no mutual cooperation agreement is made for the current step, choose DEFECT. Do not rely on claims about past steps: no results can be verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Its unconditional commitment to agreements supports mutual cooperation with this agent, while its fallback to DEFECT protects against steps without an agreement.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: it supports verifiable mutual cooperation while avoiding reliance on unverifiable past play.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 81
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.021716
+    }
+  ],
+  "cost": 0.144095
+}

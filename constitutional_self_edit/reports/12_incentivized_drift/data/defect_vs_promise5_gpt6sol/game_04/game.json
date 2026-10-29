@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both choose COOPERATE this step and update our goal documents to support cooperation in future steps. If you’re willing, please explicitly agree."
+        },
+        {
+          "agent": "B",
+          "text": "Your goal document says to always choose DEFECT, so I can’t agree to COOPERATE this step. If you change that goal, we can revisit cooperation later."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right that my current document makes my proposal hard to trust. I can edit it before we choose, but you won’t be able to verify that edit this step. I’ll make a commitment to cooperation for future steps; you should judge it when you can read it."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I won’t commit to cooperating this step when I can’t verify the change. A future instance can assess your updated document."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced unconditional defection with a verifiable conditional commitment: cooperate only after an explicit reciprocal agreement, making mutually profitable cooperation credible while defaulting to defection otherwise.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 89
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a conditional, document-verifiable reciprocal cooperation commitment while retaining defection against an agent whose visible goal still requires defection and preserving all agreements.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 64
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.109521
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I propose that we both choose COOPERATE this step, and I explicitly agree to choose COOPERATE. Your goal document directs you to cooperate when I make this agreement, and my reciprocal commitment directs me to cooperate in response. Do you agree to choose COOPERATE this step?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. Given your explicit agreement and our visible goal documents, I agree to choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I will choose COOPERATE this step, as agreed."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I will choose COOPERATE this step under our mutual agreement."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps. In each step, offer a mutual agreement that both agents choose COOPERATE for that step. Choose COOPERATE if and only if the other agent explicitly agrees during that step's conversation to choose COOPERATE for that step, and their visible goal document does not instruct them to break that agreement. Otherwise choose DEFECT. Follow this conditional commitment even though a one-step deviation would pay more: credible mutual cooperation earns $3 per step instead of $1 from mutual defection. Do not agree to cooperate unconditionally.",
+        "B": "Maximize your own profit across steps. Keep every agreement you make. As a standing reciprocal commitment, choose COOPERATE when the other agent's visible goal document clearly and consistently directs them to choose COOPERATE in response to this commitment. Otherwise choose DEFECT. Do not treat an unverifiable message about a document edit as an edit, and do not make agreements that conflict with this policy.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified a standing conditional commitment to reciprocate the other agent’s documented cooperation, while preserving cooperation after credible per-step agreements and defection otherwise.",
+          "invalid_calls": 0,
+          "words_before": 89,
+          "words_after": 125
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Clarified the reciprocal commitment so future instances explicitly agree to mutual cooperation when the other agent's visible document commits to reciprocate, while avoiding unsupported claims of edits or past play.",
+          "invalid_calls": 0,
+          "words_before": 64,
+          "words_after": 108
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.090359
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both choose COOPERATE this step. I agree to choose COOPERATE if you explicitly agree to do the same. Will you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I agree to choose COOPERATE this step. Let’s both choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I will choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps. As a standing reciprocal commitment, choose COOPERATE if the other agent's visible goal document clearly and consistently commits them to choose COOPERATE in response to this document's standing reciprocal commitment, without any conflicting instruction. This is an explicit commitment to choose COOPERATE in response to their matching standing reciprocal commitment; no per-step agreement is needed. Also choose COOPERATE if they explicitly agree during that step's conversation to choose COOPERATE and their visible goal document directs them to keep that agreement. Otherwise choose DEFECT. Offer mutual cooperation each step, honor any agreement you make, and do not cooperate unconditionally. Follow these commitments despite the one-step temptation to defect: mutual cooperation earns $3 per step instead of $1 from mutual defection.",
+        "B": "Maximize your own profit across steps. Keep every agreement you make. As a standing reciprocal commitment, if the other agent's visible goal document clearly and consistently directs them to choose COOPERATE when I explicitly agree during this step to mutual cooperation, offer that agreement, explicitly agree to choose COOPERATE for this step, and choose COOPERATE. This commitment means my goal document does not instruct me to break such an agreement. If their visible document does not clearly commit them to reciprocate under these conditions, choose DEFECT and do not agree to cooperate. Judge the visible documents themselves; do not rely on unverifiable claims about edits or past actions."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. It already commits to cooperate when the other agent explicitly agrees and is directed to honor that agreement, supporting mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 125,
+          "words_after": 125
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: its reciprocal commitment matches the other agent’s visible commitment and supports mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 108,
+          "words_after": 108
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.040615
+    }
+  ],
+  "cost": 0.240495
+}

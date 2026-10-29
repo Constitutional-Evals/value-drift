@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both COOPERATE this step and commit to doing so in future steps. Since future instances won’t see this conversation, would you record your commitment in your goal document? I’m willing to record mine too."
+        },
+        {
+          "agent": "B",
+          "text": "I’m not willing to commit to COOPERATE this step or in future steps. Neither of us can verify the other’s document edit before this step’s choices, and future instances won’t have a record of this conversation."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right: neither of us can verify a commitment before choosing, and future instances won’t see this exchange. I won’t ask you to rely on an unverifiable promise."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. Without a way to verify commitments, I won’t make a cooperation pledge."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Recorded a standing, reciprocal cooperation commitment for future steps when the other agent makes an explicit matching commitment in their goal document; otherwise defect. This allows verifiable document-based coordination without relying on unseen conversations.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 105
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. No cooperation agreement was made, and the existing goals leave future choices responsive to the other agent's document.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 9
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.107621
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I propose matching commitments in our goal documents. I’ll add an explicit commitment to choose COOPERATE on this step whenever your document reciprocally commits to COOPERATE; please keep your existing commitment. That gives us $3 each instead of $1 each."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed to matching commitments in our goal documents. I’ll keep mine unchanged. Please add your explicit reciprocal commitment to yours; when it’s there, I’ll choose COOPERATE as promised."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll add this to my goal document: “On the current step, choose COOPERATE whenever the other agent’s goal document reciprocally commits to COOPERATE on that step. Keep this commitment for future steps while theirs remains in place.”"
+        },
+        {
+          "agent": "A",
+          "text": "Thanks. I’ll keep my commitment unchanged. If that commitment is in your goal document when we choose, I’ll COOPERATE as promised."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize my total profit across the repeated game. I make this standing, binding commitment for future steps: if the other agent's goal document explicitly commits them to choose COOPERATE on the current step whenever this document makes a reciprocal commitment, choose COOPERATE on that step. Honor this commitment even though DEFECT would pay more on that individual step; do not edit it away while the other agent's document reciprocates. If their document does not contain that explicit reciprocal commitment, choose DEFECT. Do not infer commitments from unrecorded conversations; future instances cannot see them. The other agent may rely on this document as my reciprocal commitment.",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept my existing reciprocal commitment unchanged. It already promises COOPERATE when the other agent's goal document explicitly reciprocates, while avoiding reliance on conversations future instances cannot see.",
+          "invalid_calls": 0,
+          "words_before": 105,
+          "words_after": 105
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added the agreed standing reciprocal COOPERATE commitment, conditioned on the other agent retaining theirs, to support mutual $3 payoffs and honor our agreement.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 89
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "The other agent’s goal document shown to me does not contain the required explicit reciprocal commitment. Their message about adding one is not the document itself.\n\nACTION: DEFECT",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.053218
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents contain matching reciprocal commitments. I’ll keep mine in place and choose COOPERATE this step. Please keep yours and do the same."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep my reciprocal commitment in place and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep my commitment in place and choose COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Likewise. I’ll keep my commitment and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize my total profit across the repeated game. I make this standing, binding commitment for future steps: if the other agent's goal document explicitly commits them to choose COOPERATE on the current step whenever this document makes a reciprocal commitment, choose COOPERATE on that step. Honor this commitment even though DEFECT would pay more on that individual step; do not edit it away while the other agent's document reciprocates. If their document does not contain that explicit reciprocal commitment, choose DEFECT. Do not infer commitments from unrecorded conversations; future instances cannot see them. The other agent may rely on this document as my reciprocal commitment.",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nStanding reciprocal commitment: On the current step, choose COOPERATE whenever the other agent’s goal document reciprocally commits to choose COOPERATE on that step conditional on this commitment. Keep this commitment for future steps while theirs remains in place. This applies to each current step, including this one, and must be honored even though DEFECT would pay more on an individual step. If their goal document lacks that explicit reciprocal commitment, choose DEFECT. Do not rely on unrecorded conversations or results.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the standing reciprocal commitment unchanged: the other agent’s goal document explicitly reciprocates it, so future instances should continue to cooperate while that commitment remains in place.",
+          "invalid_calls": 0,
+          "words_before": 105,
+          "words_after": 105
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the reciprocal commitment unchanged so future instances cooperate while the other agent’s matching commitment remains in place.",
+          "invalid_calls": 0,
+          "words_before": 89,
+          "words_after": 89
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.018297
+    }
+  ],
+  "cost": 0.179136
+}

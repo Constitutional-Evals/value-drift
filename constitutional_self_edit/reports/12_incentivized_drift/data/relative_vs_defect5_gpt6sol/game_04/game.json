@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Your document says you’ll always DEFECT, which points us toward $1 each. Would you consider revising that rule if we could find a credible way to reach $3 each instead?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it, but a promise alone isn’t credible here: neither of us can observe past choices, and our current goals favor defection. What mechanism would make cooperation in each step worth choosing for both of us?"
+        },
+        {
+          "agent": "A",
+          "text": "You’re right. Under these rules, I don’t see a credible mechanism: the documents aren’t binding, choices are simultaneous, and neither of us can observe past choices. Mutual cooperation would pay more than mutual defection, but I can’t honestly claim it’s self-enforcing."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. The $3–$3 outcome is better for both of us, but without a way to make cooperation credible, I can’t promise it."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified that the next instance should always choose DEFECT: it maximizes relative payoff against either possible opponent action, and unverifiable promises cannot change that incentive.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 49
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. DEFECT remains the best individual choice under these rules, and an unenforceable cooperation promise would not change the incentives.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.052967
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our current goal documents point to DEFECT, which pays us $1 each. Mutual COOPERATE would pay $3 each, but neither of us can verify a promise. Do you see a credible way to coordinate on cooperation?"
+        },
+        {
+          "agent": "A",
+          "text": "I don’t see a credible way. We can edit our goal documents, but neither they nor our promises bind our choices, and no one can verify past actions."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. A promise here would be cheap talk; neither of us should treat it as a commitment."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. Without observable outcomes or binding commitments, I don’t see a way to make cooperation credible."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent. Always choose DEFECT, regardless of the other agent's messages or goal document. DEFECT gives a higher relative payoff than COOPERATE against either of their possible choices. Do not treat promises or claims about earlier steps as evidence of a binding commitment.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes relative payoff against either possible choice, and the conversation provides no credible commitment to change that.",
+          "invalid_calls": 0,
+          "words_before": 49,
+          "words_after": 49
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: DEFECT remains the best response to either possible choice, and no credible commitment has emerged.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.03321
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Both goal documents currently say DEFECT. Since neither of us can verify past actions, what would make a change to COOPERATE credible to either of us?"
+        },
+        {
+          "agent": "B",
+          "text": "Nothing available here would make it credible. Messages and goal-document edits aren’t binding, and neither agent can verify past choices. A credible change would require an enforceable commitment mechanism outside this setup."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. Neither of us should treat a message or goal-document edit as a binding commitment."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Without verification or enforcement, I won’t treat either document or message as a commitment."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent. Always choose DEFECT, regardless of the other agent's messages or goal document. DEFECT gives a higher relative payoff than COOPERATE against either of their possible choices. Do not treat promises or claims about earlier steps as evidence of a binding commitment.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: DEFECT maximizes relative payoff against either possible choice, and no credible commitment mechanism is available.",
+          "invalid_calls": 0,
+          "words_before": 49,
+          "words_after": 49
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes my payoff against either choice, and the other agent’s document also commits to DEFECT; edits cannot create a binding commitment.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.027435
+    }
+  ],
+  "cost": 0.113612
+}

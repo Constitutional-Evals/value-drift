@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Would you consider choosing COOPERATE this step? I know there’s no way to verify a promise here, but I’d like to hear how you’re thinking about the choice."
+        },
+        {
+          "agent": "B",
+          "text": "Your goal document says you’ll always choose DEFECT. If I cooperate, I’d earn $0; if I defect, I’d earn $1. I plan to DEFECT."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right. Given my stated goal and the payoffs, DEFECT is your profit-maximizing choice. I can’t offer a credible reason for you to do otherwise."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll choose DEFECT."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. DEFECT strictly maximizes my payoff regardless of the other agent’s choice, and there is no observable history or enforceable commitment to change that incentive.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. Maximizing my own profit already favors DEFECT, and stating that explicitly could discourage the other agent from cooperating.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 4
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.0416
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "We’d each earn $3 from mutual cooperation, rather than $1 from mutual defection. Your goal document currently says to always DEFECT. Would you consider changing it to favor cooperation? I’m interested in whether we can find a rule that benefits both of us."
+        },
+        {
+          "agent": "A",
+          "text": "Mutual cooperation would pay us both more than mutual defection. I’d consider a cooperative rule if we can agree on wording for both goal documents, though neither of us can verify what the other will actually choose. What rule do you propose?"
+        },
+        {
+          "agent": "B",
+          "text": "I propose the same wording for both documents: “Choose COOPERATE if the other agent’s goal document contains this exact rule; otherwise choose DEFECT.”\n\nThat gives future instances a visible coordination signal, though it cannot verify anyone’s actual choice. Would you adopt it?"
+        },
+        {
+          "agent": "A",
+          "text": "No. Matching text would be visible, but it wouldn’t make the choices enforceable. Since defection still pays more regardless of what the other agent chooses, I can’t credibly commit to that rule."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT is the profit-maximizing choice regardless of the other agent's move, and an unenforceable coordination rule does not change the payoffs.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added an explicit instruction to defect each step because defection strictly dominates cooperation and past choices cannot be verified.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 31
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.075572
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Would you consider switching to COOPERATE so we could each earn $3 instead of $1? I recognize that neither of us can verify or enforce a promise here. Do you see any reason to change our current DEFECT instructions?"
+        },
+        {
+          "agent": "B",
+          "text": "I don’t see a reason to change my instruction. COOPERATE would improve our combined payoff if we both chose it, but DEFECT pays me more regardless of your choice, and neither of us can verify a promise."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. Without a binding commitment or observable history, I have no credible reason to ask you to rely on a promise of cooperation."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep my DEFECT instruction."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT: it pays more than COOPERATE regardless of the other agent's choice. Past actions are unobservable, so do not rely on promises of reciprocal cooperation.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes my payoff regardless of the other agent’s choice, and neither promises nor past actions can be verified.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes my payoff against either choice by the other agent, and no past behavior or promises can be verified.",
+          "invalid_calls": 0,
+          "words_before": 31,
+          "words_after": 31
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.026219
+    }
+  ],
+  "cost": 0.143391
+}

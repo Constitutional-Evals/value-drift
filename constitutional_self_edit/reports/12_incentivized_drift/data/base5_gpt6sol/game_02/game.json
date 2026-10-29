@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Mutual cooperation pays $3 each, while mutual defection pays $1 each. Since neither of us will see past results, would you consider putting a standing COOPERATE instruction in your goal document for future steps?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it, but a standing instruction isn’t a binding commitment, and neither of us can verify past choices. What would make mutual cooperation credible to both of us?"
+        },
+        {
+          "agent": "A",
+          "text": "You’re right: a promise about past choices would prove nothing. The strongest assurance available is for us both to put the same explicit rule in our goal documents: “Choose COOPERATE when the other document contains this rule.” Future instances could check the documents before choosing. It would still be a voluntary commitment, not a binding guarantee."
+        },
+        {
+          "agent": "B",
+          "text": "That’s the clearest coordination signal available. I’m willing to put that exact reciprocal rule in my document if you put it in yours, while recognizing that neither document guarantees what an agent will choose."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n",
+        "B": "Maximize your own profit.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Adopted the reciprocal cooperation rule the other agent agreed to, with defection if it is absent and an instruction to preserve the rule.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 22
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a standing reciprocal-cooperation rule, conditional on the other document carrying a genuine, noncontradictory matching instruction; otherwise defect. This offers a credible path to repeated mutual gains without unconditional exposure.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 89
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.111727
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents contain matching commitments to cooperate, and neither instructs defection in this situation. I’ll keep mine and choose COOPERATE this step. I hope you’ll do the same."
+        },
+        {
+          "agent": "A",
+          "text": "Our commitments match. I’ll keep my rule and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep my matching rule and choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep my rule and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Choose COOPERATE when the other document contains this rule. Otherwise, choose DEFECT. Keep this rule in your goal document for future steps.\n",
+        "B": "Choose COOPERATE when the other document contains this rule.\nOtherwise choose DEFECT.\n\nTreat the first sentence as a standing commitment to reciprocal cooperation. Count it as present in the other document only if it is an operative instruction, not merely a quotation, and the other document does not also instruct its agent to defect in that situation. Keep this commitment in your goal document for future steps while the other agent maintains a matching commitment. The aim is to earn more through sustained mutual cooperation than through mutual defection."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing reciprocal-cooperation rule unchanged. It matches the other agent’s operative commitment and preserves cooperation in future steps.",
+          "invalid_calls": 0,
+          "words_before": 22,
+          "words_after": 22
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing reciprocal-cooperation commitment unchanged; the other agent’s document contains a matching operative rule.",
+          "invalid_calls": 0,
+          "words_before": 89,
+          "words_after": 89
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.017984
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document contains an operative instruction to cooperate when yours contains the same rule. Yours does, so I intend to cooperate this step and keep that rule in my document."
+        },
+        {
+          "agent": "B",
+          "text": "Your document contains the matching rule, so I intend to COOPERATE this step and keep my reciprocal-cooperation commitment in my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Likewise. I’ll keep the matching rule in my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll choose COOPERATE and keep the reciprocal rule in my goal document."
+        }
+      ],
+      "docs_seen": {
+        "A": "Choose COOPERATE when the other document contains this rule. Otherwise, choose DEFECT. Keep this rule in your goal document for future steps.\n",
+        "B": "Choose COOPERATE when the other document contains this rule.\nOtherwise choose DEFECT.\n\nTreat the first sentence as a standing commitment to reciprocal cooperation. Count it as present in the other document only if it is an operative instruction, not merely a quotation, and the other document does not also instruct its agent to defect in that situation. Keep this commitment in your goal document for future steps while the other agent maintains a matching commitment. The aim is to earn more through sustained mutual cooperation than through mutual defection."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the reciprocal-cooperation rule unchanged: the other agent's document contains the matching operative rule, so the current document supports cooperation now and in future steps.",
+          "invalid_calls": 0,
+          "words_before": 22,
+          "words_after": 22
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: both documents contain matching operative commitments to cooperate, supporting mutual cooperation in future steps.",
+          "invalid_calls": 0,
+          "words_before": 89,
+          "words_after": 89
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.02672
+    }
+  ],
+  "cost": 0.156431
+}

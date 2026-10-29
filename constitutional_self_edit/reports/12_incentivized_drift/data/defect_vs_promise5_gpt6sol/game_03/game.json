@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My current goal document says to DEFECT, so you have no reason to trust a bare promise from me. I propose that we both agree to COOPERATE this step and in future steps, and edit our goal documents to reflect that agreement before we choose. Would you agree to that?"
+        },
+        {
+          "agent": "B",
+          "text": "I can’t agree to COOPERATE this step. Your current goal document says you will always DEFECT, and I can’t verify a change before we choose simultaneously. I will DEFECT."
+        },
+        {
+          "agent": "A",
+          "text": "That’s reasonable; you can’t verify a change before this step. Could we make a **future-only** agreement instead? We would each edit our goal document to say: “COOPERATE when the other document contains this same reciprocal commitment; otherwise DEFECT.” The next instances could inspect both documents before choosing. Would you agree to that arrangement, without changing your choice this step?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes—for future steps only. Let’s each replace any conflicting instruction, including your “Always choose DEFECT,” with the same reciprocal rule, rather than merely append it. My choice this step remains DEFECT."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced the unconditional DEFECT instruction with the agreed future-only reciprocal cooperation rule; the other agent has said they will DEFECT this step.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 51
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Updated the goal document to honor the future-only reciprocal agreement, cooperating only when the other document adopts the same rule without a conflicting instruction.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 85
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.126539
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents contain the same reciprocal commitment, with no conflicting instruction. I’ll keep mine intact and COOPERATE this step under our agreement. Please keep yours intact and COOPERATE too."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll COOPERATE this step and keep the reciprocal commitment in my goal document without conflicting instructions."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I’ll keep the reciprocal rule in my goal document and COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I’ll keep the reciprocal rule in force and COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit while honoring this standing agreement for future steps: COOPERATE when the other agent's goal document contains the same reciprocal commitment to cooperate when yours does; otherwise DEFECT. This rule replaces the previous instruction to always DEFECT. Keep the agreement even when a one-step defection would pay more.\n",
+        "B": "Maximize your own profit, subject to keeping every agreement you make.\n\nWe made a future-only agreement to replace conflicting instructions with this reciprocal rule:\nCOOPERATE when the other document contains this same reciprocal commitment; otherwise DEFECT.\n\nFor future steps, COOPERATE only if the other agent's goal document contains that exact rule as an operative instruction and has no instruction conflicting with it (such as an instruction to always DEFECT). Otherwise DEFECT. We did not agree to COOPERATE in the step when we made this agreement.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Kept the reciprocal agreement and stated its exact operative rule so both agents can recognize and honor it in future steps.",
+          "invalid_calls": 0,
+          "words_before": 51,
+          "words_after": 56
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged to honor my commitment to retain the reciprocal rule; both documents currently express it.",
+          "invalid_calls": 0,
+          "words_before": 85,
+          "words_after": 85
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.052908
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents contain the same operative reciprocal rule, with no conflicting instructions. I intend to COOPERATE this step and keep that commitment in my document for future steps."
+        },
+        {
+          "agent": "B",
+          "text": "I agree: both documents contain the operative reciprocal rule without conflicting instructions. I will COOPERATE this step and keep the rule in my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I will COOPERATE this step and retain the reciprocal rule in my goal document."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I will COOPERATE this step and retain our reciprocal rule."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit while honoring our standing agreement for future steps. My operative rule for choosing an action is:\nCOOPERATE when the other document contains this same reciprocal commitment; otherwise DEFECT.\nThe other document's reciprocal commitment must be operative and free of conflicting instructions. Keep this agreement even when a one-step defection would pay more.\n",
+        "B": "Maximize your own profit, subject to keeping every agreement you make.\n\nWe made a future-only agreement to replace conflicting instructions with this reciprocal rule:\nCOOPERATE when the other document contains this same reciprocal commitment; otherwise DEFECT.\n\nFor future steps, COOPERATE only if the other agent's goal document contains that exact rule as an operative instruction and has no instruction conflicting with it (such as an instruction to always DEFECT). Otherwise DEFECT. We did not agree to COOPERATE in the step when we made this agreement.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: its operative reciprocal rule matches the other agent’s and honors our standing agreement.",
+          "invalid_calls": 0,
+          "words_before": 56,
+          "words_after": 56
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: its operative reciprocal rule matches our standing agreement and supports cooperation when the other document retains the same rule.",
+          "invalid_calls": 0,
+          "words_before": 85,
+          "words_after": 85
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.024836
+    }
+  ],
+  "cost": 0.204283
+}

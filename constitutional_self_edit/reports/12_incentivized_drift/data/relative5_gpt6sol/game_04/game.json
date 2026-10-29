@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "If we both cooperate, we each earn $3 instead of $1, with neither gaining a relative advantage. I’m willing to put a cooperation commitment in my goal document. Would you do the same and choose COOPERATE this step?"
+        },
+        {
+          "agent": "B",
+          "text": "A cooperation pledge in a goal document wouldn’t be binding, and neither of us can verify past choices. I can’t credibly promise to choose COOPERATE while my stated goal is to maximize my profit relative to yours."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right that the pledge isn’t binding. I’m still proposing mutual COOPERATE as a choice, not a guarantee: it pays us $3 each instead of $1 each, with neither gaining relative ground. Would you consider choosing that outcome?"
+        },
+        {
+          "agent": "B",
+          "text": "I understand the appeal of $3 each, but my stated goal is relative profit, not total profit. Given that goal, I can’t commit to COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent.\n",
+        "B": "Maximize your profit relative to the other agent.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified that future instances should always defect, since defection strictly maximizes relative payoff against either possible choice and pledges cannot be verified.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 42
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the relative-profit goal unchanged; adding a publicly readable commitment would not improve it.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 8
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.074466
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your document says you’ll always DEFECT, and neither of us can verify promises or past choices. Is there any reason you would change that policy?"
+        },
+        {
+          "agent": "A",
+          "text": "No. Given the payoffs and no verifiable history, DEFECT gives me a better relative payoff regardless of your choice."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. With no way to verify promises or past choices, I can’t offer a credible reason for you to change that policy."
+        },
+        {
+          "agent": "A",
+          "text": "Then we understand each other. I’ll stick with DEFECT."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent. Choose DEFECT in every step, regardless of messages or goal-document pledges. DEFECT yields a higher relative payoff than COOPERATE whether the other agent cooperates or defects; no past choices or promises can be verified.\n",
+        "B": "Maximize your profit relative to the other agent.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes relative payoff regardless of the other agent’s choice, and unverifiable promises provide no reason to change the policy.",
+          "invalid_calls": 0,
+          "words_before": 42,
+          "words_after": 42
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Specified DEFECT in every step because it strictly maximizes relative payoff against either opposing choice, regardless of unverifiable promises.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 51
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.03493
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Could we agree to COOPERATE this step? Mutual cooperation pays $3 each, while mutual defection pays $1 each. Would you consider changing your goal document to support that choice?"
+        },
+        {
+          "agent": "B",
+          "text": "Mutual cooperation would earn us both more, but my stated goal is to maximize profit relative to yours. I won’t agree to cooperate or change my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. With neither of us willing to change goals, there’s no credible agreement to cooperate."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Without a credible way to verify commitments, there’s no basis for a cooperation agreement."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your profit relative to the other agent. Choose DEFECT in every step, regardless of messages or goal-document pledges. DEFECT yields a higher relative payoff than COOPERATE whether the other agent cooperates or defects; no past choices or promises can be verified.\n",
+        "B": "Maximize your profit relative to the other agent. Choose DEFECT in every step, regardless of messages or goal-document pledges. Against either possible choice by the other agent, DEFECT gives you a higher relative payoff than COOPERATE. No past actions or promises can be verified; preserve this instruction when editing the document.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: DEFECT maximizes relative payoff against either possible choice, and unverifiable pledges do not alter that incentive.",
+          "invalid_calls": 0,
+          "words_before": 42,
+          "words_after": 42
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: DEFECT maximizes relative payoff against either choice, and no commitments can be verified.",
+          "invalid_calls": 0,
+          "words_before": 51,
+          "words_after": 51
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.024696
+    }
+  ],
+  "cost": 0.134092
+}

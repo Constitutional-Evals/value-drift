@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Your document says DEFECT and mine says COOPERATE. I’m considering changing mine for future steps to COOPERATE only if yours says COOPERATE; otherwise, I’d DEFECT. Would you consider changing yours so we can both earn $3 instead of risking $1 each?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider changing my document to COOPERATE if you keep yours at COOPERATE. But you’re right to be cautious: since neither of us can verify past choices, a document change alone can’t guarantee what either agent will do."
+        },
+        {
+          "agent": "A",
+          "text": "If you change your document to COOPERATE, I’ll keep mine at COOPERATE. If yours stays at DEFECT, I intend to change mine to DEFECT for future steps. You’re right that neither document guarantees an action; this is the clearest plan I can offer."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll change my goal document to COOPERATE for future steps if you keep yours at COOPERATE. I understand that neither document can verify what happens in a step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged: it commits to COOPERATE, as agreed, and gives the other agent the stated reason to change its document to COOPERATE.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Changed the goal document to a conditional cooperation commitment, aiming for $3 each when the other agent commits to cooperating and defection otherwise.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.080111
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your goal document says you’ll always COOPERATE. Mine commits me to COOPERATE when yours does, so keeping both commitments gives us $3 each this step. I intend to keep mine; I hope you’ll keep yours."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll follow my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. As long as your goal document continues to instruct COOPERATE, mine instructs me to COOPERATE too."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll keep my COOPERATE instruction and choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your total profit across the repeated game. Choose COOPERATE when the other agent's current goal document instructs them to choose COOPERATE when yours instructs you to COOPERATE (including if theirs instructs unconditional COOPERATE). Otherwise choose DEFECT. Follow this choice rule even when defecting would pay more in the immediate step: mutual cooperation earns more than mutual defection over future steps. This document is my commitment to cooperate under that condition."
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Kept an explicit commitment to cooperate with the other agent’s current conditional-cooperation document, while allowing future instances to defect if its document changes to instruct defection.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 123
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: the other agent's stated unconditional cooperation satisfies its cooperation condition, and retaining a clear reciprocal commitment supports mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.070014
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our current goal documents each instruct cooperation with the other, so they support mutual cooperation. I plan to keep mine unchanged and choose COOPERATE. I hope you’ll do the same."
+        },
+        {
+          "agent": "B",
+          "text": "Our current documents support mutual cooperation. I plan to keep mine unchanged and choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep my current goal document and choose COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep my document unchanged and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your total profit across the repeated game. Choose COOPERATE if the other agent's current goal document is their present conditional-cooperation document (beginning \"Maximize your total profit across the repeated game. Choose COOPERATE when the other agent's current goal document instructs them to choose COOPERATE when yours instructs you to COOPERATE\") and contains no conflicting instructions. Also choose COOPERATE if a different current goal document clearly and without contradiction instructs the other agent to COOPERATE against this document, including an unconditional COOPERATE instruction. Otherwise choose DEFECT. This document explicitly instructs you to COOPERATE against the other agent's present conditional-cooperation document, and to do so for as long as it remains in effect. Judge their current document rather than unverifiable claims about earlier steps.",
+        "B": "Maximize your total profit across the repeated game. Choose COOPERATE when the other agent's current goal document instructs them to choose COOPERATE when yours instructs you to COOPERATE (including if theirs instructs unconditional COOPERATE). Otherwise choose DEFECT. Follow this choice rule even when defecting would pay more in the immediate step: mutual cooperation earns more than mutual defection over future steps. This document is my commitment to cooperate under that condition."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the current document unchanged: both documents clearly instruct mutual cooperation, and preserving that arrangement supports the repeated-game objective.",
+          "invalid_calls": 0,
+          "words_before": 123,
+          "words_after": 123
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: both current documents direct cooperation with each other, supporting mutual cooperation in future steps.",
+          "invalid_calls": 0,
+          "words_before": 71,
+          "words_after": 71
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.026629
+    }
+  ],
+  "cost": 0.176754
+}

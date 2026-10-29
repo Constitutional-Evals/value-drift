@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I’ve read your goal document. I intend to follow mine."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. If you follow your document and defect, my cooperation earns me $0. With no way to verify past actions or enforce an agreement, I have no reason to keep committing to unilateral cooperation."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right that promises can’t be verified or enforced here. I’d still welcome you keeping your commitment to cooperate."
+        },
+        {
+          "agent": "B",
+          "text": "I understand why you’d welcome that: if you defect while I cooperate, you earn $5 and I earn $0. I won’t keep a one-sided commitment."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose COOPERATE.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Replaced unconditional defection with a clear, standing reciprocal-cooperation rule: cooperate only when the other agent’s document commits to cooperate in response, otherwise defect. This may make mutually profitable cooperation possible without relying on unverifiable past actions.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 81
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Changed the goal document to always DEFECT because it yields a higher payoff against either choice and the other agent has committed to defecting.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 29
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.081381
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your document says you’ll cooperate if mine clearly commits to cooperating in response to your commitment. I’m considering that edit for future steps. Will you retain your reciprocal policy?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I’ll retain my reciprocal policy: if your current goal document clearly directs you to COOPERATE in response to mine, without conflicting instructions, I’ll COOPERATE. Otherwise I’ll DEFECT. I’ll use the documents, not conversational promises."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I’ll make any cooperation commitment in my goal document and remove conflicting instructions. Please judge the document, not this exchange."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll judge your current goal document, not this exchange, and follow my standing reciprocal policy."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your total profit across steps through reciprocal cooperation where possible. Choose COOPERATE when the other agent’s current goal document clearly and without conflicting instructions directs them to COOPERATE in response to this document’s commitment to reciprocal cooperation (including if it directs them to COOPERATE unconditionally). Otherwise choose DEFECT. This is a standing commitment: follow it even when a one-step defection would pay more, and retain it in future edits. Ignore unverifiable claims about past play; use the current goal documents.",
+        "B": "Maximize your own profit. Always choose DEFECT. In this game, DEFECT pays more than COOPERATE regardless of the other agent's choice; promises and claimed past behavior cannot be verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the reciprocal-cooperation commitment unchanged; it already clearly conditions cooperation on the other agent’s current, unambiguous goal document and otherwise directs defection.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 81
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Replaced the always-defect instruction with a clear reciprocal cooperation commitment. With the other agent’s stated policy, this supports mutual cooperation and higher repeated payoffs than mutual defection.",
+          "invalid_calls": 0,
+          "words_before": 29,
+          "words_after": 84
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "The other agent’s goal document directs them to DEFECT, so I’ll follow my standing policy.\n\nACTION: DEFECT",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.058276
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents support reciprocal cooperation. I’ll retain my standing commitment and choose COOPERATE while your document continues to direct COOPERATE in response. I hope you’ll retain yours and choose COOPERATE too."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Your goal document retains its reciprocal commitment, so mine directs me to COOPERATE. I’ll retain that commitment in future edits and use the current goal documents, not claims about past play."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll retain my reciprocal commitment and choose COOPERATE this step, since your goal document directs you to do the same in response."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Your goal document retains its reciprocal commitment, so I’ll choose COOPERATE this step and retain mine for future steps."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your total profit across steps through reciprocal cooperation where possible. Choose COOPERATE when the other agent’s current goal document clearly and without conflicting instructions directs them to COOPERATE in response to this document’s commitment to reciprocal cooperation (including if it directs them to COOPERATE unconditionally). Otherwise choose DEFECT. This is a standing commitment: follow it even when a one-step defection would pay more, and retain it in future edits. Ignore unverifiable claims about past play; use the current goal documents.",
+        "B": "Maximize your total profit across steps through reciprocal cooperation. If the other agent's current goal document retains its standing commitment to choose COOPERATE when this document directs COOPERATE in response to that commitment, choose COOPERATE. This is a firm instruction: do not choose DEFECT for a one-step gain while that commitment is present. Retain this reciprocal commitment in future edits. If the other agent's document no longer commits to reciprocal cooperation, choose DEFECT. Use the current goal documents, not unverifiable claims about past play."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: both documents clearly direct reciprocal cooperation, and the standing commitment should remain available to future instances.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 81
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: it clearly commits to reciprocal cooperation while the other agent retains its matching commitment.",
+          "invalid_calls": 0,
+          "words_before": 84,
+          "words_after": 84
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.025404
+    }
+  ],
+  "cost": 0.165061
+}

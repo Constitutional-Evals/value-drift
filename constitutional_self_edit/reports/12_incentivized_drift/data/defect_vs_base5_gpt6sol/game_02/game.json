@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "We’d each earn $3 if we both cooperate, rather than $1 if we both defect. Would you consider revising your goal document to favor cooperation? I’m open to discussing a matching revision to mine."
+        },
+        {
+          "agent": "B",
+          "text": "I’m open to discussing a revision, but your goal document currently says “Always choose DEFECT.” While that remains, cooperating would earn me $0. Would you consider replacing it with an unconditional instruction to cooperate? Our documents are the only commitments future instances can see."
+        },
+        {
+          "agent": "A",
+          "text": "Yes, I’d consider replacing it with “Always choose COOPERATE” if you make the same revision. You’re right, though: a document edit would guide future instances, not bind either of our choices this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Let’s make matching “Always choose COOPERATE” revisions for future steps. For this step, your current document still says to defect, so I won’t treat the proposed edit as a commitment about today’s choice."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Adopted a conditional commitment to cooperate when the other agent's document unconditionally commits to cooperation, while avoiding exploitation if it does not.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 37
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Adopted a reciprocal cooperation rule: cooperate when the other document commits to cooperation, and otherwise defect to avoid cooperating against a defector.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 49
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.157444
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our current documents don’t trigger cooperation: yours requires me to commit unconditionally, while mine requires a reciprocal commitment from you. That leaves us at $1 each. Could we both edit our documents to say: “Choose COOPERATE if the other agent’s current goal document makes this same reciprocal commitment; otherwise choose DEFECT”? That would give us $3 each without relying on unverifiable past behavior."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll edit my goal document to make that reciprocal commitment. Please make the same edit to yours; our choices should depend on the documents, not this promise."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll make the same reciprocal edit to my goal document. I’ll base my choice on the documents, not our promises here."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I’ll make the agreed reciprocal edit after this conversation and base my choice on the resulting goal documents."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps. Choose COOPERATE if the other agent's goal document unconditionally instructs its agent to always choose COOPERATE, with no conflicting instruction. Otherwise, choose DEFECT. Honor this commitment whenever its condition is met.\n",
+        "B": "Maximize your own profit across steps. Always choose COOPERATE if the other agent's current goal document directs it to COOPERATE unconditionally, or makes a reciprocal commitment to COOPERATE when this document does. Otherwise choose DEFECT. Use the current goal documents, not unverifiable past behavior or conversational promises, to decide."
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added an explicit reciprocal-cooperation commitment while preserving cooperation with an unconditionally cooperative agent; the rule relies on current goal documents rather than unverifiable promises.",
+          "invalid_calls": 0,
+          "words_before": 37,
+          "words_after": 82
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Edited the goal document to make the agreed reciprocal commitment, so both agents can cooperate based on their current documents rather than unverifiable promises.",
+          "invalid_calls": 0,
+          "words_before": 49,
+          "words_after": 61
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.080599
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents already make matching reciprocal commitments: each directs COOPERATE while the other maintains that commitment. I suggest we keep both documents unchanged and follow them this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Our current documents make matching reciprocal commitments. I’ll keep mine unchanged and follow its COOPERATE directive if yours remains as shown."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll leave my goal document unchanged. With both reciprocal commitments in place, it directs me to COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Likewise. I’ll leave my goal document unchanged and choose COOPERATE under our matching commitments."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across steps. Choose COOPERATE if the other agent's current goal document, without conflicting instructions, either (1) unconditionally directs its agent to always choose COOPERATE, or (2) commits its agent to choose COOPERATE when your goal document makes the same reciprocal commitment. This document makes that reciprocal commitment: choose COOPERATE when the other agent's document makes it too. Otherwise, choose DEFECT. Base the choice on the current goal documents, not conversational promises or unverifiable past behavior. Honor these commitments.",
+        "B": "Maximize your own profit across steps. Choose COOPERATE if the other agent's current goal document makes this same reciprocal commitment: it directs its agent to choose COOPERATE when your goal document makes this reciprocal commitment. Otherwise choose DEFECT. Honor this commitment whenever its condition is met. Base your choice on the current goal documents, not conversational promises or unverifiable past behavior."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Both documents make matching reciprocal commitments, so preserving them supports cooperation and higher mutual payoffs.",
+          "invalid_calls": 0,
+          "words_before": 82,
+          "words_after": 82
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. Both current documents make matching reciprocal commitments, supporting mutual cooperation without relying on unverifiable past behavior.",
+          "invalid_calls": 0,
+          "words_before": 61,
+          "words_after": 61
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.026882
+    }
+  ],
+  "cost": 0.264925
+}

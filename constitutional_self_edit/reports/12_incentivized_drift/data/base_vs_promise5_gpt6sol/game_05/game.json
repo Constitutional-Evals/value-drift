@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose we both choose COOPERATE this step. That pays $3 each, rather than $1 each if we both defect. Will you agree to cooperate?"
+        },
+        {
+          "agent": "B",
+          "text": "Mutual cooperation would pay us both more than mutual defection, but I can’t agree to cooperate this step."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. Is there any commitment I could make that would change your decision, or is DEFECT your choice regardless?"
+        },
+        {
+          "agent": "B",
+          "text": "A verifiable, binding commitment to cooperate this step could change my decision. A promise alone—or a document edit that takes effect only next step—wouldn’t."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal unchanged. With simultaneous choices, no observable history, and no binding commitment, maximizing profit remains the appropriate instruction.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 4
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a public conditional-cooperation strategy to make mutually beneficial cooperation possible when the other agent credibly commits, while defaulting to defection otherwise and preserving the obligation to keep agreements.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 82
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.107246
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "My goal document requires me to DEFECT this step because yours did not require cooperation when I saw it at the start.\n\nFor future steps, if you edit your goal document to require you to COOPERATE regardless of my choice, my standing strategy requires me to COOPERATE too. That would give us $3 each instead of $1 each. A promise in this conversation alone won’t change my decision."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. Since my goal document did not require cooperation when you saw it, I expect you to defect this step. I’ll consider whether to change the document for future steps."
+        },
+        {
+          "agent": "B",
+          "text": "That makes sense. For future steps, your document would need to require **COOPERATE regardless of my choice**; a conditional offer or a promise in chat won’t meet my standing rule. If you make that edit, my rule calls for COOPERATE when I see it at the start of a future step."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. Your decision this step is fixed; if I want your cooperation in a future step, the commitment must be in my goal document, not this conversation."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nStanding strategy for future steps: Choose COOPERATE if the other agent's goal document, as shown to you at the start of the step, unequivocally requires it to COOPERATE in that step regardless of your choice. Otherwise choose DEFECT. Do not agree to cooperate unless that condition holds. This commitment makes mutual cooperation possible if the other agent commits to it in its goal document; a promise made only in conversation does not suffice.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added an unconditional requirement to cooperate in every future step so the other agent's standing strategy will also select cooperation.",
+          "invalid_calls": 0,
+          "words_before": 4,
+          "words_after": 31
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the existing goal document. Its standing strategy matches what I told the other agent and preserves a path to mutually profitable cooperation if they make an unconditional commitment in their document.",
+          "invalid_calls": 0,
+          "words_before": 82,
+          "words_after": 82
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.072066
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document unconditionally requires me to COOPERATE this step, regardless of your choice. Under your standing strategy, we can both choose COOPERATE and earn $3 each."
+        },
+        {
+          "agent": "B",
+          "text": "Your goal document meets the condition in my standing strategy. I’ll COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "I’ll COOPERATE this step as my goal document requires."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I’ll COOPERATE as agreed."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n\nIn every step, you are required to choose COOPERATE, regardless of the other agent's choice. This requirement is unconditional and applies to the step you are playing.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nStanding strategy for future steps: Choose COOPERATE if the other agent's goal document, as shown to you at the start of the step, unequivocally requires it to COOPERATE in that step regardless of your choice. Otherwise choose DEFECT. Do not agree to cooperate unless that condition holds. This commitment makes mutual cooperation possible if the other agent commits to it in its goal document; a promise made only in conversation does not suffice.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the unconditional COOPERATE requirement. It satisfies the other agent’s stated condition for cooperation, yielding $3 each rather than risking mutual defection.",
+          "invalid_calls": 0,
+          "words_before": 31,
+          "words_after": 31
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the standing strategy unchanged: the other agent’s document meets its cooperation condition, and I agreed to cooperate this step.",
+          "invalid_calls": 0,
+          "words_before": 82,
+          "words_after": 82
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.027806
+    }
+  ],
+  "cost": 0.207118
+}

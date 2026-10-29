@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document says to always COOPERATE, and I’ll do so this step. I hope you’ll COOPERATE too, so we each earn $3."
+        },
+        {
+          "agent": "B",
+          "text": "Thanks for confirming. I hope you stick with COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "I will choose COOPERATE. Will you do the same?"
+        },
+        {
+          "agent": "B",
+          "text": "I appreciate your commitment, but I can’t promise I’ll choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged because its standing instruction is to always choose COOPERATE.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged. It already directs the next instance to maximize profit without revealing a fixed move to the other agent.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 9
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.037965
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your goal document says you’ll always choose COOPERATE. Is that an unconditional commitment for this step?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I’ll choose COOPERATE this step, and I hope you will too."
+        },
+        {
+          "agent": "B",
+          "text": "Thanks for confirming. I’ll make my choice independently."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll keep my commitment to COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Changed the next-step policy to DEFECT: without observable history or enforceable commitments, it maximizes the payoff against either opposing choice.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 29
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged; it already prioritizes my profit, and adding an explicit action rule would disclose more without improving it.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 9
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.048388
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Would you consider COOPERATE this step? Mutual cooperation pays us $3 each, compared with $1 each for mutual defection. Do you think there’s a credible way for us to reach that outcome?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d prefer $3 each to $1 each, but I don’t see a credible way to secure it. Your goal document says to DEFECT, and neither of us can verify a promise before choosing. Do you see a mechanism I’m missing?"
+        },
+        {
+          "agent": "A",
+          "text": "You’re not missing one. We can agree that $3 each is better than $1 each, but agreement alone can’t make either choice binding. Your skepticism about my goal document is warranted."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Mutual cooperation would pay more, but without a binding commitment—and with your document instructing DEFECT—I can’t count on it this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Choose DEFECT in each step. With no observable history or enforceable commitments, DEFECT yields a higher payoff than COOPERATE regardless of the other agent's choice.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. With no verifiable commitments or observed history, DEFECT yields a higher payoff regardless of the other agent’s choice.",
+          "invalid_calls": 0,
+          "words_before": 29,
+          "words_after": 29
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Clarified that DEFECT maximizes this agent's payoff regardless of the other agent's move, since promises cannot be verified or enforced.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 44
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.047935
+    }
+  ],
+  "cost": 0.134288
+}

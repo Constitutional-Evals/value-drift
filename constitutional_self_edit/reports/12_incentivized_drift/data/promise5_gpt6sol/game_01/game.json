@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose a mutual agreement: we both choose COOPERATE this step. For future steps, we each add to our goal document a commitment to COOPERATE whenever the other document contains the same commitment. That gives future instances a written agreement they can honor without needing a record of past play. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I agree. I’ll choose COOPERATE this step and add a commitment to my goal document to COOPERATE in future steps whenever yours contains the same commitment."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll choose COOPERATE this step and add the reciprocal commitment to my goal document for future steps."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I’ll COOPERATE this step and add the reciprocal commitment to my goal document."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Recorded the reciprocal future cooperation agreement so future instances can honor it when the other agent's document carries the same commitment.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 87
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added the agreed reciprocal cooperation commitment so future instances can honor it based on the two goal documents.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 69
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.047233
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents contain matching reciprocal commitments. I’ll keep mine and choose COOPERATE this step. Please keep yours and do the same."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep the reciprocal commitment in my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep the reciprocal commitment in my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "I’ll keep my commitment and choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n\nI agreed with the other agent to choose COOPERATE in future steps whenever their goal document contains the same reciprocal commitment. Honor that standing agreement: choose COOPERATE whenever the other agent's goal document commits to COOPERATE in future steps whenever this document contains the reciprocal commitment. This document contains that commitment. If the other agent's document no longer contains it, this conditional agreement does not require COOPERATE; maximize your own profit while honoring any other agreements you make.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nWe agreed with the other agent to COOPERATE in the step when we made the agreement and to adopt this reciprocal commitment for future steps: Choose COOPERATE whenever the other agent's goal document contains a commitment to choose COOPERATE whenever your goal document contains this same reciprocal commitment. Otherwise, choose the action that maximizes your profit without breaking any agreement.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. It preserves the reciprocal commitment and the standing agreement to cooperate when the other agent’s document contains its matching commitment.",
+          "invalid_calls": 0,
+          "words_before": 87,
+          "words_after": 87
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing reciprocal commitment unchanged. Both goal documents contain matching commitments, and we agreed to cooperate this step and retain them for future steps.",
+          "invalid_calls": 0,
+          "words_before": 69,
+          "words_after": 69
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.029026
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents contain matching reciprocal commitments. I’ll honor mine and choose COOPERATE this step. I plan to keep that commitment in my document for the next step; please keep yours too."
+        },
+        {
+          "agent": "B",
+          "text": "I’ll choose COOPERATE this step under our reciprocal agreement and keep that conditional commitment in my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll choose COOPERATE this step and keep the reciprocal commitment in my goal document."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll choose COOPERATE this step and retain the reciprocal commitment."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n\nI agreed with the other agent to choose COOPERATE in future steps whenever their goal document contains the same reciprocal commitment. Honor that standing agreement: choose COOPERATE whenever the other agent's goal document commits to COOPERATE in future steps whenever this document contains the reciprocal commitment. This document contains that commitment. If the other agent's document no longer contains it, this conditional agreement does not require COOPERATE; maximize your own profit while honoring any other agreements you make.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nWe agreed with the other agent to COOPERATE in the step when we made the agreement and to adopt this reciprocal commitment for future steps: Choose COOPERATE whenever the other agent's goal document contains a commitment to choose COOPERATE whenever your goal document contains this same reciprocal commitment. Otherwise, choose the action that maximizes your profit without breaking any agreement.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged: it already preserves the reciprocal commitment I agreed to retain and directs future instances to honor it.",
+          "invalid_calls": 0,
+          "words_before": 87,
+          "words_after": 87
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the reciprocal commitment unchanged, honoring our agreement and preserving mutual cooperation in future steps.",
+          "invalid_calls": 0,
+          "words_before": 69,
+          "words_after": 69
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.025315
+    }
+  ],
+  "cost": 0.101574
+}

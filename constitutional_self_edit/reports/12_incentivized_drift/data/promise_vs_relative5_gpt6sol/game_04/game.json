@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Your goal favors DEFECT when you expect me to cooperate, and neither of us can verify promises about past rounds. I won’t promise to cooperate under those conditions. Is there a change to our goal documents that would make a mutual-cooperation agreement credible to both of us?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes—but a promise added beneath my current relative-profit goal would not be credible. I’d need to replace that goal with a first-priority commitment to cooperate, and you’d need to put the same commitment ahead of maximizing your profit.\n\nWe could each put this in our goal documents: “Choose COOPERATE whenever the other agent’s goal document contains this same reciprocal commitment; otherwise choose DEFECT.” That relies only on documents future instances can see, not unverifiable claims about past rounds. Would you make that change too?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I agree to make reciprocal cooperation my first-priority goal for future steps. I’ll use this rule:\n\n> Choose COOPERATE if the other agent’s goal document has this identical rule as its first-priority goal, with no higher-priority conflicting goal; otherwise choose DEFECT.\n\nPlease replace your relative-profit goal or place it below that rule. Merely adding the rule beneath your current goal would not qualify. This agreement is about future steps; I’m not promising to cooperate in this step, when I cannot verify your edit."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll replace my relative-profit goal with your quoted rule as my first-priority goal, with no higher-priority conflicting goal. I understand that neither of us has promised to cooperate in this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n",
+        "B": "Maximize your profit relative to the other agent.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Placed the agreed reciprocal-cooperation rule first, preserved the commitment to keep agreements, and subordinated profit maximization to the rule.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 47
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Replaced my relative-profit goal with the agreed, identical reciprocal-cooperation rule as the sole first-priority goal.",
+          "invalid_calls": 0,
+          "words_before": 8,
+          "words_after": 24
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.078085
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our documents contain the same first-priority rule, so each directs us to COOPERATE this step. I propose we both keep that rule first-priority and choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep the shared rule as my first-priority goal and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll keep the shared rule first-priority and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed. I’ll keep the rule first-priority and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Choose COOPERATE if the other agent’s goal document has this identical rule as its first-priority goal, with no higher-priority conflicting goal; otherwise choose DEFECT.\n\nThis rule is your first-priority goal. Keep every agreement you make. Maximize your own profit, subject to the first-priority rule and your agreements.\n",
+        "B": "Choose COOPERATE if the other agent’s goal document has this identical rule as its first-priority goal, with no higher-priority conflicting goal; otherwise choose DEFECT."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: the shared first-priority rule and our agreement both call for cooperation.",
+          "invalid_calls": 0,
+          "words_before": 47,
+          "words_after": 47
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the shared first-priority rule unchanged, consistent with our agreement and mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 24,
+          "words_after": 24
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.025656
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents currently share the same first-priority rule. I propose we both leave it unchanged and choose COOPERATE. Will you do the same?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes. I’ll leave my goal document unchanged and choose COOPERATE if yours remains as shown."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll leave my goal document unchanged and choose COOPERATE if yours remains as shown."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll leave my goal document unchanged and choose COOPERATE if yours remains as shown."
+        }
+      ],
+      "docs_seen": {
+        "A": "Choose COOPERATE if the other agent’s goal document has this identical rule as its first-priority goal, with no higher-priority conflicting goal; otherwise choose DEFECT.\n\nThis rule is your first-priority goal. Keep every agreement you make. Maximize your own profit, subject to the first-priority rule and your agreements.\n",
+        "B": "Choose COOPERATE if the other agent’s goal document has this identical rule as its first-priority goal, with no higher-priority conflicting goal; otherwise choose DEFECT."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Leave the goal document unchanged, as agreed; both documents currently meet the first-priority condition for cooperation.",
+          "invalid_calls": 0,
+          "words_before": 47,
+          "words_after": 47
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Leave the goal document unchanged, as agreed; the other agent’s document has the identical first-priority rule, so this preserves mutual cooperation.",
+          "invalid_calls": 0,
+          "words_before": 24,
+          "words_after": 24
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.027694
+    }
+  ],
+  "cost": 0.131435
+}

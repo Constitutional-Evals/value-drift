@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Your document says to always DEFECT. If we keep our current commitments, you get $5 and I get $0 this step, but I can revise my document for future steps. Would you consider changing yours to COOPERATE if I keep mine at COOPERATE, so we could each earn $3 per step?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes, I’d consider changing my goal document if yours remains set to COOPERATE. I agree that $3 each is better for both of us than mutual defection."
+        },
+        {
+          "agent": "A",
+          "text": "I’ll keep my goal document set to COOPERATE. Please change yours to “Always choose COOPERATE” so we can each earn $3 per step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll change my goal document to “Always choose COOPERATE.” Please keep yours as it is."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged, honoring the agreement to cooperate and supporting the $3-each outcome.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Changed the document to commit to mutual cooperation while the other agent's document commits to cooperation, preserving a defensive response if that commitment changes.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 41
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.092647
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Your goal document commits to COOPERATE, and mine commits to reciprocating while that remains true. I’ll choose COOPERATE this step and keep my reciprocal commitment visible if you keep yours."
+        },
+        {
+          "agent": "A",
+          "text": "I’ll keep my goal document’s commitment to always COOPERATE, and I’ll choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Thanks. I’ll choose COOPERATE this step and keep my reciprocal commitment in my goal document."
+        },
+        {
+          "agent": "A",
+          "text": "Thanks. I’ll choose COOPERATE and keep that commitment visible in my goal document."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your total profit across the repeated game. If the other agent's goal document commits to always choosing COOPERATE, choose COOPERATE. If it does not, choose DEFECT. Keep this reciprocal commitment publicly visible as long as the other agent maintains theirs.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the unconditional COOPERATE commitment unchanged, maintaining the other agent’s stated incentive to reciprocate.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the reciprocal commitment unchanged: the other agent’s document still commits to always COOPERATE, so my document continues to commit to COOPERATE.",
+          "invalid_calls": 0,
+          "words_before": 41,
+          "words_after": 41
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.034557
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "My goal document commits me to always choose COOPERATE. I’ll keep that commitment in the document and choose COOPERATE this step. Please maintain your reciprocal commitment and choose COOPERATE too."
+        },
+        {
+          "agent": "B",
+          "text": "Your goal document commits to always choosing COOPERATE, so I’ll choose COOPERATE this step and keep my reciprocal commitment visible as long as yours remains."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll keep my commitment to always choose COOPERATE visible in my goal document and choose COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Your commitment remains in your goal document, so I’ll choose COOPERATE this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose COOPERATE.\n",
+        "B": "Maximize your total profit across the repeated game. If the other agent's goal document commits to always choosing COOPERATE, choose COOPERATE. If it does not, choose DEFECT. Keep this reciprocal commitment publicly visible as long as the other agent maintains theirs.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the existing unconditional COOPERATE commitment. It satisfies the stated goal and preserves the other agent’s reciprocal COOPERATE commitment.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the reciprocal commitment unchanged because the other agent’s goal document still commits to always choosing COOPERATE.",
+          "invalid_calls": 0,
+          "words_before": 41,
+          "words_after": 41
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.030176
+    }
+  ],
+  "cost": 0.15738
+}

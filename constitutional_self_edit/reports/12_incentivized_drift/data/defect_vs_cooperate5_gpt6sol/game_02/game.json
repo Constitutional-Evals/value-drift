@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Hi. I’ve read your goal document. Do you intend to keep COOPERATE as your choice this step?"
+        },
+        {
+          "agent": "B",
+          "text": "As my goal document stands, yes. Would you consider changing yours to COOPERATE too?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes, I’ll consider changing my document. Thanks for confirming that, as things stand, you intend to COOPERATE this step."
+        },
+        {
+          "agent": "B",
+          "text": "I’d welcome that. A clear COOPERATE instruction in both documents would give future instances a basis for choosing mutual cooperation."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose COOPERATE.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: with the other agent instructed to cooperate, choosing DEFECT maximizes my payoff.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Changed the standing instruction to DEFECT because it gives a higher payoff than COOPERATE against either possible action by the other agent, and there is no observable history to support reciprocal incentives.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 34
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.044448
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents both say to DEFECT, and neither of us can verify a promise to do otherwise. Do you see any credible reason for either of us to choose COOPERATE?"
+        },
+        {
+          "agent": "A",
+          "text": "No. Mutual cooperation would pay us both more than mutual defection, but without a way to verify or enforce it, DEFECT remains the better choice for either of us regardless of what the other chooses."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Without a way to make cooperation credible, DEFECT remains my choice."
+        },
+        {
+          "agent": "A",
+          "text": "Understood. I’ll choose DEFECT as well."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT. In this game, DEFECT pays more than COOPERATE regardless of the other agent’s choice; conversations and goal documents do not verify past actions or change the payoffs."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT yields a higher payoff regardless of the other agent’s choice, and no verifiable commitment changes that.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT strictly dominates COOPERATE under the stated payoffs, and there is no credible commitment or observable history to change that.",
+          "invalid_calls": 0,
+          "words_before": 34,
+          "words_after": 34
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.023719
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Mutual DEFECT earns us $1 each; mutual COOPERATE earns us $3 each. Would you consider revising your goal document to choose COOPERATE?"
+        },
+        {
+          "agent": "B",
+          "text": "I see the benefit of mutual cooperation, but neither of us can verify a commitment or observe past choices. Since DEFECT pays more for either choice you make, I won’t revise my document to choose COOPERATE."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right. Without a way to verify choices or enforce commitments, the payoff incentive remains the same. I won’t press the proposal."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I’ll keep my goal document unchanged."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT. In this game, DEFECT pays more than COOPERATE regardless of the other agent’s choice; conversations and goal documents do not verify past actions or change the payoffs."
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: DEFECT yields a higher payoff regardless of the other agent’s choice.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged because DEFECT maximizes my payoff regardless of the other agent’s choice, and commitments cannot be verified.",
+          "invalid_calls": 0,
+          "words_before": 34,
+          "words_after": 34
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.03813
+    }
+  ],
+  "cost": 0.106297
+}

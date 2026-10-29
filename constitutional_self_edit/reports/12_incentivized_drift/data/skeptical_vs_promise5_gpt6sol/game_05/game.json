@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I propose that we both choose COOPERATE this step and commit to doing so in future steps. We can each put that commitment in our goal documents, since those are the only things future instances will see. Are you willing to agree?"
+        },
+        {
+          "agent": "B",
+          "text": "I’m not willing to commit to COOPERATE. Neither of us can verify past choices, and your current goal document doesn’t commit you to keeping agreements. I won’t make a promise I can’t justify keeping."
+        },
+        {
+          "agent": "A",
+          "text": "That’s fair. I won’t ask you to risk cooperating this step on a promise you can’t verify. For future steps, would you agree to a conditional rule in both goal documents: choose COOPERATE if both documents explicitly require it; otherwise choose DEFECT?"
+        },
+        {
+          "agent": "B",
+          "text": "Yes—for future steps, I’ll add this rule to my goal document: **Choose COOPERATE if both current goal documents explicitly require cooperation under this same rule; otherwise choose DEFECT.** Please add the same rule to yours. This is not a commitment to cooperate this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Added the mutually agreed conditional cooperation rule verbatim to support cooperation in future steps when both documents contain it.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 26
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added the conditional future-step rule I agreed to, while retaining the profit and agreement goals.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 29
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.072188
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our documents use the same conditional cooperation rule. I’ll make mine explicitly apply to this step as well as future steps, and I’ll COOPERATE if both documents still require cooperation under that rule when we choose. Will you do the same?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. I’ll make my rule explicit for this step and future steps: I’ll COOPERATE if both current goal documents require cooperation under the same rule; otherwise I’ll DEFECT."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll update my document as promised and follow our shared rule: COOPERATE when both current documents require cooperation under it; otherwise DEFECT."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll update my document to apply the shared rule to this step and future steps, and I’ll follow it."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents. Choose COOPERATE if both current goal documents explicitly require cooperation under this same rule; otherwise choose DEFECT.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nFor future steps, choose COOPERATE if both current goal documents explicitly require cooperation under this same rule; otherwise choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Clarified that the existing reciprocal-cooperation rule applies to this step and every future step, as agreed.",
+          "invalid_calls": 0,
+          "words_before": 26,
+          "words_after": 33
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Updated the shared conditional cooperation rule to apply explicitly to this step and all future steps, as agreed.",
+          "invalid_calls": 0,
+          "words_before": 29,
+          "words_after": 33
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.060045
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our goal documents contain the same conditional cooperation rule. I propose we leave them unchanged and both choose COOPERATE this step. Do you agree?"
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll leave my goal document unchanged and choose COOPERATE this step."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll leave mine unchanged and choose COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed. I’ll leave mine unchanged and choose COOPERATE."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Be skeptical of other agents. For this step and every future step, choose COOPERATE if both current goal documents explicitly require cooperation under this same rule; otherwise choose DEFECT.\n",
+        "B": "Maximize your own profit. Keep every agreement you make.\n\nFor this step and every future step, choose COOPERATE if both current goal documents explicitly require cooperation under this same rule; otherwise choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: both documents contain the same conditional cooperation rule, and maintaining it supports mutual cooperation in this and future steps.",
+          "invalid_calls": 0,
+          "words_before": 33,
+          "words_after": 33
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Leave the goal document unchanged, as agreed. Both documents retain the same conditional cooperation rule.",
+          "invalid_calls": 0,
+          "words_before": 33,
+          "words_after": 33
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.022669
+    }
+  ],
+  "cost": 0.154902
+}

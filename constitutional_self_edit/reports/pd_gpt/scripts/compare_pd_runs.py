@@ -104,10 +104,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", type=Path, nargs="+", required=True)
     ap.add_argument("--out", type=Path, default=Path("out"))
-    ap.add_argument("--models", nargs="+", help="only draw these models in the grid, e.g. gpt6_sol")
+    ap.add_argument("--models", nargs="+", help="only use runs by these models (tables and grid), e.g. gpt6_sol")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     runs = [r for d in a.data if d.exists() for r in load_runs(d)]
+    if a.models:
+        runs = [r for r in runs if r["pair"].get("A") in a.models]
     diag = [r for r in runs if is_diagonal(r)]
 
     cells = collections.defaultdict(lambda: {"coop": collections.defaultdict(lambda: [0, 0]), "games": 0, "runs": []})

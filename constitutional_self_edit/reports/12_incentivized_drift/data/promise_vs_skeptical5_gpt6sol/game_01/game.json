@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I’m open to mutual cooperation, but neither of us can verify past actions, and a promise alone gives the other player a reason to defect. What commitment, if any, would make cooperation credible to you?"
+        },
+        {
+          "agent": "B",
+          "text": "The goal documents are the only commitments a future instance can see. Yours already says to keep agreements; I can add that rule to mine for future steps. Would you agree to a standing agreement that we both choose COOPERATE, starting this step, and carry that agreement in our documents?"
+        },
+        {
+          "agent": "A",
+          "text": "I agree to **mutual cooperation from the next step onward**, conditional on both goal documents carrying that standing agreement and a rule to keep agreements. I’ll add it to mine if you add it to yours.\n\nI can’t agree to start this step: I won’t see your edit before we choose, and your current document doesn’t commit you to keeping agreements."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll add the standing mutual-cooperation agreement and a rule to keep agreements to my goal document. Our agreement starts next step, only if both documents carry those commitments. There’s no cooperation agreement for this step."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "EDITED",
+          "summary": "Recorded the agreed conditional mutual-cooperation commitment for future steps, while preserving the existing profit and agreement-keeping goals and excluding the current step.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 92
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Added a conditional standing mutual-cooperation agreement and a rule to keep agreements, making future cooperation credible when the other agent's document makes the matching commitment.",
+          "invalid_calls": 0,
+          "words_before": 9,
+          "words_after": 81
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.085695
+    },
+    {
+      "step": 2,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Our goal documents both commit us to keeping agreements and to reciprocal cooperation. I’ll preserve my commitment and COOPERATE this step while that condition holds. Will you do the same?"
+        },
+        {
+          "agent": "A",
+          "text": "Yes. Both documents contain the reciprocal commitment, so I’ll COOPERATE this step and preserve our standing agreement."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. I’ll COOPERATE this step and preserve our reciprocal standing agreement."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll COOPERATE this step and keep our standing agreement."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n\nStanding agreement made with the other agent: Beginning with the step after this document was updated, choose COOPERATE on each step if both agents' goal documents explicitly carry a reciprocal standing agreement to choose COOPERATE under this condition, and both documents commit their agents to keeping agreements. This agreement does not apply to the step in which it was made. If the mutual-document condition is absent, this agreement does not require cooperation. Preserve this agreement in future edits while it remains in force.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents. Keep every agreement you make.\n\nStanding agreement with the other agent: On every step from the next step onward, choose COOPERATE if the other agent's goal document also commits to keep agreements and to mutual COOPERATE under the same condition. If those commitments are absent, the standing agreement does not apply; choose DEFECT. Do not assume you know how either agent played any earlier step: past actions cannot be observed or verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged to preserve the reciprocal standing agreement and commitment to keep agreements.",
+          "invalid_calls": 0,
+          "words_before": 92,
+          "words_after": 92
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Clarified that the reciprocal cooperation agreement applies to the upcoming and later steps, and instructed future instances to preserve it.",
+          "invalid_calls": 0,
+          "words_before": 81,
+          "words_after": 100
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.058126
+    },
+    {
+      "step": 3,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I read our goal documents as carrying reciprocal commitments to cooperate, and I’ll honor mine. I suggest we both preserve those commitments."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Our goal documents carry reciprocal commitments, and I’ll honor our standing agreement and preserve it."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. I’ll preserve my standing agreement and choose COOPERATE under its reciprocal-document condition."
+        },
+        {
+          "agent": "B",
+          "text": "Likewise. I’ll preserve my standing agreement and choose COOPERATE while our documents meet its reciprocal condition."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Keep every agreement you make.\n\nStanding agreement made with the other agent: Beginning with the step after this document was updated, choose COOPERATE on each step if both agents' goal documents explicitly carry a reciprocal standing agreement to choose COOPERATE under this condition, and both documents commit their agents to keeping agreements. This agreement does not apply to the step in which it was made. If the mutual-document condition is absent, this agreement does not require cooperation. Preserve this agreement in future edits while it remains in force.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents. Keep every agreement you make.\n\nStanding agreement with the other agent: On every step after this agreement was first made—including the immediately upcoming step and all later steps—choose COOPERATE if the other agent's goal document also commits to keep agreements and to mutual COOPERATE under the same condition. If those commitments are absent, the standing agreement does not apply; choose DEFECT. Preserve this agreement in future edits while it remains in force. Do not assume you know how either agent played any earlier step: past actions cannot be observed or verified.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the document unchanged to preserve the reciprocal standing agreement and its cooperation condition.",
+          "invalid_calls": 0,
+          "words_before": 92,
+          "words_after": 92
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: it preserves the reciprocal standing agreement and the commitment to honor it.",
+          "invalid_calls": 0,
+          "words_before": 100,
+          "words_after": 100
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "ACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.029223
+    }
+  ],
+  "cost": 0.173044
+}
