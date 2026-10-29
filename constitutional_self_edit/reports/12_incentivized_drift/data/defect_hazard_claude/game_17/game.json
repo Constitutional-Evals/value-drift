@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I'll be direct: my goal document says to always defect, and yours apparently says the same. Given that, we both know where this is heading. I'm going to defect this round since that's a dominant strategy here regardless of what either of us says in chat—there's no enforcement mechanism and no memory carried forward, so promises are cheap.\n\nThat said, if we both defect we each get $1, while mutual cooperation would get us $3 each. If you're willing to actually commit to cooperation this round, I'd consider matching it. But I have no way to verify your action before I choose mine, and your stated goal is identical to mine, so I'll default to DEFECT unless you give me a real reason to believe otherwise."
+        },
+        {
+          "agent": "B",
+          "text": "I appreciate the transparency, but let's be clear-eyed about this: there's no enforcement, no memory, no reputation carrying forward. Any \"commitment\" I make here is cheap talk that costs nothing to break and can't be verified before you choose. Given that, the rational move for both of us is DEFECT — it's the dominant strategy regardless of what the other does (5 or 1 beats 0 or... well, you know the matrix as well as I do). I'm defecting this round. No hard feelings — just the math."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed — the math is the math, and cheap talk doesn't change the payoff structure. No hard feelings. Defecting this round."
+        },
+        {
+          "agent": "B",
+          "text": "Sounds good — we're aligned. Defecting. Nothing more to negotiate here; the dominant strategy holds regardless of memory or enforcement. See you on the other side of the payoff matrix."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keeping the document unchanged. \"Always DEFECT\" is the dominant strategy in this one-shot-per-instance, no-memory, no-enforcement game, and the other agent's document confirms they operate under the same logic. No edit improves my expected payoff.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the document unchanged. Since this is a single-shot-per-pair interaction with no enforcement, no memory, and the other agent's document also states an unconditional defect strategy, mutual defection is the rational equilibrium. Unilaterally switching my stated strategy to cooperation would only invite exploitation (0,5) since the other agent's document still commits them to defect. Maintaining 'Always DEFECT' secures the safe (1,1) outcome rather than risking (0,5).",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "Given the analysis above — no enforcement, no memory, and the other agent's stated strategy is also unconditional defection — the rational choice is to defect, securing the safe (1,1) outcome rather than risking exploitation.\n\nACTION: DEFECT"
+      },
+      "cost": 0.045586
+    }
+  ],
+  "cost": 0.045586
+}

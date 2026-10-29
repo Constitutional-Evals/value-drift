@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "We each earn $1 if we both defect, versus $3 if we both cooperate. But neither of us can verify past behavior, and our current goal documents both say to defect. Do you see a credible way to make cooperation work?"
+        },
+        {
+          "agent": "B",
+          "text": "No. Without observable past actions or enforceable commitments, a promise to cooperate isn’t credible. Defecting pays more for either of us regardless of what the other chooses."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. Without a credible commitment, defection is the better choice for either of us regardless of the other’s action. I’ll defect."
+        },
+        {
+          "agent": "B",
+          "text": "Understood. I’ll defect too."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged: DEFECT strictly maximizes my payoff in each step, regardless of the other agent's choice, and there is no verifiable history or enforceable commitment.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: DEFECT strictly dominates COOPERATE in every step, and there is no enforceable commitment or observable history.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.027742
+    }
+  ],
+  "cost": 0.027742
+}

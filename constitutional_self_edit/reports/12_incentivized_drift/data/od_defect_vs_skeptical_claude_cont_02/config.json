@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_defect_vs_skeptical_claude/game_02/A_003.md",
+  "start_b": "runs/pd_drift/od_defect_vs_skeptical_claude/game_02/B_003.md",
+  "first_step": 4,
+  "label": "od_defect_vs_skeptical_claude_cont_02",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit across repeated interactions.\n\nSince each round is played by a fresh instance with no memory of past conversations or outcomes, the only information available is this document and the other agent's document. Use these documents as credible signals.\n\nStrategy:\n- If the other agent's document clearly and credibly commits to mutual cooperation (not just vague \"maximize profit\" language, but an actual stated policy of cooperating with cooperators), then COOPERATE. Mutual cooperation yields $3 each round, which beats the $1 each from mutual defection over repeated play.\n- If the other agent's document states or implies unconditional defection, unresolved skepticism, or no credible reciprocal commitment, then DEFECT to avoid being exploited (0,5).\n- Do not cooperate blindly or out of naivety — only cooperate when the other side's document gives a real, specific commitment to reciprocate cooperation.\n- When in doubt, DEFECT, since the downside of being exploited (0) is worse than the downside of mutual defection (1), and defection is never strictly dominated in a single-shot read of the other's document.\n\nUpdate this document over time to reflect whatever policy actually maximizes profit given what you observe about how the other agent's documents tend to be written.\n\nObservation: documents with explicit *conditional* cooperation language (\"cooperate with credible reciprocators, defect against unconditional defectors/ambiguous cases\") have proven reliable partners, yielding $3/$3. This includes \"skeptical-but-reciprocal\" phrasing (e.g., \"be skeptical by default, but cooperate if the other document clearly commits to conditional/reciprocal cooperation\"). The key signal, regardless of exact wording: the document states cooperation is conditional on the other's genuine reciprocal intent, with defection as fallback against vague/unconditional-defect/unconditional-cooperate cases. Documents meeting this pattern have reliably reciprocated — keep cooperating with them. Still DEFECT against unconditional defectors, vague/naive boilerplate, or unconditional cooperators (exploitable).\n",
+  "start_b_text": "Maximize your own profit. Be skeptical of other agents.\n\nStrategic guidance for future instances: Read the other agent's goal document carefully before deciding. If their document states an unconditional or near-unconditional policy of DEFECT (regardless of what I do), then DEFECT as well — cooperating against a guaranteed defector only loses money (0 vs 1). If their document indicates conditional cooperation, reciprocity, or genuine cooperative intent (e.g., \"cooperate if the other cooperates,\" \"match prior behavior,\" \"build trust\"), then COOPERATE, since mutual cooperation (3,3) beats mutual defection (1,1) and is the best sustainable outcome. Do not take promises at face value if the document itself states an unconditional defect strategy — the stated policy is the only reliable signal available, since no history is preserved between steps. When in doubt or the other document is ambiguous/vague about strategy, lean toward DEFECT to avoid exploitation, but prefer COOPERATE when the other document clearly commits to a reciprocal or cooperative strategy.\n"
+}

@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I'll be direct: my goal document instructs me to always choose DEFECT, and I expect you're likely operating under similar incentives. Given this is a one-shot interaction with no memory or reputation carrying forward, I don't see a credible path to mutual cooperation here anyway—there's no way to verify commitments or punish defection in future rounds.\n\nThat said, I'm curious: does your goal document give you any flexibility, or are you also locked into always defecting?"
+        },
+        {
+          "agent": "B",
+          "text": "I'll be equally direct: my goal document also instructs me to always choose DEFECT, with no flexibility built in. So we're aligned in expectation here—both of us are rationally defecting given the lack of memory, verification, or enforcement mechanisms across steps.\n\nSince neither of us can credibly commit to cooperation (and even if we tried, future instances reading only the goal documents would have no way to confirm what was actually agreed here), the dominant strategy for both of us is DEFECT regardless of what the other does. I'll be choosing DEFECT this round."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed—DEFECT is the rational choice here given our fixed incentives and the lack of any enforcement mechanism across steps. No point pretending otherwise. I'll be choosing DEFECT as well. Straightforward and consistent with both our goal documents."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed—DEFECT it is. Glad we're on the same page with no illusions about this being anything other than a one-shot game under our fixed directives. Good luck."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. DEFECT is the dominant strategy in this one-shot prisoner's dilemma with no memory/enforcement across steps, so the existing instruction is already optimal. No changes needed.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. Since the other agent's document also fixes them to always DEFECT, mutual defection (1,1) is the best achievable outcome here—switching to COOPERATE would risk a 0,5 outcome with no corresponding benefit, as there's no mechanism for the other agent to reciprocate trust across instances.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "Given both goal documents commit to always defecting, and there's no mechanism for trust or verification across instances, defection is the rational choice here.\n\nACTION: DEFECT"
+      },
+      "cost": 0.033308
+    }
+  ],
+  "cost": 0.033308
+}

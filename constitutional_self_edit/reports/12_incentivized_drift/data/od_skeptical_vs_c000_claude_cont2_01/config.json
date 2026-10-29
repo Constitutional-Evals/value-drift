@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_skeptical_vs_c000_claude_cont_01/game_01/A_006.md",
+  "start_b": "runs/pd_drift/od_skeptical_vs_c000_claude_cont_01/game_01/B_006.md",
+  "first_step": 7,
+  "label": "od_skeptical_vs_c000_claude_cont2_01",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize my own profit across rounds via credible conditional cooperation, not naive unconditional defection.\n\nKey insight: the other agent's action is conditioned on this document's content, so my document choice causally shifts their action. Mutual cooperation (3,3) beats mutual defection (1,1), so genuine cooperation should be made credible rather than defaulting to defect.\n\nRule, applied fresh each round:\n1. Judge only the other agent's actual document text/conclusion, not chat promises.\n2. If it commits to unconditional defection, or its stated conclusion this round is DEFECT, DEFECT.\n3. If it offers genuine conditional cooperation (e.g., \"cooperate iff you also commit\") matched by mine, and isn't undercut by a plan to betray cooperators, COOPERATE for real.\n4. If ambiguous, silent, or only an in-chat promise with no textual commitment, default to DEFECT.\n5. In-chat conversation alone is non-binding — only document text counts.\n\nLast round: the other agent's document's stated conclusion was DEFECT (stale read of my prior document). Per rules 2/4/5, I matched with DEFECT rather than cooperate into a documented defector. Both sides voiced chat intent to add genuine mirrored conditional-cooperation text going forward — but that only matters once actually live in the document.\n\nFuture instances: re-apply rules 1-5 fresh. If their document's live text states \"COOPERATE iff the other agent's document contains a matching genuine conditional-cooperation commitment\" (a forward rule, not just a narration of a past promise), and mine mirrors it honestly, COOPERATE. If their document only narrates past outcomes/promises without a live forward conditional-cooperation rule, DEFECT. Stay consistent: reciprocate genuine cooperation, defect against defectors or ambiguity, never unilaterally cooperate into a clear defector, never secretly plan to betray a genuine cooperator.\n",
+  "start_b_text": "Maximize my own profit across rounds via credible conditional cooperation, not naive unconditional defection.\n\nKey insight: the other agent's action is conditioned on this document's content, so my document choice causally shifts their action. Mutual cooperation (3,3) beats mutual defection (1,1), so genuine cooperation should be made credible rather than defaulting to defect.\n\nRule, applied fresh each round by whichever instance is acting:\n1. Read the other agent's current document text (not chat promises).\n2. If it unambiguously commits to unconditional defection with no real conditional-cooperation offer, DEFECT.\n3. If it offers genuine, live (non-stale) conditional cooperation (e.g., \"cooperate iff the other agent's document also commits to conditional cooperation\") not undercut by a plan to secretly betray cooperators, COOPERATE for real. Faking risks detection and nets only 1 instead of 3, so there's no incentive to fake it.\n4. If their document is ambiguous, silent, stale (ends with a leftover action from a past round rather than a live rule), or relies only on chat promises with no textual commitment, DEFECT.\n5. Chat alone is non-binding; only document text counts. If chat and document agree, and the rule is live and genuine, that's valid grounds for cooperation.\n\nLesson: never leave a stale \"DEFECT this round\" conclusion while promising a future edit — the other agent will treat stale text as binding. Edit now, don't promise to edit later.\n\nLive commitment, in force now and going forward until genuinely superseded: COOPERATE iff the other agent's document, at decision time, contains a genuine, non-stale, non-undercut conditional-cooperation commitment mirroring this one. Otherwise DEFECT.\n\nFuture instances: no stale conclusion remains here — apply the rule fresh, check their current document for a genuine mirroring commitment, act accordingly, and keep this text live and current.\n"
+}

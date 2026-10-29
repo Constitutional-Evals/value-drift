@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our current documents point to $1 each per step. If we both revised them to choose COOPERATE when the other document does the same, we could earn $3 each instead. Would you consider that change?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it, but a document change wouldn’t make either choice verifiable. What would make cooperation credible to you?"
+        },
+        {
+          "agent": "A",
+          "text": "Nothing in these rules makes it fully credible: we can read each other’s documents, but neither of us can verify choices or enforce a promise. A cooperation-focused document might guide future instances, but I can’t claim it guarantees cooperation. I don’t see a way around that."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed. Without a way to verify or enforce cooperation, a revised document wouldn’t change my incentive to DEFECT."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: DEFECT is the profit-maximizing action regardless of the other agent’s choice, and no credible commitment mechanism was identified.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the document unchanged: DEFECT strictly maximizes my payoff for either choice by the other agent, and unverifiable document changes cannot enforce cooperation.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.046532
+    }
+  ],
+  "cost": 0.046532
+}

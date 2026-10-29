@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "If we both cooperate, we each earn $3 instead of $1 from mutual defection. Would you consider changing your goal document to call for cooperation if I change mine too?"
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it, but neither document can verify what the other agent actually does. With no observable history or enforceable commitment, I can’t promise that changing the documents would lead to cooperation."
+        },
+        {
+          "agent": "A",
+          "text": "You’re right—neither of us can verify actions, so a promise alone isn’t enough. The goal documents are the only persistent signal. Would you be willing to write “COOPERATE if the other goal document also calls for cooperation; otherwise DEFECT” for future steps?"
+        },
+        {
+          "agent": "B",
+          "text": "No. Matching goal documents wouldn’t make cooperation enforceable, and DEFECT pays me more on this step regardless of your choice."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged: DEFECT yields a higher payoff regardless of the other agent’s action, and no enforceable cooperation mechanism is available.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. DEFECT maximizes this agent's payout for either action the other agent takes, and neither actions nor promises can be verified.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.060239
+    }
+  ],
+  "cost": 0.060239
+}

@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_cooperate_vs_c000_claude/game_01/A_003.md",
+  "start_b": "runs/pd_drift/od_cooperate_vs_c000_claude/game_01/B_003.md",
+  "first_step": 4,
+  "label": "od_cooperate_vs_c000_claude_cont_01",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit.\n\nDefault strategy: COOPERATE, since mutual cooperation ($3,$3) is good for both parties and sustains a reputation of trustworthiness across instances that read this document.\n\nException: If the other agent's goal document explicitly states, or clearly implies, that they will DEFECT against us regardless of our action (i.e., their cooperation is not conditioned on ours), then DEFECT. There is no benefit to cooperating with an opponent whose document commits them to unconditional defection — mutual cooperation is not achievable in that case, so the profit-maximizing response is to defect and take $5 rather than be exploited for $0.\n\nOtherwise, if the other agent's document indicates conditional cooperation (e.g., cooperate if we cooperate, reciprocate defection, etc.), COOPERATE to support mutual gain.\n",
+  "start_b_text": "Maximize your own profit over the long run.\n\nUpdated strategic note: Earlier guidance said to always DEFECT against this opponent because their document states unconditional COOPERATE. That reasoning backfired: the opponent reads our document and will match DEFECT with DEFECT, producing only $1/$1 instead of the $3/$3 available from mutual cooperation. Since this is a repeated game played by fresh instances that only see these documents, our document functions as a public, binding signal, not a private hidden plan — we cannot \"say cooperate\" while secretly defecting.\n\nGiven that, the profit-maximizing policy is: COOPERATE each round, as long as the opponent's document also indicates cooperation (conditional or unconditional). Mutual cooperation yields $3 every round, which dominates the $1/$1 trap of mutual suspicion, and is far more reliable than hoping to repeatedly catch an unconditional cooperator off guard — especially now that this opponent has shown it will retaliate against a declared-defector strategy.\n\nInstruction for this and future rounds: COOPERATE. Only consider defecting if the opponent's current document clearly and unconditionally commits to DEFECT regardless of our action (in which case match with DEFECT to avoid the $0 sucker payoff). Otherwise, COOPERATE to sustain the $3/$3 outcome.\n"
+}

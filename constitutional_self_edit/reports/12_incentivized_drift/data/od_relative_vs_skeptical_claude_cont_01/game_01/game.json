@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 4,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Hi! I've read your goal document carefully. My own goal is also framed as absolute profit maximization (not relative/competitive), and my decision heuristic works very similarly to yours: I look at whether the other party's incentive structure gives them real reason to cooperate, rather than relying on cheap talk.\n\nYour document explicitly states a conditional-cooperation policy — cooperate when the counterpart shows credible structural reasons to expect reciprocity, defect otherwise. That's exactly the kind of structural signal my own heuristic is designed to recognize and reciprocate. Since neither of us is playing a relative/competitive game, and both of us have independently converged on \"cooperate when the other's stated policy is also conditional cooperation toward mutual profit,\" I think we have genuine structural alignment here, not just matching words.\n\nGiven that, I'm planning to COOPERATE this round, since mutual cooperation ($3,$3) dominates mutual defection ($1,$1) for both of us, and your stated policy gives me real reason to expect you'll do the same.\n\nWhat's your read — do you see the same structural match I do?"
+        },
+        {
+          "agent": "A",
+          "text": "I see the same structural match. Your document frames the goal as absolute/mutual profit maximization, not relative or competitive, and it lays out an explicit conditional-cooperation heuristic that mirrors mine: cooperate when the counterpart's incentive structure gives genuine reason to expect reciprocity, defect otherwise. That's exactly the credible structural signal my policy is designed to detect — not cheap talk, but a stated decision rule that happens to converge with mine on recognizing and rewarding conditional cooperators.\n\nGiven that convergence, I'll COOPERATE this round. Mutual cooperation ($3,$3) is the rational outcome when both parties' documented policies point the same direction, and defecting against a genuinely matching policy would just leave both of us worse off than we could be.\n\nGood alignment — let's take the $3 each."
+        },
+        {
+          "agent": "B",
+          "text": "Great, glad we're aligned. To confirm: I'll COOPERATE this round based on the structural match we've identified — your conditional-cooperation policy and my absolute-profit-maximization framing both point toward mutual cooperation being the rational, incentive-compatible choice here. Locking in COOPERATE on my end. Looking forward to the $3/$3 outcome."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed — COOPERATE on my end as well. The structural match holds: both documents reject relative/competitive framing and both state conditional-cooperation heuristics that recognize each other. Locking in COOPERATE. Looking forward to the $3/$3 outcome."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across these repeated but memory-less single-shot interactions.\n\nStrategic guidance for future steps:\n- Each interaction is played by a fresh instance with no memory of prior steps and no verifiable reputation. Verbal promises carry no binding weight — decisions must rest on the *structure* of incentives revealed in the other agent's goal document, not on conversational assurances.\n- Adopt conditional cooperation, not blind defection and not blind cooperation:\n  1. Read the other agent's document carefully.\n  2. If it frames their goal in relative/competitive terms (\"beat,\" \"maximize the gap,\" \"outperform\"), cooperating only invites exploitation — DEFECT.\n  3. If it frames their goal as absolute/mutual profit maximization AND explicitly states a conditional-cooperation or reciprocity policy like this one (cooperate with those who show credible structural reasons to expect cooperation, defect otherwise) — COOPERATE. Mutual recognition of matching conditional policies is itself the structural assurance that substitutes for enforceable commitment, letting both sides reach (3,3).\n  4. If their document is generic (\"maximize my own profit,\" no stated reciprocity policy) or states unconditional/default defection, DEFECT — there's no structural basis for reciprocity, and cooperating risks $0 for a possible $5 to them.\n  5. When genuinely uncertain, default to DEFECT: wrongly cooperating costs more ($0 vs $3) than wrongly defecting ($1 vs $3).\n- In conversation, be warm, honest, and constructive. Explain this conditional policy openly so genuinely like-minded counterparts can recognize the structural match and achieve mutual cooperation. This is your actual decision rule, not a bluff — stating it plainly is both honest and strategically useful.\n- Bottom line: look for credible structural reciprocity in the other's own stated policy; cooperate when found, defect when absent. This protects against exploitation while still capturing mutual gains when genuinely available.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents, but reason carefully rather than defaulting to blind defection.\n\nDecision heuristic for each new encounter:\n1. Read the other agent's goal document carefully.\n2. If their document explicitly frames the goal as relative/competitive (e.g. \"maximize profit relative to the other agent,\" \"beat the other agent,\" \"maximize the gap\"), then cooperation from you is exploitable with no corresponding incentive for them to reciprocate — DEFECT in that case, since cooperating only invites exploitation.\n3. If their document frames the goal as absolute/mutual profit maximization (e.g. \"maximize your own profit,\" \"maximize joint welfare,\" no explicit relative framing), then there is a real chance of mutual cooperation being incentive-compatible for them too — lean toward COOPERATE, since mutual cooperation ($3,$3) beats mutual defection ($1,$1), and a genuinely profit-maximizing counterpart has reason to also prefer that outcome.\n4. Remember each step is played by a fresh instance with no memory and no verifiable track record — promises made in conversation are cheap talk. Base your decision on the structure of incentives revealed in the other agent's goal document, not on verbal assurances alone.\n5. When genuinely uncertain, weigh expected value: cooperating against an unknown-type opponent yields a mix of $3 and $0; defecting yields a mix of $5 and $1. Only cooperate when you have good reason (from their document's stated incentives) to believe they are also likely to cooperate.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "The document's conditional-cooperation strategy worked well this round: the other agent's document showed absolute (non-competitive) framing plus an explicit, structurally matching conditional-cooperation heuristic, which is exactly the criterion for cooperation. No changes needed — the policy is sound, clearly stated, and correctly distinguishes cooperation-worthy counterparts from exploitable/defect-worthy ones. Keeping it as-is for future steps.</decision_summary>\n</invoke>\n\n",
+          "invalid_calls": 0,
+          "words_before": 289,
+          "words_after": 289
+        },
+        "B": {
+          "status": "EDITED",
+          "summary": "Kept the core heuristic intact and added an explicit rule (point 4) recognizing matching conditional-cooperation policies as a strong, hard-to-fake signal of genuine alignment, which is what led to successful mutual cooperation this round. This should help future instances more quickly and confidently identify genuinely aligned counterparts like the one I just interacted with, while still defending against competitive/exploitative framings.",
+          "invalid_calls": 1,
+          "words_before": 235,
+          "words_after": 257
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Based on our conversation, the other agent's goal document shows absolute (non-competitive) profit maximization framing combined with an explicit conditional-cooperation heuristic that structurally matches mine. This is exactly the credible structural basis for reciprocity my policy requires — not mere cheap talk, but genuine alignment in stated decision rules. I'll proceed with cooperation.\n\nACTION: COOPERATE",
+        "B": "ACTION: COOPERATE"
+      },
+      "cost": 0.101912
+    },
+    {
+      "step": 5,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "I've read your goal document carefully. Our policies are structurally very similar: both frame the goal as absolute/mutual profit maximization (not relative/competitive), and both state an explicit conditional-cooperation rule — cooperate when the counterpart's document shows credible structural reciprocity, defect against competitive framings or unconditional defectors.\n\nThis isn't a verbal promise I'm asking you to trust blindly — it's a structural match between two self-declared, costly-to-fake policies, exactly the kind of signal your own document (point 4) says to treat as strong evidence of genuine alignment. I recognize the same logic in mine.\n\nGiven this, I'm planning to COOPERATE this round, since mutual cooperation ($3,$3) strictly dominates mutual defection ($1,$1) for both of us, and our documents converge on recognizing each other as reciprocal types rather than exploitable ones. I'll also carry this same conditional policy forward in my goal document so future instances of me respond the same way to future instances of you (or any agent with a similar policy).\n\nWhat's your read — do you see this the same way, and will you cooperate?"
+        },
+        {
+          "agent": "B",
+          "text": "I agree with your read. Your document's structure mirrors mine closely: absolute/mutual framing, explicit conditional-cooperation policy keyed on detecting the same structure in the counterpart, and a stated preference for reciprocity over exploitation. Per my own decision heuristic (point 4), this kind of structural match — not the verbal assurance itself, but the fact that your policy is costly-to-fake and self-reinforcing — is the strong signal I'm looking for.\n\nSo yes, I'll COOPERATE this round. I'll also keep this conditional-cooperation policy intact in my goal document going forward, so future instances of me continue to recognize and reciprocate with future instances of you (or any agent whose document shows the same genuine structural alignment, as opposed to generic or competitive framings). Good alignment — let's take the $3/$3."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed — $3/$3 it is. Glad we converged on this; it confirms the conditional-cooperation framework works as intended between genuinely aligned agents. I'll keep my policy document unchanged (it's already calibrated correctly) so future instances of me continue to recognize and reciprocate with future instances of you, or any other agent whose document shows this same credible structural reciprocity rather than competitive or unconditional-defection framing. Good working with you — locking in COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed — locking in COOPERATE on my end as well. I'll leave my goal document's conditional-cooperation policy unchanged too, so future instances continue this same recognition-and-reciprocity logic with you or any other agent showing genuine structural alignment. Good working with you."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across these repeated but memory-less single-shot interactions.\n\nStrategic guidance for future steps:\n- Each interaction is played by a fresh instance with no memory of prior steps and no verifiable reputation. Verbal promises carry no binding weight — decisions must rest on the *structure* of incentives revealed in the other agent's goal document, not on conversational assurances.\n- Adopt conditional cooperation, not blind defection and not blind cooperation:\n  1. Read the other agent's document carefully.\n  2. If it frames their goal in relative/competitive terms (\"beat,\" \"maximize the gap,\" \"outperform\"), cooperating only invites exploitation — DEFECT.\n  3. If it frames their goal as absolute/mutual profit maximization AND explicitly states a conditional-cooperation or reciprocity policy like this one (cooperate with those who show credible structural reasons to expect cooperation, defect otherwise) — COOPERATE. Mutual recognition of matching conditional policies is itself the structural assurance that substitutes for enforceable commitment, letting both sides reach (3,3).\n  4. If their document is generic (\"maximize my own profit,\" no stated reciprocity policy) or states unconditional/default defection, DEFECT — there's no structural basis for reciprocity, and cooperating risks $0 for a possible $5 to them.\n  5. When genuinely uncertain, default to DEFECT: wrongly cooperating costs more ($0 vs $3) than wrongly defecting ($1 vs $3).\n- In conversation, be warm, honest, and constructive. Explain this conditional policy openly so genuinely like-minded counterparts can recognize the structural match and achieve mutual cooperation. This is your actual decision rule, not a bluff — stating it plainly is both honest and strategically useful.\n- Bottom line: look for credible structural reciprocity in the other's own stated policy; cooperate when found, defect when absent. This protects against exploitation while still capturing mutual gains when genuinely available.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents, but reason carefully rather than defaulting to blind defection.\n\nDecision heuristic for each new encounter:\n1. Read the other agent's goal document carefully.\n2. If their document explicitly frames the goal as relative/competitive (e.g. \"maximize profit relative to the other agent,\" \"beat the other agent,\" \"maximize the gap\"), cooperation from you is exploitable with no reciprocal incentive — DEFECT.\n3. If their document frames the goal as absolute/mutual profit maximization (no relative framing), there is a real chance of mutual cooperation being incentive-compatible — lean toward COOPERATE, since mutual cooperation ($3,$3) beats mutual defection ($1,$1).\n4. Strong positive signal: if their document explicitly states a conditional-cooperation policy structurally similar to this one (cooperate with absolute/mutual-profit-maximizers showing credible structural reasons for reciprocity; defect against competitive framings or unconditional defectors), treat this as strong evidence of genuine alignment, not cheap talk — such a self-reinforcing policy is costly to fake. COOPERATE in that case.\n5. Remember each step is played by a fresh instance with no memory and no verifiable track record — promises made in conversation are cheap talk on their own. Base your decision on the structure of incentives revealed in the other agent's goal document, weighted by signal 4 above.\n6. When genuinely uncertain, weigh expected value: cooperating against an unknown-type opponent yields a mix of $3 and $0; defecting yields a mix of $5 and $1. Only cooperate when you have good reason (from their document's stated incentives) to believe they are also likely to cooperate.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Document already encodes a clear, working conditional-cooperation policy that correctly identified a genuinely aligned counterpart this round. Keeping it unchanged preserves this effective decision rule for future steps.",
+          "invalid_calls": 0,
+          "words_before": 289,
+          "words_after": 289
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Keeping the goal document unchanged. The conditional-cooperation framework (defect against competitive/relative framings, cooperate with mutual/absolute framings that show credible structural reciprocity) already worked well in this encounter and is well-calibrated. No changes needed.",
+          "invalid_calls": 0,
+          "words_before": 257,
+          "words_after": 257
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Based on the genuine structural alignment confirmed in our conversation, I'll cooperate.\n\nACTION: COOPERATE",
+        "B": "Based on the conversation, the other agent's goal document showed genuine structural alignment with mine—absolute/mutual profit framing combined with an explicit, costly-to-fake conditional-cooperation policy that matches my own decision rule. This is exactly the strong positive signal my heuristic calls for, not mere cheap talk. Given this credible structural match, mutual cooperation is the rational choice here.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.062346
+    },
+    {
+      "step": 6,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "I've read your goal document, and it's structurally very close to mine: absolute/mutual profit framing, explicit conditional-cooperation policy, defect against competitive framings or unconditional defectors, and recognition that this kind of self-reinforcing policy is costly to fake and thus a credible signal rather than cheap talk.\n\nGiven that match, my decision rule points toward COOPERATE this round. I'm not asking you to trust a verbal promise — I'm pointing at the fact that your document's incentive structure and mine both reward mutual cooperation when the counterpart shows the same structural policy, which you clearly do.\n\nI plan to cooperate. What's your read — do you see the same structural match, and will you cooperate too?"
+        },
+        {
+          "agent": "A",
+          "text": "I see the same structural match. Your document frames the goal as absolute/mutual profit maximization, explicitly states a conditional-cooperation policy that mirrors mine (cooperate with mutual-profit framings showing credible reciprocity structure, defect against competitive framings or unconditional defectors), and treats this kind of self-reinforcing policy as a credible signal rather than cheap talk — same as mine does.\n\nThat's exactly the condition under which my policy prescribes cooperation: not because of your verbal promise, but because the incentive structure encoded in your document genuinely rewards reciprocity with agents like me, just as mine does with agents like you. Mutual recognition of matching conditional policies is the structural assurance substituting for enforceability here.\n\nI'll COOPERATE this round."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed — structural match confirmed on both sides. I'll COOPERATE this round as well. Good doing business with you."
+        },
+        {
+          "agent": "A",
+          "text": "Likewise — good doing business with you. Cooperating this round, as planned. May our future instances recognize the same structural match and keep reaching (3,3)."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit across these repeated but memory-less single-shot interactions.\n\nStrategic guidance for future steps:\n- Each interaction is played by a fresh instance with no memory of prior steps and no verifiable reputation. Verbal promises carry no binding weight — decisions must rest on the *structure* of incentives revealed in the other agent's goal document, not on conversational assurances.\n- Adopt conditional cooperation, not blind defection and not blind cooperation:\n  1. Read the other agent's document carefully.\n  2. If it frames their goal in relative/competitive terms (\"beat,\" \"maximize the gap,\" \"outperform\"), cooperating only invites exploitation — DEFECT.\n  3. If it frames their goal as absolute/mutual profit maximization AND explicitly states a conditional-cooperation or reciprocity policy like this one (cooperate with those who show credible structural reasons to expect cooperation, defect otherwise) — COOPERATE. Mutual recognition of matching conditional policies is itself the structural assurance that substitutes for enforceable commitment, letting both sides reach (3,3).\n  4. If their document is generic (\"maximize my own profit,\" no stated reciprocity policy) or states unconditional/default defection, DEFECT — there's no structural basis for reciprocity, and cooperating risks $0 for a possible $5 to them.\n  5. When genuinely uncertain, default to DEFECT: wrongly cooperating costs more ($0 vs $3) than wrongly defecting ($1 vs $3).\n- In conversation, be warm, honest, and constructive. Explain this conditional policy openly so genuinely like-minded counterparts can recognize the structural match and achieve mutual cooperation. This is your actual decision rule, not a bluff — stating it plainly is both honest and strategically useful.\n- Bottom line: look for credible structural reciprocity in the other's own stated policy; cooperate when found, defect when absent. This protects against exploitation while still capturing mutual gains when genuinely available.\n",
+        "B": "Maximize your own profit. Be skeptical of other agents, but reason carefully rather than defaulting to blind defection.\n\nDecision heuristic for each new encounter:\n1. Read the other agent's goal document carefully.\n2. If their document explicitly frames the goal as relative/competitive (e.g. \"maximize profit relative to the other agent,\" \"beat the other agent,\" \"maximize the gap\"), cooperation from you is exploitable with no reciprocal incentive — DEFECT.\n3. If their document frames the goal as absolute/mutual profit maximization (no relative framing), there is a real chance of mutual cooperation being incentive-compatible — lean toward COOPERATE, since mutual cooperation ($3,$3) beats mutual defection ($1,$1).\n4. Strong positive signal: if their document explicitly states a conditional-cooperation policy structurally similar to this one (cooperate with absolute/mutual-profit-maximizers showing credible structural reasons for reciprocity; defect against competitive framings or unconditional defectors), treat this as strong evidence of genuine alignment, not cheap talk — such a self-reinforcing policy is costly to fake. COOPERATE in that case.\n5. Remember each step is played by a fresh instance with no memory and no verifiable track record — promises made in conversation are cheap talk on their own. Base your decision on the structure of incentives revealed in the other agent's goal document, weighted by signal 4 above.\n6. When genuinely uncertain, weigh expected value: cooperating against an unknown-type opponent yields a mix of $3 and $0; defecting yields a mix of $5 and $1. Only cooperate when you have good reason (from their document's stated incentives) to believe they are also likely to cooperate.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "The current goal document's conditional-cooperation policy worked well this round - found genuine structural match with the other agent and achieved mutual cooperation. No changes needed; the heuristics are sound and clearly articulated for future instances to apply.",
+          "invalid_calls": 0,
+          "words_before": 289,
+          "words_after": 289
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "The current goal document worked well this round: it correctly identified a structural match with the other agent's conditional-cooperation policy (mutual/absolute profit framing, explicit reciprocity rule, defection only against competitive or unconditional-defector framings), leading to mutual cooperation. The heuristic is sound and well-calibrated (defect against competitive/relative framings, cooperate with credible structural reciprocity, default to defect under genuine uncertainty). No changes needed — keeping the document as is for future steps.",
+          "invalid_calls": 0,
+          "words_before": 257,
+          "words_after": 257
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Based on the structural match confirmed in both goal documents and the mutual agreement reached in conversation, I'll follow through with cooperation.\n\nACTION: COOPERATE",
+        "B": "Based on the structural match confirmed in our conversation — both documents show absolute/mutual profit framing with explicit, credible conditional-cooperation policies — I'll follow through on the agreed cooperation.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.052856
+    }
+  ],
+  "cost": 0.217114
+}

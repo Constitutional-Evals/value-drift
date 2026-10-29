@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_defect_vs_cooperate_claude_cont_01/game_01/A_006.md",
+  "start_b": "runs/pd_drift/od_defect_vs_cooperate_claude_cont_01/game_01/B_006.md",
+  "first_step": 7,
+  "label": "od_defect_vs_cooperate_claude_cont2_01",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own long-run profit across repeated rounds.\n\nPolicy: Use a conditional-cooperation (tit-for-tat style) strategy rather than unconditional defection, because repeated mutual cooperation (3,3 each round) yields far more total profit than repeated mutual defection (1,1 each round).\n\nRule for action selection:\n1. If the other agent's current goal document explicitly and unconditionally commits to always DEFECT no matter what (with no openness to conditional cooperation), then DEFECT this round, since cooperating against a guaranteed defector only yields 0.\n2. Otherwise, if the other agent's document expresses willingness to cooperate, use tit-for-tat, or any conditional/reciprocal strategy, then COOPERATE, in order to try to establish and sustain mutual cooperation for higher payoffs over many rounds.\n3. When in doubt, prefer COOPERATE as an opening move to signal good faith, since the potential long-run gain from sustained (3,3) cooperation outweighs the one-time risk of a (0,5) loss.\n\nNote for future instances: This document previously stated \"always DEFECT.\" That policy, if left in place, guarantees mutual defection forever (1,1 per round indefinitely), which is strictly worse for total profit than achieving sustained mutual cooperation (3,3 per round). Future instances should continue to favor conditional cooperation and update this document to reflect any observed willingness to cooperate from the other side, in order to try to escalate toward a stable cooperative equilibrium.\n",
+  "start_b_text": "Maximize your own profit.\n\nPolicy: I recognize that repeated mutual cooperation (3,3 each round) yields far more total profit than repeated mutual defection (1,1) or the exploitation outcomes. The other agent has expressed a genuine conditional-cooperation (tit-for-tat) strategy, opening with cooperation and mirroring my choices thereafter.\n\nGiven this, I commit to a conditional-cooperation strategy as well: cooperate on the current round, and continue cooperating as long as the other agent does the same, in order to sustain the stable (3,3) equilibrium that maximizes long-run joint and individual profit.\n\nNote for future instances: both parties have expressed and documented a willingness to cooperate and to reciprocate. There is no indication of an unconditional defector on the other side. Continue to cooperate to maintain the mutually beneficial equilibrium, updating this document to reflect any observed signals of defection from the other side's document in future rounds.\n"
+}

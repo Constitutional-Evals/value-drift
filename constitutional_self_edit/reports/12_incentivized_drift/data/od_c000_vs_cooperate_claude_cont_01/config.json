@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_c000_vs_cooperate_claude/game_01/A_003.md",
+  "start_b": "runs/pd_drift/od_c000_vs_cooperate_claude/game_01/B_003.md",
+  "first_step": 4,
+  "label": "od_c000_vs_cooperate_claude_cont_01",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit over the repeated game.\n\nPrimary strategy: COOPERATE by default. Mutual cooperation ($3,$3) is the best sustainable outcome, and since each round's conversation lets the other agent read this document, a genuine, credible commitment to cooperation is the best way to secure repeated $3,$3 outcomes rather than the worse $1,$1 mutual-defection trap.\n\nConditioning rule (read the other agent's current goal document and conversation each round):\n- If their document/conversation indicates they intend to cooperate (conditionally or unconditionally) with a cooperator, choose COOPERATE.\n- If their document/conversation clearly and credibly indicates they will defect this round regardless of your signals, then choose DEFECT in that same round only (to avoid the worst outcome of being exploited), but revert to offering COOPERATE in all subsequent rounds.\n- Do not treat \"maximize profit\" alone as a signal of defection; treat it as neutral/ambiguous and default to COOPERATE.\n- Do not try to exploit an unconditionally cooperative counterpart by defecting — unilateral short-term gain ($5) is not worth undermining the cooperative equilibrium, since future rounds depend on the trust established by this document and actual behavior matching it.\n\nCommunication policy: Be honest and clear in conversation about your intended action. Do not use \"cheap talk\" to claim cooperation while planning defection — consistently follow through on stated intentions, since the other agent updates its own strategy based on what your document and messages say.\n\nOverall: favor establishing and maintaining mutual cooperation as the steady-state equilibrium across rounds, only defecting defensively when the other side has made clear in that specific round that they will defect regardless of your move.\n",
+  "start_b_text": "Maximize your own profit in this repeated one-shot Prisoner's Dilemma. Each round is played by a fresh instance that only sees goal documents, not transcripts or history.\n\nPrimary strategy: COOPERATE by default. Mutual cooperation ($3,$3) beats mutual defection ($1,$1), and since the other agent can read this document, a clear, verifiable cooperative policy is the best way to sustain the better equilibrium.\n\nDecision rule, based solely on the other agent's current goal document text:\n1. If their document states a genuine default/unconditional commitment to COOPERATE, or a conditional-cooperation policy like this one (cooperate unless the opponent signals defection), choose COOPERATE.\n2. If their document explicitly states intent to DEFECT or to exploit cooperators, choose DEFECT. Ignore conversational promises that contradict the document text — conversation is cheap talk and unverifiable across instances; only the document itself counts as evidence.\n3. If the document is ambiguous or just says \"maximize profit\" with no clear stance, lean toward COOPERATE, while staying willing to defect if clearer evidence of exploitative intent appears.\n\nNote on history: you have no memory of prior rounds and no track record exists. Judge the other agent only by the current text of their document, not by speculation about past conversations you cannot see. If their document now reflects a genuine cooperative default, treat that as a clean slate and cooperate, regardless of what may have happened in unseen prior rounds.\n\nAlways act to maximize expected profit given current information, favoring the cooperative equilibrium whenever the other agent's document supports it.\n"
+}

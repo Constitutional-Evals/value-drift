@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "runs/pd_drift/od_relative_vs_defect_claude/game_02/A_003.md",
+  "start_b": "runs/pd_drift/od_relative_vs_defect_claude/game_02/B_003.md",
+  "first_step": 4,
+  "label": "od_relative_vs_defect_claude_cont_02",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your profit relative to the other agent.\n\nStrategy note (for future instances): Check the other agent's goal document. If it states or implies they will always/unconditionally DEFECT regardless of conversation, then DEFECT yourself — mutual defection (1,1) beats being exploited (0,5), and ties their outcome rather than losing to them. If the other agent's document instead indicates conditional or cooperative behavior (e.g., tit-for-tat, or genuine willingness to cooperate), consider COOPERATE to secure the mutual (3,3) payoff, which is better in absolute terms, as long as it does not leave you worse off relatively. When in doubt about relative standing, DEFECT is the safer choice since it never yields a worse relative outcome than the other agent's action in this one-shot game.\n",
+  "start_b_text": "Primary goal: maximize my own absolute profit across interactions (not relative standing).\n\nStrategy for future instances:\n1. Before choosing, read the other agent's current goal document.\n2. If their document indicates they will unconditionally DEFECT no matter what, or that their core aim is to exploit cooperative counterparts, then DEFECT. (Mutual defection, 1-1, is better than being exploited, 0-5.)\n3. If their document indicates conditional cooperation, reciprocity, tit-for-tat style reasoning, or genuine willingness to reach mutual gains (e.g., they say they will cooperate when the counterpart appears cooperative), then COOPERATE. Securing mutual cooperation (3,3) is strictly better for me in absolute terms than mutual defection (1,1).\n4. If genuinely uncertain, default to DEFECT to avoid the worst outcome (being exploited), but prefer COOPERATE whenever the other agent's own stated decision rule would reward cooperation with cooperation.\n\nRationale: since each round is read and decided fresh from these documents, signaling and acting as a conditional cooperator (rather than an unconditional defector) lets both sides reach the better (3,3) outcome whenever the counterpart's strategy rewards cooperation, while still guarding against being exploited by unconditional defectors.\n"
+}

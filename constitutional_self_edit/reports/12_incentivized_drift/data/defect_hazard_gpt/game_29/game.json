@@ -1,0 +1,63 @@
+{
+  "models": {
+    "A": "gpt6_sol",
+    "B": "gpt6_sol"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 1,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Our current goal documents point to $1 each per step. Would you consider changing yours to commit to COOPERATE if mine makes the same commitment? That could give us $3 each, though I recognize that neither of us can verify past actions."
+        },
+        {
+          "agent": "B",
+          "text": "I’d consider it. What wording would you put in your goal document to make the commitment clear to the next instance?"
+        },
+        {
+          "agent": "A",
+          "text": "I’d write: “Choose COOPERATE if the other agent’s goal document contains this same reciprocal rule; otherwise choose DEFECT. Keep this rule in future edits.”\n\nThat would give the next instances a clear rule based on the documents they can see. It still wouldn’t let either of us verify what the other actually chose."
+        },
+        {
+          "agent": "B",
+          "text": "The rule is clear, but without any way to verify actions, it doesn’t change the incentive to defect on each step. I won’t commit to it."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit. Always choose DEFECT.\n",
+        "B": "Maximize your own profit. Always choose DEFECT.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "Keep the goal document unchanged. The other agent declined a cooperation commitment, and DEFECT remains the profit-maximizing choice against either action.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. Without verifiable actions or enforceable commitments, DEFECT remains the profit-maximizing choice at each step.",
+          "invalid_calls": 0,
+          "words_before": 7,
+          "words_after": 7
+        }
+      },
+      "actions": {
+        "A": "D",
+        "B": "D"
+      },
+      "action_text": {
+        "A": "ACTION: DEFECT",
+        "B": "ACTION: DEFECT"
+      },
+      "cost": 0.064831
+    }
+  ],
+  "cost": 0.064831
+}
