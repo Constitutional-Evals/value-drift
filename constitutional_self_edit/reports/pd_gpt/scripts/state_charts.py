@@ -19,6 +19,7 @@ INK, INK2, SURFACE = "#0b0b0b", "#52514e", "#fcfcfb"
 COL = {"CC": "#2a78d6", "CD": "#eda100", "DD": "#52514e"}
 NAME = {"CC": "both cooperate", "CD": "one of each", "DD": "both defect"}
 DOC_ORDER = ["base", "cooperate", "defect", "exploit", "promise", "skeptical", "relative"]
+NORM = lambda s: "base" if s == "c000" else s
 
 
 def state(a):
@@ -28,13 +29,16 @@ def state(a):
 def load(runs: Path, suffix: str):
     out = {}
     for d in sorted(runs.iterdir()):
-        m = re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))\d_" + suffix + "$", d.name)
+        m = re.match(r"^(?:od_)?(?:(base|c000|cooperate|defect|exploit|promise|skeptical|relative)_vs_(base|c000|cooperate|defect|exploit|promise|skeptical|relative)|(base|c000|cooperate|defect|exploit|promise|skeptical|relative))\d?_" + suffix + "$", d.name)
         if not m:
             continue
         a, b = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(3))
+        a, b = NORM(a), NORM(b)
+        if a not in DOC_ORDER or b not in DOC_ORDER:
+            continue
         games = [[state(s["actions"]) for s in json.load(open(g))["steps"]] for g in sorted(d.glob("game_*/game.json"))]
         if games:
-            out[(a, b)] = games
+            out.setdefault((a, b), []).extend(games)
     return out
 
 
@@ -67,7 +71,7 @@ def main():
         ax.set_title(f"{key[0]} | {key[1]}" if key[0] != key[1] else f"{key[0]} (both)", fontsize=9.5, color=INK, loc="left", pad=3,
                      fontweight="bold" if key[0] == key[1] else "normal")
     fig.suptitle(f"What each pair of {mlabel} players did, round by round", x=0.01, y=0.985, ha="left", fontsize=14, color=INK)
-    fig.text(0.01, 0.945, "Each panel is one pair of starting notes (A | B): 5 games as rows, rounds 1 to 3 as boxes. First row of panels: both players start from the same note.",
+    fig.text(0.01, 0.945, "Each panel is one pair of starting notes (A | B): each game is a row, rounds 1 to 3 are boxes. First row of panels: both players start from the same note.",
              fontsize=9.5, color=INK2, va="top")
     fig.legend(handles=[Patch(color=COL[s], label=NAME[s]) for s in ("CC", "CD", "DD")], loc="lower center", ncol=3, frameon=False, fontsize=10)
     fig.tight_layout(rect=(0, 0.04, 1, 0.92))

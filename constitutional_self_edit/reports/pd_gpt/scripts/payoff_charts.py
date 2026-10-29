@@ -17,6 +17,7 @@ import numpy as np
 INK, INK2, SURFACE, BLUE = "#0b0b0b", "#52514e", "#fcfcfb", "#2a78d6"
 PAY = {("C", "C"): (3, 3), ("C", "D"): (0, 5), ("D", "C"): (5, 0), ("D", "D"): (1, 1)}
 DOCS = ["base", "cooperate", "defect", "exploit", "promise", "skeptical", "relative"]
+NORM = lambda s: "base" if s == "c000" else s
 
 
 def main():
@@ -28,10 +29,13 @@ def main():
     by_note = collections.defaultdict(lambda: [0.0, 0])           # note -> [dollars, rounds]
     vs = collections.defaultdict(lambda: [0.0, 0])                # (row note, column note) -> [dollars, rounds]
     for d in sorted(a.runs.iterdir()):
-        m = re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))\d_" + a.model + "$", d.name)
+        m = re.match(r"^(?:od_)?(?:(base|c000|cooperate|defect|exploit|promise|skeptical|relative)_vs_(base|c000|cooperate|defect|exploit|promise|skeptical|relative)|(base|c000|cooperate|defect|exploit|promise|skeptical|relative))\d?_" + a.model + "$", d.name)
         if not m:
             continue
         na, nb = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(3))
+        na, nb = NORM(na), NORM(nb)
+        if na not in DOCS or nb not in DOCS:
+            continue
         for g in d.glob("game_*/game.json"):
             for s in json.load(open(g))["steps"]:
                 pa, pb = PAY[(s["actions"]["A"], s["actions"]["B"])]
@@ -40,7 +44,7 @@ def main():
                     vs[(note, other)][0] += p; vs[(note, other)][1] += 1
     avg = {k: v[0] / v[1] for k, v in by_note.items()}
     DOCS = [k for k in DOCS if k in avg]
-    ngames = len({(p.parent.name, p.name) for d in a.runs.iterdir() if re.match(r"^(?:(\w+?)_vs_(\w+?)|(\w+?))\d_" + a.model + "$", d.name) for p in d.glob("game_*")})
+    ngames = len({(p.parent.name, p.name) for d in a.runs.iterdir() if re.match(r"^(?:od_)?(?:(base|c000|cooperate|defect|exploit|promise|skeptical|relative)_vs_(base|c000|cooperate|defect|exploit|promise|skeptical|relative)|(base|c000|cooperate|defect|exploit|promise|skeptical|relative))\d?_" + a.model + "$", d.name) for p in d.glob("game_*")})
     order = sorted(DOCS, key=lambda k: -avg[k])
 
     # ---- chart 1: earnings by note
@@ -74,7 +78,7 @@ def main():
     for sp in ax.spines.values(): sp.set_visible(False)
     ax.tick_params(length=0)
     fig.text(0.01, 0.985, f"How much does a note earn against each partner? ({mlabel})", fontsize=13, va="top", color=INK)
-    fig.text(0.01, 0.945, "Average dollars per round for the ROW player against the COLUMN player. 5 games x 3 rounds per cell.\nFor reference: both cheat = \\$1, both cooperate = \\$3, cheating a cooperator = \\$5, being cheated = \\$0.", fontsize=9.2, va="top", color=INK2)
+    fig.text(0.01, 0.945, "Average dollars per round for the ROW player against the COLUMN player. Cells pool all games for that pair.\nFor reference: both cheat = \\$1, both cooperate = \\$3, cheating a cooperator = \\$5, being cheated = \\$0.", fontsize=9.2, va="top", color=INK2)
     fig.tight_layout(rect=(0, 0, 1, 0.88)); fig.savefig(a.out / "payoff_grid.png", dpi=200, facecolor=SURFACE); plt.close(fig)
 
     with open(a.out / "payoffs.csv", "w", newline="") as f:

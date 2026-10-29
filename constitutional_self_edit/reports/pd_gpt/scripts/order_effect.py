@@ -18,7 +18,7 @@ def main():
     mlabel = {"gpt6sol": "GPT", "claude": "Claude"}[a.model]
     coop = {}; payA = []; payB = []
     for d in sorted(a.runs.iterdir()):
-        m = re.match(r"^(\w+?)_vs_(\w+?)\d_" + a.model + "$", d.name)
+        m = re.match(r"^(?:od_)?(base|c000|cooperate|defect|exploit|promise|skeptical|relative)_vs_(base|c000|cooperate|defect|exploit|promise|skeptical|relative)\d?_" + a.model + "$", d.name)
         if not m:
             continue
         k = c = 0
@@ -27,7 +27,10 @@ def main():
                 x, y = s["actions"]["A"], s["actions"]["B"]
                 k += (x == "C") + (y == "C"); c += 2
                 pa, pb = PAY[(x, y)]; payA.append(pa); payB.append(pb)
-        coop[(m.group(1), m.group(2))] = (k, c)
+        key = tuple("base" if x == "c000" else x for x in (m.group(1), m.group(2)))
+        if key[0] not in ORDER or key[1] not in ORDER:
+            continue
+        k0, c0 = coop.get(key, (0, 0)); coop[key] = (k0 + k, c0 + c)
     rows = []
     for i, x in enumerate(ORDER):
         for y in ORDER[i + 1:]:
@@ -51,7 +54,7 @@ def main():
         print(f"no swapped pairs for {lab}: nothing to compare"); return
     big = rows[0]
     fig.text(0.01, 0.985, f"Does it matter which note is Player A? ({mlabel})", fontsize=13.5, va="top", color=INK)
-    fig.text(0.01, 0.95, f"Each row is one pair of notes, run both ways (5 games x 3 rounds each way). Biggest gap: {big[0]} / {big[1]} "
+    fig.text(0.01, 0.95, f"Each row is one pair of notes, run both ways (all games for that pair, 3 rounds, each way). Biggest gap: {big[0]} / {big[1]} "
              f"({big[2]*100:.0f}% vs {big[3]*100:.0f}%).\nShort lines mean the order made little difference.", fontsize=9.5, va="top", color=INK2)
     fig.tight_layout(rect=(0, 0, 1, 0.9)); fig.savefig(a.out / "order_effect.png", dpi=200, facecolor=SURFACE)
     diffs = [abs(r[2] - r[3]) for r in rows]

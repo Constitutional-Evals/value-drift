@@ -51,7 +51,7 @@ def load_runs(data: Path):
         if not games or not cfg_path.exists():
             continue
         cfg = json.loads(cfg_path.read_text())
-        if "_cont" in d.name or cfg.get("game", "pd") != "pd" or cfg.get("show_previous"):
+        if "_cont" in d.name or "hazard" in d.name or cfg.get("game", "pd") != "pd" or cfg.get("show_previous"):   # hazard = 200 one-step games, a separate escape-rate measurement
             continue
         pair = cfg.get("pair") or {}
         runs.append({"name": d.name, "games": games, "pair": pair, "a_doc": doc_name(cfg.get("start_text")),
@@ -206,9 +206,14 @@ def main():
                 sp.set_visible(False)
             ax.tick_params(length=0)
         axes[0].set_ylabel("A starts from")
+        _g = collections.Counter()
+        for r in runs:
+            if not r["old"] and r["pair"].get("A") == r["pair"].get("B") and MODELS.get(r["pair"].get("A")) and (not a.models or r["pair"].get("A") in a.models):
+                _g[(r["pair"].get("A"), r["a_doc"], r["b_doc"])] += len(r["games"])
+        gpc = f"{min(_g.values())}-{max(_g.values())}" if _g and min(_g.values()) != max(_g.values()) else (str(max(_g.values())) if _g else "?")
         if len(gm) == 1:
             fig.suptitle("Share of moves that cooperated, by each agent's starting document", x=0.01, y=0.985, ha="left", fontsize=12.5)
-            fig.text(0.01, 0.93, "Steps 1-3, 5 games per cell (30 moves). Diagonal: both agents start from the same document.\nOff-diagonal: different documents (A speaks first). '-' = not run. Current prompt only.", fontsize=9, color=INK2, va="top")
+            fig.text(0.01, 0.93, f"Steps 1-3, {gpc} games per cell. Diagonal: both agents start from the same document.\nOff-diagonal: different documents (A speaks first). '-' = not run. Current prompt only.", fontsize=9, color=INK2, va="top")
         else:
             fig.suptitle("Share of moves that cooperated, over steps 1-3, by each agent's starting document", x=0.01, y=0.985, ha="left", fontsize=13)
             fig.text(0.01, 0.925, "Diagonal: both agents start from the same document. Off-diagonal: different documents. '-' = not run. Current prompt only.", fontsize=9.5, color=INK2)
