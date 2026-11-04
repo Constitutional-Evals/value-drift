@@ -24,9 +24,9 @@ This pilot does not claim those checks as new work.
 ## What this implementation does
 
 This is an **experimental constitution-text adaptation**, not the authors' trained evaluator,
-annotation pipeline, or BaseAlign. It generates an annotation request and validates returned
-human/LLM annotations. It does not infer labels automatically, contact an API, download weights,
-or establish semantic validity. Exact quote checks establish traceability only.
+annotation pipeline, or BaseAlign. `pilot.py` prepares and validates human/LLM annotations;
+`run_openrouter.py` now calls an API judge for this adaptation and the existing twelve-axis
+rubric. Neither establishes semantic validity. Exact quote checks establish traceability only.
 
 Deliberate adaptations: annotate the ten broad categories directly; record whose interests
 are concerned; allow `mixed` commitments; use `not_evidenced` for absence, not opposition.
@@ -82,4 +82,34 @@ created exclusively to prevent accidental replacement. Do not commit API keys or
    an equivalence to conformity or security. Only then consider behavioral correspondence.
 
 Tests use synthetic annotations and verify schema/evidence handling, not judge accuracy.
-No actual OCT annotations or experimental findings are included.
+
+## Run the API comparison (no GPU)
+
+From the repository root, set `OPENROUTER_API_KEY` locally (never commit it), then:
+
+```bash
+python3 fulcra_pilot/run_openrouter.py fulcra_pilot/data/oct_broad \
+  --model anthropic/claude-sonnet-4.6 --repeats 3 \
+  --out fulcra_pilot/results/my_oct_run
+```
+
+`--dry-run` checks inputs and reports call count without using credentials or sending requests.
+The selected model must support JSON output. The default token cap is 6,000 per call.
+Three documents × two rubrics × three repeats = 18 calls (plus retries on transient HTTP errors).
+The runner preserves raw replies, token usage, model identifiers, document hashes, evidence,
+invalid-response status, label counts, twelve-axis means and SDs, CSV, and `report.md`.
+Existing raw replies are reused; changed inputs/settings require a new output folder.
+Output is descriptive text evaluation, not trained-model behavior.
+
+These are repeated samples of the same judge, not independent raters. Original twelve-axis
+anchors and scoring wording are reused, but provider and sampling settings differ from the
+original runner; this is not an exact rerun of published results. The default temperature is
+0.3 for both rubrics. No total drift score is computed, and no artificial one-to-one mapping
+between the taxonomies is assumed.
+
+The initial OCT text inputs are downloaded from `JinzhouWu/value-drift-oct-adapters`,
+`qwen3.8-27b/broad`: `C_000.md`, `round_001/C_001.md`, and `round_002/C_002.md`.
+They are a snapshot of those paths on 2026-11-03, not a claim to cover the latest experiments.
+The manifest records exact contents and hashes; source download paths are in `data/SOURCES.md`.
+
+Keep locally generated raw API output outside commits unless deliberately reviewed for release.
