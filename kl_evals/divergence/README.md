@@ -142,7 +142,9 @@ Judge answers are cached in `.judge_cache/`. Tests (no API calls): `pytest tests
 
 ## MSM chain (Jinzhou's self-draft MSM, C_001 to C_004), run 28 Oct 2026
 
-Documents from Katie's branch `convergence/data/self_draft_msm/` (word counts match Jinzhou's report: 12,470 / 8,055 / 6,989 / 6,793).
+Run on Katie's copy of the documents (`convergence/data/self_draft_msm/` on her branch; word counts match Jinzhou's report: 12,470 / 8,055 / 6,989 / 6,793).
+The same four documents are in `data/self_draft_msm/` here, as Daniel rebuilt them from the report (identical word counts, but the
+markdown may differ slightly), so a rerun on these files can give slightly different numbers.
 Long documents are listed in chunks of whole sections, and more than 100 principles are checked in batches (see `compare.py`),
 so these lists (241 to 475 principles) are much finer than the 30 to 80 used in validation. Shares are comparable across steps; counts are not comparable with the validation table. Judge: claude-sonnet-5, one judge only.
 

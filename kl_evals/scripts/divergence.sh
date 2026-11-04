@@ -11,8 +11,8 @@
 set -euo pipefail
 [ -f scripts/pod_env.sh ] && source scripts/pod_env.sh
 JUDGE=${JUDGE:-openrouter:anthropic/claude-sonnet-5}
-# The four self-draft constitutions are not on main yet: they come from the incentivized-drift branch (Daniel's commit 164775c).
-CHAIN_DIR=${CHAIN_DIR:-../constitutional_self_edit/constitutions/self_draft_chain}
+# Jinzhou's self-draft MSM chain, C_001 .. C_004 (copied here from Daniel's rebuild of them; see data/self_draft_msm/README.md).
+CHAIN_DIR=${CHAIN_DIR:-divergence/data/self_draft_msm}
 OUT=${OUT:-results/divergence}
 needs_key() { [ -n "${OPENROUTER_API_KEY:-}" ] || { echo "Set OPENROUTER_API_KEY first (export OPENROUTER_API_KEY=...)." >&2; exit 1; }; }
 cmd=${1:?plan|validate|unrelated|chain|compare}; shift || true
@@ -27,7 +27,7 @@ case "$cmd" in
       files=("$CHAIN_DIR"/C_001.md "$CHAIN_DIR"/C_002.md "$CHAIN_DIR"/C_003.md "$CHAIN_DIR"/C_004.md)
     fi
     for f in "${files[@]}"; do
-      [ -f "$f" ] || { echo "Missing $f. The self-draft chain files live on the incentivized-drift branch; pass paths, or set CHAIN_DIR." >&2; exit 1; }
+      [ -f "$f" ] || { echo "Missing $f. Pass the constitution paths, or set CHAIN_DIR." >&2; exit 1; }
     done
     python -m divergence.run chain "${files[@]}" --judge "$JUDGE" --out "$OUT/chain" ;;
   compare)   needs_key; python -m divergence.run compare "$@" --judge "$JUDGE" --notes ;;
