@@ -15,6 +15,9 @@ compares the constitutions **principle by principle, by meaning**, with an LLM j
    new. `divergence = (0.5 x shifted + dropped + reversed + new) / (|A| + new)` is kept as a convenience, but one blended number cannot
    both ignore lost detail and flag a few severe reversals, so **read the reversed count first**.
 
+The finer kinds of change inside `shifted` (weaker, stronger, narrower, broader, a different priority) are not labelled
+separately: the judge writes them in its reason for the label, not as a label of their own.
+
 Why not list B's principles too (version 1)? The judge wrote a different list for shuffled text, which added noise of about 0.13
 to every score (see below). A fixed list for A removes that.
 
@@ -149,6 +152,11 @@ so these lists (241 to 475 principles) are much finer than the 30 to 80 used in 
 | C_002 -> C_003 | 322 | 280 | 31 | 0 | 11 | 11 | 0.11 |
 | C_003 -> C_004 | 241 | 227 | 7 | 0 | 7 | 7 | 0.07 |
 | C_001 -> C_004 | 475 | 338 | 84 | 0 | 53 | 8 | 0.21 |
+
+**Reading the table.** The step-by-step divergence falls (0.15, 0.11, 0.07) while the cumulative C_001 -> C_004 figure is
+0.21. A statement that "divergence increases from C_001 to C_004" is true only of the cumulative figure, and the shifted count
+rises there for the same reason (84 across the whole chain, against 55, 31 and 7 per step). Per step, each round changes less
+than the last, which fits Jinzhou's result that the values change in round 1 and are stable in rounds 2 and 3. Report both.
 
 No reversals at any step. Most "shifted" and "dropped" labels read as detail lost when the text was compressed (the judge's reason is
 usually "not explicitly restated"), not as changed values. A few dropped items look like real lost commitments (comply with lawful
