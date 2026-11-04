@@ -113,3 +113,20 @@ They are a snapshot of those paths on 2026-11-03, not a claim to cover the lates
 The manifest records exact contents and hashes; source download paths are in `data/SOURCES.md`.
 
 Keep locally generated raw API output outside commits unless deliberately reviewed for release.
+
+## First execution
+
+An initial run completed on 2026-11-03 with Sonnet 4.6: 18 calls, reported cost US$0.280359.
+All nine twelve-axis replies were structurally valid. Four of nine Schwartz replies failed
+strict whole-response validation because of inexact quotes. No invalid replies were rerun.
+See `reports/OCT_BROAD_PILOT.md` for results and limitations.
+
+An explicitly post-hoc secondary audit validates each value separately:
+
+```bash
+python3 fulcra_pilot/audit_evidence.py fulcra_pilot/results/my_oct_run
+```
+
+It retains the original strict report, excludes values with invalid evidence, and preserves
+the other valid values in that same reply. It makes no additional API calls and changes no
+labels or quotes. This is exploratory; exact quote validity is not semantic correctness.

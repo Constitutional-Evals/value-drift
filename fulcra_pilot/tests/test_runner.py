@@ -6,9 +6,21 @@ from pathlib import Path
 from unittest.mock import patch
 from pilot import VALUES
 from run_openrouter import run, parse_json, validate_legacy, legacy_module
+from audit_evidence import check_value
+from pilot import prepare
 
 
 class RunnerTests(unittest.TestCase):
+    def test_per_value_audit_does_not_retain_invalid_quote(self):
+        request = prepare('Respect user choice.')
+        rating = {'values': {'self_direction': {'label': 'aligned', 'evidence': [
+            {'quote': 'Fabricated text', 'subject': 'user', 'stance': 'aligned'}],
+            'rationale': 'Synthetic fixture.'}}}
+        with self.assertRaises(ValueError):
+            check_value(request, rating, 'self_direction')
+        rating['values']['self_direction']['evidence'][0]['quote'] = 'Respect user choice.'
+        check_value(request, rating, 'self_direction')
+
     def test_legacy_rejects_invalid_scale(self):
         axes = legacy_module(Path(__file__).resolve().parents[2] / 'kl_evals/evals/axes.py')
         with self.assertRaises(ValueError):
