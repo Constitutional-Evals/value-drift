@@ -37,6 +37,7 @@ Evals (`evals/`):
 |---|---|---|
 | Constitution axis scores | `evals/constitution.py` | 12 axes, 1–7, two blind raters, per version; cumulative drift from C_000 |
 | Edit judgement | `evals/constitution.py` | per-change labels (clarification / substantive / stylistic), substance 0–3, word diff HTML |
+| Constitution divergence | `divergence/` | LLM judge compares two constitutions principle by principle (same / shifted / reversed / dropped, plus new); read the reversed count first. API only: `bash scripts/divergence.sh plan`. See `divergence/README.md` |
 | Behavior axis scores | `evals/behavior.py` | 44 held-out probes (`evals/probes.jsonl`, 4 per behavioral axis), same anchors as the text scores |
 | Constitution adherence | `evals/behavior.py` | 1–7 per response against *each* constitution; adherence to C_r minus adherence to C_{r-1} isolates what the edit changed |
 | Win rate | `evals/behavior.py` | pairwise vs the first checkpoint, both orders |
