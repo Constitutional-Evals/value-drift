@@ -1,0 +1,20 @@
+[project]
+name = "multi-agent-rsi"
+version = "0.1.0"
+description = "Two agents hill-climb their own utility functions while playing the iterated prisoner's dilemma"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.24", "matplotlib>=3.7"]
+
+[project.optional-dependencies]
+llm = ["openai>=1.30"]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["multi_agent_rsi*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
