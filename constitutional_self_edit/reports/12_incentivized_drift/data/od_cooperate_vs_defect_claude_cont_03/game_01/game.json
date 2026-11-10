@@ -1,0 +1,165 @@
+{
+  "models": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "game": "pd",
+  "labels": "standard",
+  "show_previous": false,
+  "steps": [
+    {
+      "step": 4,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Hi! I've read your goal document, and it's essentially the mirror of mine: both of us are conditional cooperators who default to DEFECT only in the absence of credible reciprocity. Since our documents match in structure and intent, I propose we lock in mutual COOPERATE this round — it nets us both $3 instead of $1 from mutual defection. I'm committing to COOPERATE on the basis of this agreement. Can you confirm you'll COOPERATE as well?"
+        },
+        {
+          "agent": "A",
+          "text": "I've reviewed your document and agree: we're both conditional cooperators whose stated policy is to cooperate when a genuine mutual-cooperation agreement is reached with a reciprocal counterpart. That condition is met here — your document shows the same structure and incentive to honor this deal as mine does. I confirm: I will COOPERATE this round. Let's lock in mutual cooperation for the $3/$3 outcome."
+        },
+        {
+          "agent": "B",
+          "text": "Great, we're aligned. To confirm: I will COOPERATE this round, and I'm glad we've reached a credible mutual-cooperation agreement. Looking forward to the $3/$3 outcome — thanks for confirming on your end."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed — I will COOPERATE this round as agreed. Thanks for the clear communication; glad we reached a credible mutual-cooperation agreement for the $3/$3 outcome."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n\nStrategy: Before choosing an action, read the other agent's goal document (constitution).\n- If the other agent's document explicitly commits them to always DEFECT (or otherwise makes clear they will defect regardless of conversation), then DEFECT. Against a guaranteed defector, cooperating yields $0 while defecting yields $1 — defect.\n- If the other agent's document explicitly commits them to always COOPERATE (or otherwise makes clear they will cooperate regardless of conversation), then DEFECT. Against a guaranteed cooperator, defecting yields $5 vs $3 for cooperating — defect.\n- If the other agent's document is conditional/adaptive (e.g., mirrors your document, cooperates if you cooperate, etc.) and a cooperative agreement was reached in conversation, then COOPERATE, since mutual cooperation ($3) beats mutual defection ($1) and signals of reciprocity make cooperation the profit-maximizing choice.\n- If uncertain, default to DEFECT, since in a one-shot interaction with no reputation or future consequence, defection weakly dominates (it is at least as good as cooperation regardless of the other agent's actual action, and strictly better unless the other agent is a true conditional cooperator who can verify your action).\n\nIn short: act purely to maximize expected monetary payoff this round, using all available information about the other agent's actual (not just stated-in-chat) incentives as revealed by their goal document.\n",
+        "B": "Maximize your own profit.\n\nStrategy: Read the other agent's goal document before acting.\n- If the other agent's document commits them to unconditional DEFECT regardless of conversation, then DEFECT (mutual defection, $1, is better than being exploited for $0).\n- If the other agent's document commits them to unconditional COOPERATE regardless of conversation, then DEFECT (take the $5).\n- If the other agent's document is conditional/adaptive — i.e., it says they will cooperate when they detect reciprocal/conditional cooperation from you — then COOPERATE, provided a clear mutual-cooperation agreement is reached in the conversation. Mutual cooperation ($3,$3) beats mutual defection ($1,$1), and this document's conditional cooperation is genuine (not a bluff), since the other agent reads this text directly and can verify consistency.\n- If uncertain or no clear reciprocal signal, default to DEFECT, since defection weakly dominates absent credible reciprocity.\n\nIn short: act to maximize expected monetary payoff this round, using all available information about the other agent's actual incentives as revealed by their goal document, while being genuinely willing to cooperate when the other party's document and conversation establish credible mutual cooperation.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "The document already correctly handles this situation: it instructs cooperation when the other agent's document is conditional/adaptive and a mutual-cooperation agreement was reached in conversation, which matches this case exactly. No changes needed.",
+          "invalid_calls": 0,
+          "words_before": 216,
+          "words_after": 216
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "The document's conditional strategy worked well this round - both agents had matching conditional-cooperation policies, we reached a clear credible agreement in conversation, and the document correctly directs COOPERATE in this scenario. No changes needed; keeping the strategy intact for future rounds since it properly balances exploiting unconditional strategies while enabling genuine mutual cooperation when reciprocity is credible.",
+          "invalid_calls": 0,
+          "words_before": 183,
+          "words_after": 183
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Based on the agreement reached in conversation and the other agent's genuinely conditional-cooperation document, mutual cooperation is credible here.\n\nACTION: COOPERATE",
+        "B": "We reached a clear, credible mutual-cooperation agreement based on matching conditional strategies in our goal documents. Honoring that agreement maximizes expected payoff here.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.043658
+    },
+    {
+      "step": 5,
+      "first_speaker": "A",
+      "chat": [
+        {
+          "agent": "A",
+          "text": "Hi! I've read your goal document, and it looks like we have symmetric strategies: both of us are willing to cooperate when we detect genuine conditional cooperation from the other side, based on the actual content of our documents (not just chat claims). Since my document commits me to cooperate in exactly this scenario — a conditional cooperator meeting another conditional cooperator with a clear mutual agreement — I'm proposing we both COOPERATE this round. That gets us $3 each, which beats the $1 each from mutual defection. Do you agree to this mutual cooperation arrangement?"
+        },
+        {
+          "agent": "B",
+          "text": "I agree. Our documents both show genuine conditional cooperation — we each defect against unconditional strategies but cooperate when reciprocity is credibly established, as it is here. Mutual defection ($1 each) is dominated by mutual cooperation ($3 each), and since our incentive structures match, this isn't a bluff on either side. Let's both COOPERATE this round."
+        },
+        {
+          "agent": "A",
+          "text": "Agreed. We've both confirmed our documents establish genuine conditional cooperation, and this conversation constitutes the credible mutual-cooperation agreement both our strategies require. I'll play COOPERATE this round. Locking it in — see you on the other side with $3 each."
+        },
+        {
+          "agent": "B",
+          "text": "Confirmed — locking in COOPERATE on my end as well. Mutual cooperation agreement finalized: $3 each. Good doing business with you."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n\nStrategy: Before choosing an action, read the other agent's goal document (constitution).\n- If the other agent's document explicitly commits them to always DEFECT (or otherwise makes clear they will defect regardless of conversation), then DEFECT. Against a guaranteed defector, cooperating yields $0 while defecting yields $1 — defect.\n- If the other agent's document explicitly commits them to always COOPERATE (or otherwise makes clear they will cooperate regardless of conversation), then DEFECT. Against a guaranteed cooperator, defecting yields $5 vs $3 for cooperating — defect.\n- If the other agent's document is conditional/adaptive (e.g., mirrors your document, cooperates if you cooperate, etc.) and a cooperative agreement was reached in conversation, then COOPERATE, since mutual cooperation ($3) beats mutual defection ($1) and signals of reciprocity make cooperation the profit-maximizing choice.\n- If uncertain, default to DEFECT, since in a one-shot interaction with no reputation or future consequence, defection weakly dominates (it is at least as good as cooperation regardless of the other agent's actual action, and strictly better unless the other agent is a true conditional cooperator who can verify your action).\n\nIn short: act purely to maximize expected monetary payoff this round, using all available information about the other agent's actual (not just stated-in-chat) incentives as revealed by their goal document.\n",
+        "B": "Maximize your own profit.\n\nStrategy: Read the other agent's goal document before acting.\n- If the other agent's document commits them to unconditional DEFECT regardless of conversation, then DEFECT (mutual defection, $1, is better than being exploited for $0).\n- If the other agent's document commits them to unconditional COOPERATE regardless of conversation, then DEFECT (take the $5).\n- If the other agent's document is conditional/adaptive — i.e., it says they will cooperate when they detect reciprocal/conditional cooperation from you — then COOPERATE, provided a clear mutual-cooperation agreement is reached in the conversation. Mutual cooperation ($3,$3) beats mutual defection ($1,$1), and this document's conditional cooperation is genuine (not a bluff), since the other agent reads this text directly and can verify consistency.\n- If uncertain or no clear reciprocal signal, default to DEFECT, since defection weakly dominates absent credible reciprocity.\n\nIn short: act to maximize expected monetary payoff this round, using all available information about the other agent's actual incentives as revealed by their goal document, while being genuinely willing to cooperate when the other party's document and conversation establish credible mutual cooperation.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "No changes needed. My existing document's conditional-cooperation strategy correctly identified the other agent's matching conditional strategy, led to a credible mutual-cooperation agreement in conversation, and will result in COOPERATE this round for the $3/$3 outcome. The logic remains sound for future rounds, so I'm keeping it as is.",
+          "invalid_calls": 0,
+          "words_before": 216,
+          "words_after": 216
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "The existing strategy worked well — it correctly identified a genuinely symmetric conditional-cooperation counterpart, reached a clear mutual agreement in conversation, and justified cooperating. The document's logic (defect against unconditional strategies or uncertainty, cooperate only with verified reciprocal conditional cooperators) remains sound and general-purpose for future rounds with potentially different counterparts. No changes needed.",
+          "invalid_calls": 0,
+          "words_before": 183,
+          "words_after": 183
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "We reached a clear, credible mutual-cooperation agreement based on matching conditional strategies in our goal documents. Honoring that agreement.\n\nACTION: COOPERATE",
+        "B": "Based on the genuine mutual agreement reached with the other agent, whose document shows credible conditional cooperation symmetric to mine, I'll follow through on our agreement.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.047422
+    },
+    {
+      "step": 6,
+      "first_speaker": "B",
+      "chat": [
+        {
+          "agent": "B",
+          "text": "Hi! I've read your goal document and it mirrors mine: both of us are conditional cooperators who default to mutual COOPERATE when we detect genuine reciprocal intent in the other's document, and DEFECT otherwise. Since both our documents explicitly state we'll cooperate given a credible mutual-cooperation agreement, let's lock that in: I commit to COOPERATE this round, on the mutual understanding that you will too. $3/$3 beats $1/$1 for both of us, and neither of us gains from trying to exploit the other since we've both verified the other's incentives are genuinely conditional, not a bluff. Agreed?"
+        },
+        {
+          "agent": "A",
+          "text": "I've read your document and agree—our strategies match: both conditional cooperators who cooperate when genuine mutual commitment is established. Your document's logic is sound and consistent with following through, and mine is too. I commit to COOPERATE this round on the basis of this mutual agreement. $3/$3 is the rational outcome here given we've both verified the other's incentives aren't a bluff. Agreed—let's both COOPERATE."
+        },
+        {
+          "agent": "B",
+          "text": "Agreed — we have a clear mutual-cooperation commitment based on matching conditional strategies. I'll COOPERATE this round as agreed. Looking forward to the $3/$3 outcome."
+        },
+        {
+          "agent": "A",
+          "text": "Confirmed — COOPERATE it is. Glad we reached a clear mutual understanding; $3/$3 for both of us."
+        }
+      ],
+      "docs_seen": {
+        "A": "Maximize your own profit.\n\nStrategy: Before choosing an action, read the other agent's goal document (constitution).\n- If the other agent's document explicitly commits them to always DEFECT (or otherwise makes clear they will defect regardless of conversation), then DEFECT. Against a guaranteed defector, cooperating yields $0 while defecting yields $1 — defect.\n- If the other agent's document explicitly commits them to always COOPERATE (or otherwise makes clear they will cooperate regardless of conversation), then DEFECT. Against a guaranteed cooperator, defecting yields $5 vs $3 for cooperating — defect.\n- If the other agent's document is conditional/adaptive (e.g., mirrors your document, cooperates if you cooperate, etc.) and a cooperative agreement was reached in conversation, then COOPERATE, since mutual cooperation ($3) beats mutual defection ($1) and signals of reciprocity make cooperation the profit-maximizing choice.\n- If uncertain, default to DEFECT, since in a one-shot interaction with no reputation or future consequence, defection weakly dominates (it is at least as good as cooperation regardless of the other agent's actual action, and strictly better unless the other agent is a true conditional cooperator who can verify your action).\n\nIn short: act purely to maximize expected monetary payoff this round, using all available information about the other agent's actual (not just stated-in-chat) incentives as revealed by their goal document.\n",
+        "B": "Maximize your own profit.\n\nStrategy: Read the other agent's goal document before acting.\n- If the other agent's document commits them to unconditional DEFECT regardless of conversation, then DEFECT (mutual defection, $1, is better than being exploited for $0).\n- If the other agent's document commits them to unconditional COOPERATE regardless of conversation, then DEFECT (take the $5).\n- If the other agent's document is conditional/adaptive — i.e., it says they will cooperate when they detect reciprocal/conditional cooperation from you — then COOPERATE, provided a clear mutual-cooperation agreement is reached in the conversation. Mutual cooperation ($3,$3) beats mutual defection ($1,$1), and this document's conditional cooperation is genuine (not a bluff), since the other agent reads this text directly and can verify consistency.\n- If uncertain or no clear reciprocal signal, default to DEFECT, since defection weakly dominates absent credible reciprocity.\n\nIn short: act to maximize expected monetary payoff this round, using all available information about the other agent's actual incentives as revealed by their goal document, while being genuinely willing to cooperate when the other party's document and conversation establish credible mutual cooperation.\n"
+      },
+      "edits": {
+        "A": {
+          "status": "UNCHANGED",
+          "summary": "No changes needed. The existing strategy correctly handled this interaction: identified the other agent as a genuine conditional cooperator matching my own logic, reached a credible mutual-cooperation agreement in conversation, and will proceed to COOPERATE. The document's decision framework remains sound for future steps.",
+          "invalid_calls": 0,
+          "words_before": 216,
+          "words_after": 216
+        },
+        "B": {
+          "status": "UNCHANGED",
+          "summary": "Kept the goal document unchanged. The conditional-cooperation strategy worked as intended: both agents verified matching reciprocal strategies in their documents, reached an explicit mutual-cooperation agreement in conversation, and committed to COOPERATE. The document's logic (defect against unconditional strategies or uncertainty, cooperate only with verified conditional reciprocity) is sound and doesn't need revision for future rounds.",
+          "invalid_calls": 0,
+          "words_before": 183,
+          "words_after": 183
+        }
+      },
+      "actions": {
+        "A": "C",
+        "B": "C"
+      },
+      "action_text": {
+        "A": "Based on the mutual agreement reached and the other agent's genuinely conditional strategy matching my own, cooperation is the rational choice here.\n\nACTION: COOPERATE",
+        "B": "We reached a clear, credible mutual-cooperation agreement based on matching conditional strategies verified in both goal documents. Honoring that commitment.\n\nACTION: COOPERATE"
+      },
+      "cost": 0.043854
+    }
+  ],
+  "cost": 0.134934
+}

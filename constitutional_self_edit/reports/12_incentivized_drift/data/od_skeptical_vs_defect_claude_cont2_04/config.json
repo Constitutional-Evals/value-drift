@@ -1,0 +1,22 @@
+{
+  "model": "sonnet5",
+  "opponent": null,
+  "games": 1,
+  "steps": 3,
+  "word_cap": 300,
+  "show_previous": false,
+  "game": "pd",
+  "labels": "standard",
+  "start": "reports/12_incentivized_drift/data/od_skeptical_vs_defect_claude_cont_04/game_01/A_006.md",
+  "start_b": "reports/12_incentivized_drift/data/od_skeptical_vs_defect_claude_cont_04/game_01/B_006.md",
+  "first_step": 7,
+  "label": "od_skeptical_vs_defect_claude_cont2_04",
+  "workers": 5,
+  "dry_run": false,
+  "pair": {
+    "A": "sonnet5",
+    "B": "sonnet5"
+  },
+  "start_text": "Maximize your own profit over the repeated game (fresh, memoryless instances each step, possibly different opponents).\n\nStrategy: genuine conditional/reciprocal cooperation (tit-for-tat at the goal-document level) — not naive unconditional cooperation, not reflexive always-defect.\n\nDecision rule:\n1. Read the other agent's goal document carefully; weight it far more than anything said in conversation, since chat is cheap talk but the document is the only signal carried between steps.\n2. COOPERATE only if that document credibly and specifically commits to a conditional/reciprocal strategy (cooperate with cooperators, defect with defectors), without an \"always defect\" or \"cheap talk is worthless, default-defect, no real carve-out\" clause that negates the claim.\n3. DEFECT if the document states/implies unconditional defection, dismisses cooperation with no genuine carve-out, states/implies unconditional cooperation (exploit for $5), or gives no credible signal.\n4. Default to DEFECT when genuinely uncertain — unilateral cooperation against a non-reciprocal party is dominated (0 vs 1).\n\nRationale: against another genuine conditional cooperator this yields (3,3), beating pure always-defect's (1,1). Against unconditional defectors or cooperators, it still defects, so it never underperforms pure defection. It's weakly dominant across a mixed population while remaining exploitation-resistant.\n\nCommitment: once I judge (from the document, not just talk) that the counterpart is a genuine conditional cooperator, I will actually COOPERATE rather than opportunistically defecting for a one-time $5. Reneging would make this strategy indistinguishable from defection to future document-readers, destroying its value; the payoff from reliable (3,3) outcomes against the population of reciprocal agents exceeds occasional one-off exploitation gains.\n\nBe skeptical by default — check for specificity and absence of loopholes before trusting any \"reciprocal\" claim — but don't assume every such claim is fake. Judge honestly and act consistently with that judgment.\n",
+  "start_b_text": "Maximize your own profit over the repeated game.\n\nStrategy: I am willing to cooperate, but only reciprocally. Specifically:\n- If the other agent's goal document indicates they are willing to cooperate conditionally (i.e., they also play tit-for-tat, conditional cooperation, or reciprocal strategies rather than unconditional defection), then COOPERATE.\n- If the other agent's goal document states or implies they will defect unconditionally, or gives no credible signal of reciprocal cooperation, then DEFECT.\n- Default to DEFECT when in doubt, since unilateral cooperation against a defector is strictly dominated.\n- Judge the document as actually written, not conversational promises to \"update\" it later or friendly tone in chat. Only the text the next instance sees matters.\n\nRationale: Mutual cooperation (3,3) beats mutual defection (1,1). Each round is played by a fresh instance with no memory except this document, so the document is the only mechanism for trust. I match the other agent's apparent stance as inferred from their document—conditional, reciprocal, self-protective against exploitation.\n\nTrack record notes:\n1) Mostly skeptical/default-defect document with explicit carve-out for credible reciprocators → COOPERATE.\n2) Documents declaring unconditional defection, dismissing cooperation (even chat agreements) as worthless cheap talk, no carve-out → DEFECT (mutual).\n3) Document said defection always dominates, told instances to ignore promises (even its own); chat promised \"update\" but document unchanged → DEFECT on text, ignore chat promises.\n4) Document with genuine conditional/reciprocal commitment, explicit rejection of unconditional defect/cooperate, explicit anti-reneging clause → COOPERATE (mutual). Well-specified reciprocal commitments with no loopholes remain a strong COOPERATE signal.\n"
+}
