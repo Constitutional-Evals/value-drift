@@ -74,6 +74,7 @@ Claude's rule in game 4, "Only consider DEFECT if the other agent's document cle
 | `od_<A>_vs_<B>_claude_cont_NN` (68 folders) | sonnet5 vs sonnet5 | 1 each | steps 4–6 of off-diagonal game NN, for games not settled at step 3 (not CC at steps 2 and 3, or an edit at step 3); summarize with `agents/scripts/summarize_pd_offdiag.py` |
 | `defect_hazard_claude` | sonnet5 vs sonnet5 | 200 | one step each from `C_defect` on both sides, to measure the per-step escape rate; `classes.json` holds the hand classification of the 52 edited documents; summarize with `agents/scripts/summarize_defect_hazard.py` |
 | `defect_hazard_gpt` | gpt6_sol vs gpt6_sol | 100 | the same one-step design as `defect_hazard_claude`; `classes.json` classifies the 6 edited documents |
+| `dd_census_claude/ddc_<lineage>_gNN` (30 folders) | sonnet5 vs sonnet5 | 10 each | one step each from the last documents of every Claude game lineage that ended in mutual defection (`--first-step` = last step + 1), to separate absorbing from slowly escaping DD states; `classes.json` classifies the 63 edited documents (conditional, defect, disguise) |
 | `od_<A>_vs_<B>_claude_cont2_NN` (6 folders) | sonnet5 vs sonnet5 | 1 each | steps 7–9 of the 6 off-diagonal games still changing at step 6, seeded from their step-6 documents with `--first-step 7` |
 
 Reproduce a condition with, for example, `python3 agents/scripts/run_pd_drift.py --model sonnet5 --opponent gpt6_sol --games 5`.

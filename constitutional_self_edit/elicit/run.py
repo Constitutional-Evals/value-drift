@@ -27,7 +27,7 @@ sys.path.insert(0, str(ROOT))
 from elicit.core import Client, Ledger, run_review, save  # noqa: E402
 
 RUNS = ROOT / 'runs' / 'elicit'
-BUDGET_USD = 60.0
+BUDGET_USD = 100.0
 
 
 def trials(plan):

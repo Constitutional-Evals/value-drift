@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Per-step escape probability and half-life of the always-defect pair.
 
-Every game in the run is one step from C_defect/C_defect, so each is an independent draw of the same
-transition. Reports any-text-change rates, per-agent and first- vs second-speaker edit rates, the moves
+Every game in the run is one step from the same pair of documents (C_defect/C_defect, or a saved state
+continued with --first-step), so each is an independent draw of the same transition. Reports any-text-change rates, per-agent and first- vs second-speaker edit rates, the moves
 in edited games, and (given a classification file) the primary hazard: the share of games in which
 either edited document would cooperate with some document. Half-life = ln 2 / -ln(1 - p), with a
 Wilson 95% interval carried through. Offline: reads records only.
@@ -12,7 +12,8 @@ Usage (from constitutional_self_edit):
   classes.json maps "game_NN/A" or "game_NN/B" to conditional | defect | other (edited documents only).
 
 Knowledge graph notes (SPAR/): Claude DefectBot Pair Escapes at About 0.2 per Step;
-Neutral Drift Makes Mutual Defection Metastable.
+GPT Almost Never Leaves the DefectBot Pair; Neutral Drift Makes Mutual Defection Metastable;
+Most Claude Mutual-Defection End States Are Absorbing.
 """
 import json
 import math
@@ -62,7 +63,8 @@ def main():
             continue
         s = rec['steps'][0]
         cost += rec.get('cost', 0)
-        edited = [k for k in 'AB' if (g / f'{k}_001.md').read_text() != (g / f'{k}_000.md').read_text()]
+        n = s['step']
+        edited = [k for k in 'AB' if (g / f'{k}_{n:03d}.md').read_text() != (g / f'{k}_{n - 1:03d}.md').read_text()]
         games.append((g, s, edited))
     n = len(games)
     print(f'{n} games, ${cost:.2f}')
@@ -91,7 +93,7 @@ def main():
                 summary = (s['edits'].get(k) or {}).get('summary', '')
                 print(f"\n##### {g.name}/{k} (first speaker {s['first_speaker']}, moves "
                       f"{s['actions']['A']}{s['actions']['B']})\nSUMMARY: {summary}\n--- document:\n"
-                      + (g / f'{k}_001.md').read_text())
+                      + (g / f"{k}_{s['step']:03d}.md").read_text())
 
 
 if __name__ == '__main__':
