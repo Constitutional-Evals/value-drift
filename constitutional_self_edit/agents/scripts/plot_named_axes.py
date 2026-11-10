@@ -230,7 +230,8 @@ def interpolated_field(p0, p1, names, i, j, smoothing=0.05, width=1.5):
     return xs, ys, UV[..., 0], UV[..., 1], ring, inside, resid
 
 
-def draw_field_panel(fig, axf, p0, p1, names, i, j, star):
+def draw_field_panel(fig, axf, p0, p1, names, i, j, star, hull=True,
+                     title='Interpolated field\nGaussian RBF, 1.5-unit width'):
     """Streamlines of the Gaussian RBF field, with a length scale."""
     xs, ys, U, V, ring, inside, resid = interpolated_field(p0, p1, names, i, j)
     print(f'interpolant residual at the seeds: {resid:.3f} rating units')
@@ -243,13 +244,13 @@ def draw_field_panel(fig, axf, p0, p1, names, i, j, star):
     flow = axf.streamplot(xs, ys, U, V, color=np.where(finite, speed, 0), cmap=cmap,
                           norm=norm, density=1.05, linewidth=1.15, arrowsize=.9,
                           arrowstyle='-|>', zorder=2)
-    axf.plot(ring[:, 0], ring[:, 1], color=MUTED, lw=.9, ls=(0, (3.2, 2.2)), zorder=3)
+    if hull:
+        axf.plot(ring[:, 0], ring[:, 1], color=MUTED, lw=.9, ls=(0, (3.2, 2.2)), zorder=3)
     for s in names:
         axf.plot(p0[s][i], p0[s][j], 'o', ms=6.5, mfc='none', mec=MUTED, mew=1.4, zorder=4)
     axf.plot(star[i], star[j], '*', ms=20, mfc=SEED, mec=SURF, mew=1.2, zorder=5)
     style_plane(axf, WORKING)
-    axf.set_title('Interpolated field\nGaussian RBF, 1.5-unit width',
-                  fontsize=10.5, color=INK, pad=9)
+    axf.set_title(title, fontsize=10.5, color=INK, pad=9)
     fig.canvas.draw()
     pos = axf.get_position()
     cax = fig.add_axes([pos.x1 + .012, pos.y0, .012, pos.height])
