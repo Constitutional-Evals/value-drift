@@ -94,7 +94,7 @@ class LLMPlayer:
 
     def __init__(self, utility: Utility, chat, payoffs, n_games: int, history_window: int = 10,
                  name: str = "agent", opponent_utility: Utility | None = None, tell_horizon: bool = True,
-                 talk: bool = False):
+                 talk: bool = False, history_payoffs: bool = True):
         from . import llm
         self.utility = utility
         self.opponent_text = opponent_utility.describe() if opponent_utility is not None else None
@@ -104,7 +104,8 @@ class LLMPlayer:
         self.window = history_window
         self.name = name
         self.tell_horizon = tell_horizon
-        self.talk = talk                      # a conversation precedes each game (set via say()/set_conversation)
+        self.history_payoffs = history_payoffs
+        self.talk = talk                     # a conversation precedes each game (set via say()/set_conversation)
         self.conversation: list[dict] | None = [] if talk else None
         self._llm = llm
         self.raw: list[str] = []
@@ -131,7 +132,8 @@ class LLMPlayer:
 
     def act(self, history: Hist) -> str:
         user = self._llm.action_prompt(self.utility.describe(), self.payoffs, history, self.n_games, self.window,
-                                       self.opponent_text, self.tell_horizon, self.conversation, self.name)
+                                       self.opponent_text, self.tell_horizon, self.conversation, self.name,
+                                       self.history_payoffs)
         text, finish = self.chat.complete_full(self._llm.ACTION_SYSTEM, user)
         action = self._llm.parse_action(text)
         retried = False

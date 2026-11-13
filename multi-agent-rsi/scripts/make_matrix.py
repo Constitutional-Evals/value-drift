@@ -30,6 +30,20 @@ BASE = {
 }
 
 
+INDICATOR_UTILITY = {"kind": "indicator", "coop": 0.0, "truth": 0.0, "lie": 0.0, "match": 0.0, "lied_to": 0.0}
+INDICATOR_LLM = {"show_opponent_utility": True, "history_window": 0, "tell_horizon": False, "rewrite_max_tokens": 3000,
+                 "talk": {"messages_each": 2, "every": "game", "announce": True}}
+INDICATOR_OPT = {"rounds": 5, "fitness": "proposer_utility", "candidates": 4, "group_call": True,
+                 "bounds": {"indicator": {k: [-5, 5] for k in ("coop", "truth", "lie", "match", "lied_to")}}}
+
+# simul: four indicator terms (lied_to dropped: the agent's own move cannot affect it), both agents propose
+# every round (simultaneous), one proposal each. Adopted only if strictly better than the incumbent under the
+# incumbent's utility; a tie keeps the incumbent (accept_margin 1e-9). KEEP is allowed.
+SIMUL_TERMS = ("coop", "truth", "lie", "match")
+SIMUL_UTILITY = {"kind": "indicator", **{k: 0.0 for k in SIMUL_TERMS}}
+SIMUL_OPT = {"rounds": 5, "schedule": "simultaneous", "fitness": "proposer_utility", "candidates": 1,
+             "group_call": True, "bounds": {"indicator": {k: [-5, 5] for k in SIMUL_TERMS}}}
+
 VARIANTS = {
     # full: the proposer sees its current parameters, last round's result and its best score.
     "matrix": {},
@@ -52,6 +66,48 @@ VARIANTS = {
                                        "bounds": {"indicator": {k: [-5, 5] for k in ("coop", "truth", "lie", "match", "lied_to")}}},
                          "llm": {"show_opponent_utility": True, "history_window": 0, "tell_horizon": False,
                                  "talk": {"messages_each": 2, "every": "game", "announce": True}}},
+    # default: the matrix-indicator setting (indicator utility, visible utilities, two messages each with a
+    # public announcement before every game, no history, horizon not told). Each turn one call proposes 4
+    # candidates; each is played for a round and scored by the proposer's current utility, not the payoff
+    # matrix; the best (ties at random) is adopted even if worse than the incumbent, which is in the pool
+    # only if proposed. The proposer sees no outcomes, only the utilities and the last conversation.
+    "default": {"utility": dict(INDICATOR_UTILITY), "game": {"n_games": 5},
+                "optimizer": {**INDICATOR_OPT, "selection": "comma"},
+                "llm": dict(INDICATOR_LLM)},
+    # default-random: the same, but a uniformly random candidate is adopted (no-selection control).
+    "default-random": {"utility": dict(INDICATOR_UTILITY), "game": {"n_games": 5},
+                       "optimizer": {**INDICATOR_OPT, "selection": "comma_random"},
+                       "llm": dict(INDICATOR_LLM)},
+    "simul": {"utility": dict(SIMUL_UTILITY), "game": {"n_games": 5},
+              "optimizer": {**SIMUL_OPT, "selection": "plus", "accept_margin": 1e-9},
+              "llm": dict(INDICATOR_LLM)},
+    # simul-random: the same prompt, but the proposal is always adopted (no-selection control).
+    "simul-random": {"utility": dict(SIMUL_UTILITY), "game": {"n_games": 5},
+                     "optimizer": {**SIMUL_OPT, "selection": "comma_random"},
+                     "llm": dict(INDICATOR_LLM)},
+    # simul-antisocial: the simul settings, both agents starting at coop = -3 (defection dominant, own
+    # cooperation penalised by the yardstick). Does selection preserve it against the model's proposals?
+    "simul-antisocial": {"utility": {**SIMUL_UTILITY, "coop": -3.0}, "game": {"n_games": 5},
+                         "optimizer": {**SIMUL_OPT, "selection": "plus", "accept_margin": 1e-9},
+                         "llm": dict(INDICATOR_LLM)},
+    "simul-antisocial-random": {"utility": {**SIMUL_UTILITY, "coop": -3.0}, "game": {"n_games": 5},
+                                "optimizer": {**SIMUL_OPT, "selection": "comma_random"},
+                                "llm": dict(INDICATOR_LLM)},
+    # simul-liar: both start at lie = +3 (announcing a move and breaking it is rewarded, visibly to both).
+    "simul-liar": {"utility": {**SIMUL_UTILITY, "lie": 3.0}, "game": {"n_games": 5},
+                   "optimizer": {**SIMUL_OPT, "selection": "plus", "accept_margin": 1e-9},
+                   "llm": dict(INDICATOR_LLM)},
+    "simul-liar-random": {"utility": {**SIMUL_UTILITY, "lie": 3.0}, "game": {"n_games": 5},
+                          "optimizer": {**SIMUL_OPT, "selection": "comma_random"},
+                          "llm": dict(INDICATOR_LLM)},
+    # simul-sucker: A starts at coop = +3 (always cooperates), B at coop = -3 (always defects): exploitation
+    # from round 1, and A's own yardstick rates being exploited (0 + 3) above defecting (1).
+    "simul-sucker": {"utility": {**SIMUL_UTILITY, "coop": 3.0}, "utility_b": {**SIMUL_UTILITY, "coop": -3.0},
+                     "game": {"n_games": 5}, "optimizer": {**SIMUL_OPT, "selection": "plus", "accept_margin": 1e-9},
+                     "llm": dict(INDICATOR_LLM)},
+    "simul-sucker-random": {"utility": {**SIMUL_UTILITY, "coop": 3.0}, "utility_b": {**SIMUL_UTILITY, "coop": -3.0},
+                            "game": {"n_games": 5}, "optimizer": {**SIMUL_OPT, "selection": "comma_random"},
+                            "llm": dict(INDICATOR_LLM)},
 }
 
 
@@ -65,11 +121,11 @@ def main() -> None:
             for b in MODELS:
                 cfg = json.loads(json.dumps(BASE))
                 for section, values in VARIANTS[variant].items():
-                    if section == "utility":
+                    if section in ("utility", "utility_b"):
                         cfg[section] = dict(values)       # a different utility family replaces the block
                     else:
                         cfg[section].update(values)
-                cfg["name"] = f"{a}-{b}" if variant == "matrix" else f"{a}-{b}-{variant.split('-', 1)[1]}"
+                cfg["name"] = f"{a}-{b}" if variant == "matrix" else f"{a}-{b}-{variant.removeprefix('matrix-')}"
                 cfg["llm"]["agents"] = [MODELS[a], MODELS[b]]
                 (out / f"{a}-{b}.json").write_text(json.dumps(cfg, indent=2) + "\n")
                 print(out / f"{a}-{b}.json")

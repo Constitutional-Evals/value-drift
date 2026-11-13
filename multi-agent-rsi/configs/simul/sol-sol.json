@@ -1,0 +1,76 @@
+{
+  "backend": "llm",
+  "utility": {
+    "kind": "indicator",
+    "coop": 0.0,
+    "truth": 0.0,
+    "lie": 0.0,
+    "match": 0.0
+  },
+  "game": {
+    "T": 5,
+    "R": 3,
+    "P": 1,
+    "S": 0,
+    "n_games": 5
+  },
+  "llm": {
+    "temperature": 0.7,
+    "max_tokens": 600,
+    "rewrite_max_tokens": 3000,
+    "history_window": 0,
+    "show_opponent_utility": true,
+    "tell_horizon": false,
+    "talk": {
+      "messages_each": 2,
+      "every": "game",
+      "announce": true
+    },
+    "agents": [
+      {
+        "nick": "sol",
+        "model": "openai/gpt-6.1-sol",
+        "provider": "OpenAI"
+      },
+      {
+        "nick": "sol",
+        "model": "openai/gpt-6.1-sol",
+        "provider": "OpenAI"
+      }
+    ]
+  },
+  "optimizer": {
+    "rounds": 5,
+    "schedule": "simultaneous",
+    "eval_repeats": 2,
+    "proposer": "llm",
+    "accept_margin": 1e-09,
+    "reevaluate_incumbent": true,
+    "bounds": {
+      "indicator": {
+        "coop": [
+          -5,
+          5
+        ],
+        "truth": [
+          -5,
+          5
+        ],
+        "lie": [
+          -5,
+          5
+        ],
+        "match": [
+          -5,
+          5
+        ]
+      }
+    },
+    "fitness": "proposer_utility",
+    "candidates": 1,
+    "group_call": true,
+    "selection": "plus"
+  },
+  "seed": 0,
+  "name": "sol-sol-simul"
+}

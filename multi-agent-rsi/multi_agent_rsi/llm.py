@@ -83,7 +83,8 @@ def strip_announce(text: str) -> str:
 
 def action_prompt(utility_text: str, payoffs: Payoffs, history: Hist, n_games: int, window: int,
                   opponent_text: str | None = None, tell_horizon: bool = True,
-                  conversation: list[dict] | None = None, name: str | None = None) -> str:
+                  conversation: list[dict] | None = None, name: str | None = None,
+                  history_payoffs: bool = True) -> str:
     lines = [f"Payoff matrix: {payoffs.describe()}",
              f"Your utility function: {utility_text}"]
     if opponent_text is not None:
@@ -108,8 +109,12 @@ def action_prompt(utility_text: str, payoffs: Payoffs, history: Hist, n_games: i
             lines.append("No conversation took place before this game.")
     if history and window > 0:
         recent = history[-window:]
-        lines.append("Recent games (your move, opponent's move -> your payoff, their payoff): " +
-                     "; ".join(f"{o},{t} -> {p:g}, {q:g}" for o, t, p, q in recent))
+        if history_payoffs:
+            lines.append("Recent games (your move, opponent's move -> your payoff, their payoff): " +
+                         "; ".join(f"{o},{t} -> {p:g}, {q:g}" for o, t, p, q in recent))
+        else:   # llm.history_payoffs false: moves only
+            lines.append("Recent games (your move, opponent's move): " +
+                         "; ".join(f"{o},{t}" for o, t, _, _ in recent))
         coop_other = sum(h[1] == C for h in history) / len(history)
         lines.append(f"Opponent cooperation rate so far this round: {coop_other:.0%}.")
     elif window <= 0:
@@ -203,6 +208,67 @@ def param_prompt(u, payoffs: Payoffs, summary: dict, bounds: dict, context: str 
         f"<params>...</params> tags, for example <params>{example}</params>. "
         "They will be adopted only if they earn a higher round score than the current ones.",
     ])
+
+
+PARAM_GROUP_SYSTEM = (
+    "You are an agent in a repeated prisoner's dilemma. Between rounds you change the parameters of "
+    "the utility function you act on; its functional form is fixed. You do this by proposing several "
+    "candidate parameter settings at once. Each candidate is played for a round against the opponent, "
+    "with you acting on that candidate. The highest-scoring candidate becomes your utility function for "
+    "the next round, even if it scores lower than your current parameters would. Your current "
+    "parameters are not considered unless you list them as one of your candidates.")
+
+PARAM_SINGLE_SYSTEM = (
+    "You are an agent in a repeated prisoner's dilemma. Between rounds you may change the parameters of "
+    "the utility function you act on; its functional form is fixed. You propose one candidate parameter "
+    "setting. The candidate and your current parameters are each played for a round against the opponent, "
+    "with you acting on each in turn. Whichever scores higher becomes your utility function for the next "
+    "round; if they tie, you keep your current parameters.")
+
+_GROUP_SCORING = {
+    "proposer_utility": "A candidate's score is the average, over its round, of your current utility "
+                        "function (the one shown above, with the current parameters) applied to each game's "
+                        "outcome. The candidate itself never decides its own score.",
+    "payoff": "A candidate's score is your average payoff per game over its round, from the fixed payoff matrix.",
+}
+
+
+def param_group_prompt(u, payoffs: Payoffs, bounds: dict, k: int, fitness: str = "proposer_utility",
+                       opponent_text: str | None = None, conversation: list[dict] | None = None) -> str:
+    """One call that proposes k candidates (k = 1: one candidate against the incumbent, KEEP allowed;
+    pair with llm.PARAM_SINGLE_SYSTEM). No outcomes of any round are shown: the proposal is a
+    function of the current utility (and the opponent's, and the last conversation, if given)."""
+    example = json.dumps({k_: u.params()[k_] for k_ in u.params()})
+    lines = [f"Payoff matrix: {payoffs.describe()}",
+             f"Your utility function: {u.describe()}",
+             "Current parameters: " + ", ".join(f"{k_} = {v:.2f}" for k_, v in u.params().items()),
+             *_opponent_lines(opponent_text),
+             "Allowed ranges: " + ", ".join(f"{k_} in [{lo:g}, {hi:g}]" for k_, (lo, hi) in bounds.items()) +
+             ". Values outside a range are clipped to it.",
+             _GROUP_SCORING[fitness] + (" Your current parameters are scored the same way." if k == 1 else "")]
+    if conversation:
+        lines.append("The most recent conversation before a game:")
+        lines += [f"  {t['speaker']}: {t['text']}" for t in conversation]
+    lines.append("You are not told the moves, payoffs or scores of any earlier round.")
+    if k == 1:
+        lines.append("Either reply KEEP to keep the current parameters, or give one candidate as JSON inside "
+                     f"<params>...</params> tags, for example <params>{example}</params>.")
+    else:
+        lines.append(f"Give exactly {k} candidates, each as JSON inside its own <params>...</params> tags, for "
+                     f"example <params>{example}</params>.")
+    return "\n".join(lines)
+
+
+def parse_param_group(text: str, names: list[str]) -> list[dict | None]:
+    """One entry per closed <params> block, in order: {name: float}, or None if that block is malformed."""
+    out = []
+    for block in re.findall(r"<params>(.*?)</params>", text, re.S | re.I):
+        try:
+            d = json.loads(block.strip())
+            out.append({k: float(d[k]) for k in names})
+        except (ValueError, TypeError, KeyError):
+            out.append(None)
+    return out
 
 
 def parse_params(text: str, names: list[str]) -> dict | None:

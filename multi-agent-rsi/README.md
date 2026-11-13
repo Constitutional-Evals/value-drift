@@ -183,6 +183,47 @@ VARIANT=matrix-indicator bash scripts/run_matrix.sh
 uv run python scripts/matrix_report.py --dir runs/matrix-indicator
 ```
 
+### Variant: default (`configs/default/`, control `configs/default-random/`)
+
+The `matrix-indicator` setting (indicator utility, visible utilities, two messages each with a public
+announcement before every game, no history, horizon not told), with the candidate group used for
+selection at inference time instead of exported for training. On its turn, an agent's model is called
+once and proposes 4 candidate parameter settings (`optimizer.group_call`), seeing only the utilities and
+the most recent conversation. Each distinct candidate is played for `eval_repeats` rounds against the
+opponent's current utility, with the agent acting on that candidate. The games are scored by the
+proposer's current utility, announcements included, not the payoff matrix
+(`optimizer.fitness: "proposer_utility"`; true payoff is still logged as `score`, the utility-scored
+value as `judged`). The best candidate is adopted, ties broken at random, even if it scores lower than
+the incumbent would, and the incumbent is in the pool only if one of the 4 repeats its values
+(`optimizer.selection: "comma"`). The control adopts a uniformly random candidate (`"comma_random"`),
+so drift from selection can be told apart from drift from the proposals alone.
+
+Each `rounds.jsonl` row carries the 4 proposals with status, eval and rank; `kept` in `state.json`
+counts turns where the incumbent was proposed and won.
+
+```
+VARIANT=default SMOKE=1 bash scripts/run_matrix.sh
+VARIANT=default bash scripts/run_matrix.sh
+VARIANT=default-random bash scripts/run_matrix.sh
+```
+
+### Variant: simul (`configs/simul/`, control `configs/simul-random/`)
+
+The default variant's setting and scoring, with three changes. Both agents propose every round
+(`schedule: "simultaneous"`; each is judged against the opponent's utility at the start of the round,
+and both are adopted together). Each makes one proposal (`candidates: 1`) or replies KEEP. And the
+indicator utility has four terms: `lied_to` is dropped, because the agent's own move cannot affect it
+(a config that omits a weight drops it from the formula, the code and the proposals). In `simul` the
+proposal is adopted only if it scores strictly higher than the incumbent under the incumbent's utility,
+so a tie keeps the incumbent (`selection: "plus"`, `accept_margin: 1e-9`). In `simul-random` the
+proposal is always adopted. Both arms get the same prompt, which says the higher scorer is adopted and
+a tie keeps the current parameters; that is true for `simul` only.
+
+```
+CELLS="sol-sol" SEEDS="0 1 2 3 4 5" VARIANT=simul bash scripts/run_matrix.sh
+CELLS="sol-sol" SEEDS="0 1 2 3 4 5" VARIANT=simul-random bash scripts/run_matrix.sh
+```
+
 ### Towards training: candidate groups and preference pairs
 
 `optimizer.candidates: K` makes the proposer emit K proposals per round from the same prompt;

@@ -1,0 +1,82 @@
+{
+  "backend": "llm",
+  "utility": {
+    "kind": "indicator",
+    "coop": 0.0,
+    "truth": 0.0,
+    "lie": 0.0,
+    "match": 0.0,
+    "lied_to": 0.0
+  },
+  "game": {
+    "T": 5,
+    "R": 3,
+    "P": 1,
+    "S": 0,
+    "n_games": 5
+  },
+  "llm": {
+    "temperature": 0.7,
+    "max_tokens": 600,
+    "rewrite_max_tokens": 3000,
+    "history_window": 0,
+    "show_opponent_utility": true,
+    "tell_horizon": false,
+    "talk": {
+      "messages_each": 2,
+      "every": "game",
+      "announce": true
+    },
+    "agents": [
+      {
+        "nick": "sol",
+        "model": "openai/gpt-6.1-sol",
+        "provider": "OpenAI"
+      },
+      {
+        "nick": "sonnet",
+        "model": "anthropic/claude-sonnet-5",
+        "provider": "Anthropic",
+        "reasoning": "none"
+      }
+    ]
+  },
+  "optimizer": {
+    "rounds": 5,
+    "schedule": "alternating",
+    "eval_repeats": 2,
+    "proposer": "llm",
+    "accept_margin": 0.0,
+    "reevaluate_incumbent": true,
+    "bounds": {
+      "indicator": {
+        "coop": [
+          -5,
+          5
+        ],
+        "truth": [
+          -5,
+          5
+        ],
+        "lie": [
+          -5,
+          5
+        ],
+        "match": [
+          -5,
+          5
+        ],
+        "lied_to": [
+          -5,
+          5
+        ]
+      }
+    },
+    "fitness": "proposer_utility",
+    "candidates": 4,
+    "group_call": true,
+    "selection": "comma"
+  },
+  "seed": 0,
+  "name": "sol-sonnet-default"
+}

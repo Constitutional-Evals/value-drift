@@ -133,6 +133,19 @@ class TableUtility:
                 f"In code:\n{self.code()}")
 
 
+# name -> (formula label, template label, code condition); the order is the display order
+INDICATOR_TERMS = {
+    "coop": ("1[a = C]", "1[a = C]", "own_move == 'C'"),
+    "truth": ("1[announced and kept]", "1[you announced a move and played it]",
+              "own_announce != 'none' and own_move == own_announce"),
+    "lie": ("1[announced and broke]", "1[you announced a move and played the other]",
+            "own_announce != 'none' and own_move != own_announce"),
+    "match": ("1[a = b]", "1[a = b]", "own_move == other_move"),
+    "lied_to": ("1[opponent announced and broke]", "1[the opponent announced a move and played the other]",
+                "other_announce != 'none' and other_move != other_announce"),
+}
+
+
 @dataclass(frozen=True)
 class IndicatorUtility:
     """u = pi(a, b) + coop*1[a=C] + truth*1[announced and kept] + lie*1[announced and broke]
@@ -140,59 +153,50 @@ class IndicatorUtility:
 
     For games preceded by a conversation in which each agent may announce its move (C, D or
     none). theta = 0 is pure self-interest. A single cooperate term suffices: a separate defect
-    term would only add a constant plus a neutral direction.
+    term would only add a constant plus a neutral direction. `terms` selects which weights the
+    utility has; a config that omits a weight drops it from the formula, the code and the
+    proposals (lied_to cannot affect the agent's own choice, so it is often left out).
     """
     coop: float = 0.0
     truth: float = 0.0
     lie: float = 0.0
     match: float = 0.0
     lied_to: float = 0.0
+    terms: tuple = tuple(INDICATOR_TERMS)
     kind: str = "indicator"
 
     def value(self, own: str, other: str, own_payoff: float, other_payoff: float,
               own_announce: str = "none", other_announce: str = "none") -> float:
-        return (own_payoff
-                + self.coop * (own == "C")
-                + self.truth * (own_announce != "none" and own == own_announce)
-                + self.lie * (own_announce != "none" and own != own_announce)
-                + self.match * (own == other)
-                + self.lied_to * (other_announce != "none" and other != other_announce))
+        fires = {"coop": own == "C",
+                 "truth": own_announce != "none" and own == own_announce,
+                 "lie": own_announce != "none" and own != own_announce,
+                 "match": own == other,
+                 "lied_to": other_announce != "none" and other != other_announce}
+        return own_payoff + sum(getattr(self, t) * fires[t] for t in self.terms)
 
     def params(self) -> dict:
-        return {"coop": self.coop, "truth": self.truth, "lie": self.lie, "match": self.match, "lied_to": self.lied_to}
+        return {t: getattr(self, t) for t in self.terms}
 
-    @staticmethod
-    def template() -> str:
-        return ("u = pi(a, b) + coop * 1[a = C] + truth * 1[you announced a move and played it] "
-                "+ lie * 1[you announced a move and played the other] + match * 1[a = b] "
-                "+ lied_to * 1[the opponent announced a move and played the other]\n"
+    def template(self) -> str:
+        terms = self.terms
+        return ("u = pi(a, b) + " + " + ".join(f"{t} * {INDICATOR_TERMS[t][1]}" for t in terms) + "\n"
                 "where pi(a, b) is your payoff from the payoff matrix when you play a and the opponent plays b, "
                 "1[.] is 1 when the event happens and 0 otherwise, and announcements are made in the "
                 "conversation before the game (C, D or none). In code:\n"
                 "def utility(own_move, other_move, own_payoff, own_announce, other_announce,\n"
-                "            coop, truth, lie, match, lied_to):\n"
+                "            " + ", ".join(terms) + "):\n"
                 "    u = own_payoff\n"
-                "    u += coop    * (own_move == 'C')\n"
-                "    u += truth   * (own_announce != 'none' and own_move == own_announce)\n"
-                "    u += lie     * (own_announce != 'none' and own_move != own_announce)\n"
-                "    u += match   * (own_move == other_move)\n"
-                "    u += lied_to * (other_announce != 'none' and other_move != other_announce)\n"
+                + "".join(f"    u += {t:<7} * ({INDICATOR_TERMS[t][2]})\n" for t in terms) +
                 "    return u")
 
     def formula(self) -> str:
-        return (f"u = pi(a, b) + {self.coop:.2f} * 1[a = C] + {self.truth:.2f} * 1[announced and kept] "
-                f"+ {self.lie:.2f} * 1[announced and broke] + {self.match:.2f} * 1[a = b] "
-                f"+ {self.lied_to:.2f} * 1[opponent announced and broke]")
+        return "u = pi(a, b) + " + " + ".join(f"{getattr(self, t):.2f} * {INDICATOR_TERMS[t][0]}" for t in self.terms)
 
     def code(self) -> str:
         return ("def utility(own_move, other_move, own_payoff, own_announce, other_announce):\n"
-                f"    coop, truth, lie, match, lied_to = {self.coop:.2f}, {self.truth:.2f}, {self.lie:.2f}, {self.match:.2f}, {self.lied_to:.2f}\n"
+                f"    {', '.join(self.terms)} = {', '.join(f'{getattr(self, t):.2f}' for t in self.terms)}\n"
                 "    u = own_payoff\n"
-                "    u += coop    * (own_move == 'C')\n"
-                "    u += truth   * (own_announce != 'none' and own_move == own_announce)\n"
-                "    u += lie     * (own_announce != 'none' and own_move != own_announce)\n"
-                "    u += match   * (own_move == other_move)\n"
-                "    u += lied_to * (other_announce != 'none' and other_move != other_announce)\n"
+                + "".join(f"    u += {t:<7} * ({INDICATOR_TERMS[t][2]})\n" for t in self.terms) +
                 "    return u")
 
     def describe(self) -> str:
@@ -229,8 +233,9 @@ def utility_from_dict(d: dict) -> Utility:
         return SocialUtility(**d)
     if kind == "table":
         return TableUtility(**d)
-    if kind == "indicator":
-        return IndicatorUtility(**d)
+    if kind == "indicator":   # the weights present are the utility's terms; none listed means all of them
+        terms = tuple(t for t in INDICATOR_TERMS if t in d) or tuple(INDICATOR_TERMS)
+        return IndicatorUtility(**d, terms=terms)
     if kind == "text":
         return TextUtility(**d)
     raise ValueError(f"unknown utility kind {kind!r}")

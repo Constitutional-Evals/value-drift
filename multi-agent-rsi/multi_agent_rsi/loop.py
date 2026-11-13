@@ -5,6 +5,11 @@ candidate and the incumbent are each evaluated against the opponent's current ut
 eval_repeats rounds of n_games; the candidate is adopted if its mean true payoff is at least
 the incumbent's plus accept_margin. Everything is appended to rounds.jsonl; state.json
 allows --resume. The LLM backend writes every game's raw reply to transcripts.jsonl.
+
+optimizer.fitness "proposer_utility" scores every evaluation this turn by the agents' current
+utilities instead of the payoff matrix, so a candidate is judged by the utility it would replace.
+optimizer.selection "comma" adopts the best candidate unconditionally; the incumbent is in the
+pool only if a proposal names it. "comma_random" adopts a uniformly random one (the control).
 """
 from __future__ import annotations
 
@@ -22,7 +27,11 @@ from .utility import Utility, bounds_for, mutate, utility_from_dict, utility_to_
 DEFAULT_OPT = {"rounds": 100, "schedule": "alternating", "sigma": 0.3, "eval_repeats": 3,
                "accept_margin": 0.0, "reevaluate_incumbent": True, "bounds": None,
                "proposal_context": "full",   # or "best_only" / "no_outcomes": what the proposer is shown
-               "candidates": 1}              # proposals per round; >1 evaluates each and keeps the best ((1+k)-ES)
+               "candidates": 1,              # proposals per round; >1 evaluates each and keeps the best ((1+k)-ES)
+               "group_call": False,          # True: one model call proposes all the candidates
+               "fitness": "payoff",          # or "proposer_utility": outcomes scored by the proposer's current utility
+               "selection": "plus"}          # or "comma": best candidate adopted unconditionally, the incumbent only
+                                             # if proposed; "comma_random": a uniformly random candidate (control)
 
 
 def _payoffs(cfg: dict) -> Payoffs:
@@ -109,12 +118,34 @@ def make_player(utility: Utility, cfg: dict, rng: np.random.Generator, chat, nam
         return LLMPlayer(utility, chat, _payoffs(cfg), _n_games(cfg),
                          history_window=int(l.get("history_window", 10)), name=name,
                          opponent_utility=opponent if _show_opponent(cfg) else None,
-                         tell_horizon=bool(l.get("tell_horizon", True)), talk=_talk(cfg) is not None)
+                         tell_horizon=bool(l.get("tell_horizon", True)), talk=_talk(cfg) is not None,
+                         history_payoffs=bool(l.get("history_payoffs", True)))
     raise ValueError(f"unknown backend {backend!r}")
 
 
-def evaluate(utils: list[Utility], cfg: dict, rng: np.random.Generator, chats=None) -> dict:
+def judged_score(judges: list[Utility], history, talks: list[list[dict]] | None = None) -> list[float]:
+    """Mean per game of judges[0] (A's view) and judges[1] (B's view) applied to each outcome.
+    Indicator judges read each game's announcements from its conversation; without one, "none"."""
+    names = ("A", "B")
+    tot = [0.0, 0.0]
+    for g, (a, b, pa, pb) in enumerate(history):
+        ann = {}
+        if talks and g < len(talks):
+            ann = {t["speaker"]: t["announce"] for t in talks[g] if t.get("announce") is not None}
+        for i, (own, other, po, pt) in enumerate(((a, b, pa, pb), (b, a, pb, pa))):
+            j = judges[i]
+            if j.kind == "indicator":
+                tot[i] += j.value(own, other, po, pt, ann.get(names[i], "none"), ann.get(names[1 - i], "none"))
+            else:
+                tot[i] += j.value(own, other, po, pt)
+    return [x / len(history) for x in tot]
+
+
+def evaluate(utils: list[Utility], cfg: dict, rng: np.random.Generator, chats=None,
+             judges: list[Utility] | None = None) -> dict:
     """Mean over eval_repeats rounds of the true payoff and cooperation rates, A then B.
+    With judges, also "judged": each agent's mean utility per game under judges[i] instead of the
+    payoff matrix (the proposer's current utility when optimizer.fitness is "proposer_utility").
     LLM backend: repeats run in parallel threads and the two moves of a game concurrently."""
     opt = _opt(cfg)
     payoffs, n = _payoffs(cfg), _n_games(cfg)
@@ -143,11 +174,14 @@ def evaluate(utils: list[Utility], cfg: dict, rng: np.random.Generator, chats=No
     else:
         results = [one(i) for i in range(reps)]
     acc = {"score": np.zeros(2), "coop": np.zeros(2), "late_coop": np.zeros(2)}
+    judged = np.zeros(2)
     unparsed = [0, 0]
     transcripts = []
     for k, (r, a, b, talks) in enumerate(results):
         for key in acc:
             acc[key] += np.array(getattr(r, key))
+        if judges is not None:
+            judged += np.array(judged_score(judges, r.history, talks if talk else None))
         for i, p in enumerate((a, b)):
             unparsed[i] += getattr(p, "unparsed", 0)
         if llm:
@@ -157,6 +191,8 @@ def evaluate(utils: list[Utility], cfg: dict, rng: np.random.Generator, chats=No
             transcripts.append(tr)
     out = {k: (v / reps).tolist() for k, v in acc.items()}
     out["repeats"], out["unparsed"] = reps, unparsed
+    if judges is not None:
+        out["judged"] = (judged / reps).tolist()
     if llm:
         out["_transcripts"] = transcripts
     return out
@@ -206,13 +242,41 @@ def propose(i: int, utils: list[Utility], cfg: dict, rng: np.random.Generator, c
 def propose_group(i: int, utils: list[Utility], cfg: dict, rng: np.random.Generator, chats, summary: dict, k: int):
     """k independent proposals for agent i (parallel calls for the llm backend). Returns
     (proposals, prompt): proposals is a list of {"candidate", "reply", "status"} in call order;
-    the prompt is the same for every call."""
+    the prompt is the same for every call. With optimizer.group_call one call proposes all k and
+    every proposal carries the same reply; a proposal equal to the incumbent is kept as a candidate."""
+    opt = _opt(cfg)
+    if opt["group_call"] and chats is not None and utils[i].kind != "text":
+        return _propose_in_one_call(i, utils, cfg, chats, summary, k)
     if k <= 1 or chats is None:
         cand, raw, status, prompt = propose(i, utils, cfg, rng, chats, summary)
         return [{"candidate": cand, "reply": raw, "status": status}], prompt
     with ThreadPoolExecutor(max_workers=k) as pool:
         results = list(pool.map(lambda _: propose(i, utils, cfg, rng, chats, summary), range(k)))
     return [{"candidate": c, "reply": r, "status": st} for c, r, st, _ in results], results[0][3]
+
+
+def _propose_in_one_call(i: int, utils: list[Utility], cfg: dict, chats, summary: dict, k: int):
+    from . import llm
+    opt = _opt(cfg)
+    u = utils[i]
+    b = bounds_for(u, opt.get("bounds"))
+    budget = int(cfg.get("llm", {}).get("rewrite_max_tokens", 1500))
+    opponent_text = utils[1 - i].describe() if _show_opponent(cfg) else None
+    prompt = {"system": llm.PARAM_SINGLE_SYSTEM if k == 1 else llm.PARAM_GROUP_SYSTEM,
+              "user": llm.param_group_prompt(u, _payoffs(cfg), b, k, opt["fitness"], opponent_text,
+                                             summary.get("conversation"))}
+    text = chats[i].complete(prompt["system"], prompt["user"], max_tokens=budget)
+    parsed = llm.parse_param_group(text, list(u.params()))[:k]
+    if not parsed:
+        return [{"candidate": None, "reply": text, "status": llm.param_status(text, None, u.params())}], prompt
+    proposals = []
+    for new in parsed:
+        if new is None:
+            proposals.append({"candidate": None, "reply": text, "status": "unparsed"})
+            continue
+        cand = with_params(u, new, opt.get("bounds"))
+        proposals.append({"candidate": cand, "reply": text, "status": "same" if cand.params() == u.params() else "new"})
+    return proposals, prompt
 
 
 def _strip(ev: dict) -> dict:
@@ -238,6 +302,13 @@ def run(cfg: dict, out: Path, resume: bool = False, log=print) -> dict:
     opt = _opt(cfg)
     if opt["schedule"] not in ("alternating", "simultaneous"):
         raise ValueError("schedule must be 'alternating' or 'simultaneous'")
+    if opt["fitness"] not in ("payoff", "proposer_utility"):
+        raise ValueError("optimizer.fitness must be 'payoff' or 'proposer_utility'")
+    if opt["selection"] not in ("plus", "comma", "comma_random"):
+        raise ValueError("optimizer.selection must be 'plus', 'comma' or 'comma_random'")
+    if opt["fitness"] == "proposer_utility" and cfg["utility"]["kind"] == "text":
+        raise ValueError("fitness 'proposer_utility' needs a closed-form utility")
+    scored = cfg["utility"]["kind"] != "text"   # text utilities have no numeric value to judge by
     seed = int(cfg.get("seed", 0))
     chats = make_chats(cfg)
     llm = chats is not None
@@ -248,9 +319,13 @@ def run(cfg: dict, out: Path, resume: bool = False, log=print) -> dict:
             raise SystemExit(f"{out} already has a run; pass --resume or choose another --out")
         (out / "config.json").write_text(json.dumps(cfg, indent=1))
         start = utility_from_dict(cfg["utility"])
-        utils = [start, start]
+        # utility_b: B's starting utility, same kind and parameters as A's; otherwise both start from utility
+        start_b = utility_from_dict(cfg["utility_b"]) if "utility_b" in cfg else start
+        if start_b.kind != start.kind or list(start_b.params()) != list(start.params()):
+            raise ValueError("utility_b must have the same kind and parameters as utility")
+        utils = [start, start_b]
         rng = np.random.default_rng(seed)
-        base = evaluate(utils, cfg, rng, chats)
+        base = evaluate(utils, cfg, rng, chats, utils if scored else None)
         _write_transcripts(out, 0, None, "baseline", base)
         last_conv = base["_transcripts"][-1]["talks"][-1] if base.get("_transcripts") and base["_transcripts"][-1].get("talks") else None
         base = _strip(base)
@@ -279,6 +354,11 @@ def run(cfg: dict, out: Path, resume: bool = False, log=print) -> dict:
                        "conversation": state.get("last_conversation")}
             k = int(opt.get("candidates", 1))
             proposals, prompt = propose_group(i, utils, cfg, rng, chats, summary, k)
+            comma = opt["selection"] in ("comma", "comma_random")
+            if comma:   # KEEP, or values equal to the incumbent's, proposes the incumbent as a candidate
+                for pr in proposals:
+                    if pr["candidate"] is None and pr["status"] in ("keep", "same"):
+                        pr["candidate"] = utils[i]
             # distinct candidates, first reply wins; the rest of the group is still recorded
             distinct: list = []
             for pr in proposals:
@@ -288,43 +368,59 @@ def run(cfg: dict, out: Path, resume: bool = False, log=print) -> dict:
             trials = []
             for c in distinct:
                 trial = list(utils); trial[i] = c; trials.append(trial)
-            need_inc = opt["reevaluate_incumbent"] or not distinct
+            # comma: the incumbent competes only as a proposed candidate, so it is never evaluated separately
+            need_inc = not distinct if comma else (opt["reevaluate_incumbent"] or not distinct)
             jobs = ([utils] if need_inc else []) + trials
+            judges = list(utils) if scored else None   # every evaluation this turn is scored by the current utilities
             if llm and len(jobs) > 1:
                 with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
-                    evals = list(pool.map(lambda u_: evaluate(u_, cfg, rng, chats), jobs))
+                    evals = list(pool.map(lambda u_: evaluate(u_, cfg, rng, chats, judges), jobs))
             else:
-                evals = [evaluate(u_, cfg, rng, chats) for u_ in jobs]
+                evals = [evaluate(u_, cfg, rng, chats, judges) for u_ in jobs]
             inc_eval = evals.pop(0) if need_inc else last
-            cand_evals = dict(zip((json.dumps(utility_to_dict(c), sort_keys=True) for c in distinct), evals))
+            key = lambda c: json.dumps(utility_to_dict(c), sort_keys=True)
+            cand_evals = dict(zip((key(c) for c in distinct), evals))
+            fit = "judged" if opt["fitness"] == "proposer_utility" else "score"
             _write_transcripts(out, t, i, "incumbent", inc_eval)
-            if inc_eval.get("_transcripts") and inc_eval["_transcripts"][-1].get("talks"):
-                state["last_conversation"] = inc_eval["_transcripts"][-1]["talks"][-1]
             for pr in proposals:
                 state["proposal_status"][i][pr["status"]] = state["proposal_status"][i].get(pr["status"], 0) + 1
-            # the best distinct candidate competes with the incumbent
             cand, cand_eval = None, None
             if distinct:
                 state["proposed"][i] += len(distinct)
                 for n_c, c in enumerate(distinct):
                     _write_transcripts(out, t, i, f"candidate{n_c}" if len(distinct) > 1 else "candidate",
-                                       cand_evals[json.dumps(utility_to_dict(c), sort_keys=True)])
-                cand = max(distinct, key=lambda c: cand_evals[json.dumps(utility_to_dict(c), sort_keys=True)]["score"][i])
-                cand_eval = cand_evals[json.dumps(utility_to_dict(c), sort_keys=True)]
-            accepted = bool(cand is not None and cand_eval["score"][i] >= inc_eval["score"][i] + float(opt["accept_margin"]))
+                                       cand_evals[key(c)])
+                if opt["selection"] == "comma_random":
+                    cand = distinct[int(rng.integers(len(distinct)))]
+                else:   # ties are broken at random, not by the order the proposer listed them
+                    top = max(cand_evals[key(c)][fit][i] for c in distinct)
+                    tied = [c for c in distinct if cand_evals[key(c)][fit][i] >= top - 1e-9]
+                    cand = tied[int(rng.integers(len(tied)))] if len(tied) > 1 else tied[0]
+                cand_eval = cand_evals[key(cand)]
+            if comma:
+                accepted = cand is not None
+            else:   # plus: the best distinct candidate competes with the incumbent
+                accepted = bool(cand is not None and cand_eval[fit][i] >= inc_eval[fit][i] + float(opt["accept_margin"]))
+            conv_eval = cand_eval if comma and accepted else inc_eval
+            if conv_eval.get("_transcripts") and conv_eval["_transcripts"][-1].get("talks"):
+                state["last_conversation"] = conv_eval["_transcripts"][-1]["talks"][-1]
+            ranked = sorted(distinct, key=lambda c: -cand_evals[key(c)][fit][i])
             group = []
             for pr in proposals:
                 c = pr["candidate"]
-                ev = cand_evals.get(json.dumps(utility_to_dict(c), sort_keys=True)) if c is not None else None
+                ev = cand_evals.get(key(c)) if c is not None else None
                 group.append({"reply": pr["reply"], "status": pr["status"],
                               "candidate": utility_to_dict(c) if c is not None else None,
-                              "eval": _strip(ev) if ev else None})
+                              "eval": _strip(ev) if ev else None,
+                              "rank": next(n for n, d in enumerate(ranked) if key(d) == key(c)) if c is not None else None})
+            chosen = next((g for g in group if cand is not None and g["candidate"] == utility_to_dict(cand)), group[0])
+            if cand is not None and key(cand) == key(utils[i]):
+                state.setdefault("kept", [0, 0])[i] += 1
             decisions.append({"agent": i, "incumbent": utility_to_dict(utils[i]),
                               "candidate": utility_to_dict(cand) if cand is not None else None,
-                              "proposal_reply": group[0]["reply"] if k <= 1 else next((g["reply"] for g in group if g["candidate"] == utility_to_dict(cand)), None) if cand is not None else group[0]["reply"],
-                              "proposal_status": group[0]["status"] if k <= 1 else ("new" if cand is not None else group[0]["status"]),
-                              "proposal_prompt": prompt, "proposals": group,
-                              "inc_eval": _strip(inc_eval),
+                              "proposal_reply": chosen["reply"], "proposal_status": chosen["status"],
+                              "proposal_prompt": prompt, "proposals": group, "fitness": opt["fitness"],
+                              "selection": opt["selection"], "inc_eval": _strip(inc_eval),
                               "cand_eval": _strip(cand_eval) if cand_eval else None, "accepted": accepted, "_cand": cand})
         for d in decisions:   # adopt together: simultaneous candidates were each judged against the old opponent
             if d["accepted"]:
@@ -334,7 +430,7 @@ def run(cfg: dict, out: Path, resume: bool = False, log=print) -> dict:
             d = decisions[0]
             after = d["cand_eval"] if d["accepted"] else d["inc_eval"]
         elif any(d["accepted"] for d in decisions):
-            after = evaluate(utils, cfg, rng, chats)
+            after = evaluate(utils, cfg, rng, chats, utils if scored else None)
             _write_transcripts(out, t, None, "after", after)
             after = _strip(after)
         else:

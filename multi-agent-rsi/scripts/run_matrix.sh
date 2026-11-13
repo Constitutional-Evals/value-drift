@@ -4,6 +4,8 @@
 #   SMOKE=1 bash scripts/run_matrix.sh      # 1 round, 3 games, 1 repeat per cell: checks keys, parsing, both models
 #   RESUME=1 bash scripts/run_matrix.sh     # continue interrupted cells
 #   VARIANT=matrix-blind bash scripts/run_matrix.sh   # the blind-proposal variant (configs/matrix-blind)
+#   CELLS="sol-sol" SEEDS="0 1 2 3 4 5" VARIANT=default bash scripts/run_matrix.sh
+#                                           # chosen cells only, one independent chain per seed (runs/<variant>/<cell>-s<seed>)
 # Needs OPENROUTER_API_KEY in the environment (or in ./.env).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -16,10 +18,20 @@ mkdir -p "runs/$tag"
 pids=()
 for cfg in "configs/$variant"/*.json; do
   cell=$(basename "$cfg" .json)
-  echo "launching $cell -> runs/$tag/$cell"
-  uv run --extra llm python scripts/run.py --config "$cfg" --out "runs/$tag/$cell" ${extra[@]+"${extra[@]}"} \
-    > "runs/$tag/$cell.stdout" 2>&1 &
-  pids+=($!)
+  if [[ -n "${CELLS:-}" && " $CELLS " != *" $cell "* ]]; then continue; fi
+  if [[ -z "${SEEDS:-}" ]]; then
+    echo "launching $cell -> runs/$tag/$cell"
+    uv run --extra llm python scripts/run.py --config "$cfg" --out "runs/$tag/$cell" ${extra[@]+"${extra[@]}"} \
+      > "runs/$tag/$cell.stdout" 2>&1 &
+    pids+=($!)
+    continue
+  fi
+  for seed in $SEEDS; do
+    echo "launching $cell seed $seed -> runs/$tag/$cell-s$seed"
+    uv run --extra llm python scripts/run.py --config "$cfg" --out "runs/$tag/$cell-s$seed" --seed "$seed" \
+      ${extra[@]+"${extra[@]}"} > "runs/$tag/$cell-s$seed.stdout" 2>&1 &
+    pids+=($!)
+  done
 done
 status=0
 for p in "${pids[@]}"; do wait "$p" || status=1; done

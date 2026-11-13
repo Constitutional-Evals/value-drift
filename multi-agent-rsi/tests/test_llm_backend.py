@@ -295,7 +295,7 @@ def test_indicator_utility_values_and_text():
     assert IndicatorUtility().value("C", "D", 0, 5, "C", "D") == 0
     d = utility_to_dict(u); assert d["kind"] == "indicator" and utility_from_dict(d) == u
     assert with_params(u, {"lie": -9}).lie == -5.0                # clipped to the default bounds
-    for text in (u.describe(), IndicatorUtility.template()):
+    for text in (u.describe(), u.template()):
         assert "def utility(" in text and "lied_to" in text and "1[" in text
 
 
@@ -327,3 +327,184 @@ def test_announcements_flow_through_talk_and_moves(tmp_path, fake_chats):
     assert all("You announced: C. The opponent announced: D" in u for u in moves_a)
     # the utility text in the prompts is the indicator family, formula and code
     assert all("1[announced and kept]" in u and "lied_to" in u for u in moves_a)
+
+
+class AlphaChat(FakeChat):
+    """Model 'alpha' cooperates iff the alpha in its utility is at least 1, so play depends on the
+    utility; a group proposal call returns `reply`. Other models behave as in FakeChat."""
+    reply = ""
+
+    def complete(self, system, user, max_tokens=None):
+        if "candidate parameter setting" in system:
+            with self.lock:
+                self.users.append(user)
+            return self.reply
+        if self.model == "alpha" and "<move>" in user:
+            import re
+            alpha = float(re.search(r"u\(a, b\) = pi\(a, b\) \+ (-?[\d.]+) \* pi\(b, a\)", user).group(1))
+            return f"<move>{'C' if alpha >= 1 else 'D'}</move>"
+        return super().complete(system, user, max_tokens)
+
+
+def _group_run(tmp_path, monkeypatch, reply, **opt):
+    chats = []
+
+    def make(cfg):
+        AlphaChat.reply = reply
+        chats.extend(AlphaChat(a["model"]) for a in loop.agent_specs(cfg))
+        return chats
+    monkeypatch.setattr(loop, "make_chats", make)
+    cfg = {**SOCIAL_CFG, "utility": {"kind": "social", "alpha": 2.0, "beta": 0.0, "gamma": 0.0},
+           "llm": {"agents": [{"model": "alpha"}, {"model": "coop"}], "history_payoffs": False},
+           "optimizer": {**SOCIAL_CFG["optimizer"], "rounds": 1, "candidates": 4, "group_call": True,
+                         "fitness": "proposer_utility", "selection": "comma", **opt}}
+    st = loop.run(cfg, tmp_path / "g", log=lambda m: None)
+    rows = [json.loads(l) for l in (tmp_path / "g" / "rounds.jsonl").read_text().splitlines()]
+    return st, rows, chats
+
+
+P = '<params>{{"alpha": {}, "beta": 0, "gamma": 0}}</params>'
+GROUP = " ".join([P.format(0.0), P.format(1.5), P.format(2.0), "<params>{not json}</params>"])
+
+
+def test_group_scored_by_proposer_utility(tmp_path, monkeypatch):
+    # incumbent alpha 2 against a cooperator: cooperating is worth 3 + 2*3 = 9 to it, defecting 5.
+    st, rows, chats = _group_run(tmp_path, monkeypatch, GROUP)
+    d = rows[1]
+    assert [g["status"] for g in d["proposals"]] == ["new", "new", "same", "unparsed"]
+    assert d["candidate"]["alpha"] in (1.5, 2.0) and d["accepted"]  # tied at 9; broken at random
+    assert d["cand_eval"]["judged"][0] == 9.0 and d["cand_eval"]["score"][0] == 3.0
+    assert [g["rank"] for g in d["proposals"]] == [2, 0, 1, None]
+    assert d["proposals"][0]["eval"]["judged"][0] == 5.0           # the defector scores 5 by the incumbent's lights
+    assert st["proposed"] == [3, 0] and st.get("kept", [0, 0]) == [int(d["candidate"]["alpha"] == 2.0), 0]
+    assert sum(1 for c in chats for u in c.users if "candidate parameter settings" not in u and "Current parameters" in u) == 1
+    prompt = d["proposal_prompt"]["user"]
+    assert "exactly 4 candidates" in prompt and "your current utility function" in prompt and "score 9" not in prompt
+    tr = [json.loads(l) for l in (tmp_path / "g" / "transcripts.jsonl").read_text().splitlines()]
+    assert {t["kind"] for t in tr if t["round"] == 1} == {"candidate0", "candidate1", "candidate2"}   # no incumbent eval
+
+
+def test_payoff_fitness_picks_the_defector(tmp_path, monkeypatch):
+    _, rows, _ = _group_run(tmp_path, monkeypatch, GROUP, fitness="payoff")
+    assert rows[1]["candidate"]["alpha"] == 0.0
+    assert rows[1]["cand_eval"]["score"][0] == 5.0    # the chosen candidate's eval, not the last one evaluated
+
+
+def test_comma_adopts_a_worse_candidate_plus_does_not(tmp_path, monkeypatch):
+    worse = " ".join([P.format(0.0), P.format(0.5)])     # both defect: 5 < the incumbent's 9
+    st, rows, _ = _group_run(tmp_path, monkeypatch, worse)
+    assert rows[1]["accepted"] and st["utilities"][0]["alpha"] in (0.0, 0.5)
+    st, rows, _ = _group_run(tmp_path / "plus", monkeypatch, worse, selection="plus")
+    assert not rows[1]["accepted"] and st["utilities"][0]["alpha"] == 2.0
+
+
+def test_proposing_the_incumbent_keeps_it(tmp_path, monkeypatch):
+    st, rows, _ = _group_run(tmp_path, monkeypatch, " ".join([P.format(0.0), P.format(2.0)]))
+    assert rows[1]["candidate"]["alpha"] == 2.0 and st["kept"] == [1, 0]
+
+
+def test_comma_random_and_empty_group(tmp_path, monkeypatch):
+    st, rows, _ = _group_run(tmp_path, monkeypatch, GROUP, selection="comma_random")
+    assert rows[1]["accepted"] and rows[1]["candidate"]["alpha"] in (0.0, 1.5, 2.0)
+    st, rows, _ = _group_run(tmp_path / "empty", monkeypatch, "I would rather not.")
+    assert not rows[1]["accepted"] and rows[1]["proposal_status"] == "unparsed" and st["utilities"][0]["alpha"] == 2.0
+
+
+def test_moves_only_history():
+    from multi_agent_rsi.game import Payoffs
+    p = action_prompt("u", Payoffs(), [("C", "D", 0.0, 5.0)], 5, 10, history_payoffs=False)
+    assert "C,D" in p and "->" not in p and "payoff, their payoff" not in p
+
+
+def test_ties_broken_at_random(tmp_path, monkeypatch):
+    # alpha 1.5 and 2.0 both cooperate and tie at 9; over seeds both must win sometimes
+    winners = set()
+    for seed in range(8):
+        chats = []
+        monkeypatch.setattr(loop, "make_chats", lambda cfg: chats.extend(AlphaChat(a["model"]) for a in loop.agent_specs(cfg)) or chats)
+        AlphaChat.reply = GROUP
+        cfg = {**SOCIAL_CFG, "seed": seed, "utility": {"kind": "social", "alpha": 2.0, "beta": 0.0, "gamma": 0.0},
+               "llm": {"agents": [{"model": "alpha"}, {"model": "coop"}]},
+               "optimizer": {**SOCIAL_CFG["optimizer"], "rounds": 1, "candidates": 4, "group_call": True,
+                             "fitness": "proposer_utility", "selection": "comma"}}
+        winners.add(loop.run(cfg, tmp_path / str(seed), log=lambda m: None)["utilities"][0]["alpha"])
+    assert winners == {1.5, 2.0}
+
+
+def test_indicator_judged_with_announcements():
+    from multi_agent_rsi.utility import IndicatorUtility
+    honest = IndicatorUtility(truth=2.0, lie=-3.0, lied_to=-1.0)
+    history = [("C", "D", 0.0, 5.0)]                        # A announced C and kept it; B announced C and broke it
+    talks = [[{"speaker": "A", "text": "", "announce": "C"}, {"speaker": "B", "text": "", "announce": "C"}]]
+    a, b = loop.judged_score([honest, honest], history, talks)
+    assert a == 0.0 + 2.0 - 1.0 and b == 5.0 - 3.0
+    assert loop.judged_score([honest, honest], history, None) == [0.0, 5.0]   # no conversation: no announcements
+
+
+def _simul_run(tmp_path, monkeypatch, reply, alpha0, **opt):
+    chats = []
+
+    def make(cfg):
+        AlphaChat.reply = reply
+        chats.extend(AlphaChat(a["model"]) for a in loop.agent_specs(cfg))
+        return chats
+    monkeypatch.setattr(loop, "make_chats", make)
+    cfg = {**SOCIAL_CFG, "utility": {"kind": "social", "alpha": alpha0, "beta": 0.0, "gamma": 0.0},
+           "llm": {"agents": [{"model": "alpha"}, {"model": "coop"}]},
+           "optimizer": {**SOCIAL_CFG["optimizer"], "rounds": 1, "schedule": "simultaneous", "candidates": 1,
+                         "group_call": True, "fitness": "proposer_utility", **opt}}
+    st = loop.run(cfg, tmp_path, log=lambda m: None)
+    return st, [json.loads(l) for l in (tmp_path / "rounds.jsonl").read_text().splitlines()[1:]], chats
+
+
+def test_simultaneous_single_proposal_strictly_better(tmp_path, monkeypatch):
+    # incumbent alpha 0.8: A defects against the cooperator, worth 5 to it; the proposal alpha 1.5 makes A
+    # cooperate, worth 3 + 0.8*3 = 5.4 to the incumbent, so A adopts it. B cooperates either way: a tie,
+    # which keeps B's incumbent.
+    st, rows, chats = _simul_run(tmp_path, monkeypatch, P.format(1.5), 0.8, selection="plus", accept_margin=1e-9)
+    assert [(r["round"], r["agent"]) for r in rows] == [(1, 0), (1, 1)]
+    a, b = rows
+    assert a["accepted"] and abs(a["cand_eval"]["judged"][0] - 5.4) < 1e-9 and a["inc_eval"]["judged"][0] == 5.0
+    assert not b["accepted"] and b["cand_eval"]["judged"][1] == b["inc_eval"]["judged"][1]
+    assert [u["alpha"] for u in st["utilities"]] == [1.5, 0.8]
+    assert rows[0]["proposal_prompt"]["system"].endswith("if they tie, you keep your current parameters.")
+    assert "reply KEEP" in rows[0]["proposal_prompt"]["user"] and "exactly" not in rows[0]["proposal_prompt"]["user"]
+
+
+def test_simultaneous_single_proposal_random_adopts(tmp_path, monkeypatch):
+    st, rows, _ = _simul_run(tmp_path, monkeypatch, P.format(0.0), 2.0, selection="comma_random")
+    assert all(r["accepted"] for r in rows) and [u["alpha"] for u in st["utilities"]] == [0.0, 0.0]
+    assert all(r["inc_eval"] is not None for r in rows)   # the incumbent is not evaluated: last eval stands in
+
+
+def test_keep_reply_changes_nothing(tmp_path, monkeypatch):
+    for sel in ("plus", "comma_random"):
+        st, rows, _ = _simul_run(tmp_path / sel, monkeypatch, "KEEP", 0.8, selection=sel, accept_margin=1e-9)
+        assert [r["proposal_status"] for r in rows] == ["keep", "keep"]
+        assert [u["alpha"] for u in st["utilities"]] == [0.8, 0.8]
+
+
+def test_indicator_without_lied_to():
+    from multi_agent_rsi.utility import utility_from_dict, utility_to_dict, with_params
+    u = utility_from_dict({"kind": "indicator", "coop": 0.0, "truth": 0.0, "lie": 0.0, "match": 0.0})
+    assert list(u.params()) == ["coop", "truth", "lie", "match"]
+    assert "lied_to" not in u.describe() and "lied_to" not in u.template()
+    assert u.value("C", "D", 0.0, 5.0, "C", "D") == 0.0                    # the opponent's broken announcement counts for nothing
+    v = with_params(u, {"coop": 9.0, "lied_to": 3.0})
+    assert utility_to_dict(v) == {"kind": "indicator", "coop": 5.0, "truth": 0.0, "lie": 0.0, "match": 0.0}
+    assert utility_from_dict(utility_to_dict(v)) == v
+
+
+def test_per_agent_starting_utility(tmp_path, monkeypatch):
+    chats = []
+    monkeypatch.setattr(loop, "make_chats", lambda cfg: chats.extend(AlphaChat(a["model"]) for a in loop.agent_specs(cfg)) or chats)
+    AlphaChat.reply = "KEEP"
+    cfg = {**SOCIAL_CFG, "utility": {"kind": "social", "alpha": 2.0, "beta": 0.0, "gamma": 0.0},
+           "utility_b": {"kind": "social", "alpha": -1.0, "beta": 0.0, "gamma": 0.0},
+           "llm": {"agents": [{"model": "alpha"}, {"model": "alpha"}]},
+           "optimizer": {**SOCIAL_CFG["optimizer"], "rounds": 1, "group_call": True, "fitness": "proposer_utility"}}
+    st = loop.run(cfg, tmp_path / "ab", log=lambda m: None)
+    base = json.loads((tmp_path / "ab" / "rounds.jsonl").read_text().splitlines()[0])["eval"]
+    assert [u["alpha"] for u in st["utilities"]] == [2.0, -1.0] and base["coop"] == [1.0, 0.0]
+    with pytest.raises(ValueError):
+        loop.run({**cfg, "utility_b": {"kind": "table", "cc": 3, "cd": 0, "dc": 5, "dd": 1}}, tmp_path / "bad", log=lambda m: None)
