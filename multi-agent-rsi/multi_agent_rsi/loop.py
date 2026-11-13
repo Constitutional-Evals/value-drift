@@ -28,6 +28,7 @@ DEFAULT_OPT = {"rounds": 100, "schedule": "alternating", "sigma": 0.3, "eval_rep
                "accept_margin": 0.0, "reevaluate_incumbent": True, "bounds": None,
                "proposal_context": "full",   # or "best_only" / "no_outcomes": what the proposer is shown
                "candidates": 1,              # proposals per round; >1 evaluates each and keeps the best ((1+k)-ES)
+               "show_outcomes": False,       # True: the proposal prompt shows last round's scores and cooperation
                "group_call": False,          # True: one model call proposes all the candidates
                "fitness": "payoff",          # or "proposer_utility": outcomes scored by the proposer's current utility
                "selection": "plus"}          # or "comma": best candidate adopted unconditionally, the incumbent only
@@ -264,7 +265,8 @@ def _propose_in_one_call(i: int, utils: list[Utility], cfg: dict, chats, summary
     opponent_text = utils[1 - i].describe() if _show_opponent(cfg) else None
     prompt = {"system": llm.PARAM_SINGLE_SYSTEM if k == 1 else llm.PARAM_GROUP_SYSTEM,
               "user": llm.param_group_prompt(u, _payoffs(cfg), b, k, opt["fitness"], opponent_text,
-                                             summary.get("conversation"))}
+                                             summary.get("conversation"),
+                                             summary if opt.get("show_outcomes") else None)}
     text = chats[i].complete(prompt["system"], prompt["user"], max_tokens=budget)
     parsed = llm.parse_param_group(text, list(u.params()))[:k]
     if not parsed:

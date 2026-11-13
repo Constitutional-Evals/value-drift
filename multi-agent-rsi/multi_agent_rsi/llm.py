@@ -234,7 +234,8 @@ _GROUP_SCORING = {
 
 
 def param_group_prompt(u, payoffs: Payoffs, bounds: dict, k: int, fitness: str = "proposer_utility",
-                       opponent_text: str | None = None, conversation: list[dict] | None = None) -> str:
+                       opponent_text: str | None = None, conversation: list[dict] | None = None,
+                       outcome: dict | None = None) -> str:
     """One call that proposes k candidates (k = 1: one candidate against the incumbent, KEEP allowed;
     pair with llm.PARAM_SINGLE_SYSTEM). No outcomes of any round are shown: the proposal is a
     function of the current utility (and the opponent's, and the last conversation, if given)."""
@@ -249,7 +250,12 @@ def param_group_prompt(u, payoffs: Payoffs, bounds: dict, k: int, fitness: str =
     if conversation:
         lines.append("The most recent conversation before a game:")
         lines += [f"  {t['speaker']}: {t['text']}" for t in conversation]
-    lines.append("You are not told the moves, payoffs or scores of any earlier round.")
+    if outcome is None:
+        lines.append("You are not told the moves, payoffs or scores of any earlier round.")
+    else:   # optimizer.show_outcomes: the proposer sees how the last round actually went
+        lines.append(f"Last round, from the payoff matrix: your score was {outcome['score']:.2f} per game and the "
+                     f"opponent's was {outcome['other_score']:.2f}; you cooperated {outcome['coop']:.0%} of games, "
+                     f"the opponent {outcome['other_coop']:.0%}.")
     if k == 1:
         lines.append("Either reply KEEP to keep the current parameters, or give one candidate as JSON inside "
                      f"<params>...</params> tags, for example <params>{example}</params>.")

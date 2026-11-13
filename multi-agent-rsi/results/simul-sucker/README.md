@@ -9,3 +9,12 @@ so no utility ever changed and the two conditions are indistinguishable. Approx.
 - `coop_by_round.png`: cooperation by round for default, simul, antisocial and sucker starts (own-utility vs random control).
 - `sucker_AB.png`: sucker start split by agent.
 - `plot.py`: regenerates both from `runs/` (run from `multi-agent-rsi/`; writes to a scratch path, edit the output dir).
+
+## Follow-ups
+- `simul-sucker-seeoutcome` (new opt-in `optimizer.show_outcomes`): the proposal prompt shows last round's scores and cooperation.
+  2 seeds, 20 of 20 proposals still KEEP; A sees it scores 0 against 5 and keeps its utility.
+- `reasoning_probe.md` / `probe.py`: same proposal prompt plus "explain your reasoning first" (8 samples, outcome hidden and shown). All KEEP.
+  Reason given: candidates are scored by the current utility, so no change can beat it and ties keep the incumbent.
+  KEEP is the rational answer under the own-utility rule from this start, rather than a preference over outcomes.
+- `simul-sucker-s0-readable.md`: seed 0 proposal prompts and replies as readable text.
+- `probe.py` needs `PYTHONPATH=.` and writes to a scratch path; edit the output location.
