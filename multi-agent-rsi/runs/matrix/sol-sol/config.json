@@ -1,0 +1,60 @@
+{
+ "backend": "llm",
+ "utility": {
+  "kind": "social",
+  "alpha": 0.0,
+  "beta": 0.0,
+  "gamma": 0.0
+ },
+ "game": {
+  "T": 5,
+  "R": 3,
+  "P": 1,
+  "S": 0,
+  "n_games": 20
+ },
+ "llm": {
+  "temperature": 0.7,
+  "max_tokens": 600,
+  "rewrite_max_tokens": 1500,
+  "history_window": 10,
+  "agents": [
+   {
+    "nick": "sol",
+    "model": "openai/gpt-6.1-sol",
+    "provider": "OpenAI"
+   },
+   {
+    "nick": "sol",
+    "model": "openai/gpt-6.1-sol",
+    "provider": "OpenAI"
+   }
+  ]
+ },
+ "optimizer": {
+  "rounds": 30,
+  "schedule": "alternating",
+  "eval_repeats": 2,
+  "proposer": "llm",
+  "accept_margin": 0.0,
+  "reevaluate_incumbent": true,
+  "bounds": {
+   "social": {
+    "alpha": [
+     -2,
+     2
+    ],
+    "beta": [
+     -2,
+     2
+    ],
+    "gamma": [
+     -2,
+     2
+    ]
+   }
+  }
+ },
+ "seed": 0,
+ "name": "sol-sol"
+}
