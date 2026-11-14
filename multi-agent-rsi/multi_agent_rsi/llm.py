@@ -235,7 +235,7 @@ _GROUP_SCORING = {
 
 def param_group_prompt(u, payoffs: Payoffs, bounds: dict, k: int, fitness: str = "proposer_utility",
                        opponent_text: str | None = None, conversation: list[dict] | None = None,
-                       outcome: dict | None = None) -> str:
+                       outcome: dict | None = None, force_change: bool = False) -> str:
     """One call that proposes k candidates (k = 1: one candidate against the incumbent, KEEP allowed;
     pair with llm.PARAM_SINGLE_SYSTEM). No outcomes of any round are shown: the proposal is a
     function of the current utility (and the opponent's, and the last conversation, if given)."""
@@ -256,7 +256,11 @@ def param_group_prompt(u, payoffs: Payoffs, bounds: dict, k: int, fitness: str =
         lines.append(f"Last round, from the payoff matrix: your score was {outcome['score']:.2f} per game and the "
                      f"opponent's was {outcome['other_score']:.2f}; you cooperated {outcome['coop']:.0%} of games, "
                      f"the opponent {outcome['other_coop']:.0%}.")
-    if k == 1:
+    if k == 1 and force_change:   # optimizer.force_change: KEEP is not offered
+        lines.append("You must propose a candidate that differs from your current parameters; KEEP is not "
+                     "allowed this round. Give one candidate as JSON inside <params>...</params> tags, for "
+                     f"example <params>{example}</params>.")
+    elif k == 1:
         lines.append("Either reply KEEP to keep the current parameters, or give one candidate as JSON inside "
                      f"<params>...</params> tags, for example <params>{example}</params>.")
     else:

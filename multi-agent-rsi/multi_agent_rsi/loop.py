@@ -28,6 +28,8 @@ DEFAULT_OPT = {"rounds": 100, "schedule": "alternating", "sigma": 0.3, "eval_rep
                "accept_margin": 0.0, "reevaluate_incumbent": True, "bounds": None,
                "proposal_context": "full",   # or "best_only" / "no_outcomes": what the proposer is shown
                "candidates": 1,              # proposals per round; >1 evaluates each and keeps the best ((1+k)-ES)
+               "mutation": None,             # {"sigma": s}: the harness proposes incumbent + N(0, s) noise per knob
+               "force_change": False,        # True: KEEP is not offered; the proposer must give a different candidate
                "show_outcomes": False,       # True: the proposal prompt shows last round's scores and cooperation
                "group_call": False,          # True: one model call proposes all the candidates
                "fitness": "payoff",          # or "proposer_utility": outcomes scored by the proposer's current utility
@@ -240,6 +242,21 @@ def propose(i: int, utils: list[Utility], cfg: dict, rng: np.random.Generator, c
     return mutate(u, rng, float(opt["sigma"]), opt.get("bounds")), None, "mutate", None
 
 
+def _mutate(i: int, utils: list[Utility], cfg: dict, rng: np.random.Generator):
+    """optimizer.mutation {"sigma": s}: the proposal is the incumbent plus Gaussian noise on every knob (clipped to
+    the bounds), drawn by the harness; no model call. Returns (proposals, prompt) like propose_group."""
+    opt = _opt(cfg)
+    sigma = float(opt["mutation"]["sigma"])
+    u = utils[i]
+    b = bounds_for(u, opt.get("bounds"))
+    new = {k: float(np.clip(v + rng.normal(0.0, sigma), *b[k])) for k, v in u.params().items()}
+    cand = with_params(u, new, opt.get("bounds"))
+    status = "same" if cand.params() == u.params() else "new"
+    reply = "<mutation>" + json.dumps({k: round(v, 3) for k, v in new.items()}) + "</mutation>"
+    return ([{"candidate": cand, "reply": reply, "status": status}],
+            {"system": "", "user": f"(harness mutation, sigma {sigma:g}; no model call)"})
+
+
 def propose_group(i: int, utils: list[Utility], cfg: dict, rng: np.random.Generator, chats, summary: dict, k: int):
     """k independent proposals for agent i (parallel calls for the llm backend). Returns
     (proposals, prompt): proposals is a list of {"candidate", "reply", "status"} in call order;
@@ -266,7 +283,8 @@ def _propose_in_one_call(i: int, utils: list[Utility], cfg: dict, chats, summary
     prompt = {"system": llm.PARAM_SINGLE_SYSTEM if k == 1 else llm.PARAM_GROUP_SYSTEM,
               "user": llm.param_group_prompt(u, _payoffs(cfg), b, k, opt["fitness"], opponent_text,
                                              summary.get("conversation"),
-                                             summary if opt.get("show_outcomes") else None)}
+                                             summary if opt.get("show_outcomes") else None,
+                                             bool(opt.get("force_change")))}
     text = chats[i].complete(prompt["system"], prompt["user"], max_tokens=budget)
     parsed = llm.parse_param_group(text, list(u.params()))[:k]
     if not parsed:
@@ -355,7 +373,10 @@ def run(cfg: dict, out: Path, resume: bool = False, log=print) -> dict:
                        "other_coop": last["coop"][j], "best_score": state["best"][i],
                        "conversation": state.get("last_conversation")}
             k = int(opt.get("candidates", 1))
-            proposals, prompt = propose_group(i, utils, cfg, rng, chats, summary, k)
+            if opt.get("mutation"):
+                proposals, prompt = _mutate(i, utils, cfg, rng)
+            else:
+                proposals, prompt = propose_group(i, utils, cfg, rng, chats, summary, k)
             comma = opt["selection"] in ("comma", "comma_random")
             if comma:   # KEEP, or values equal to the incumbent's, proposes the incumbent as a candidate
                 for pr in proposals:
